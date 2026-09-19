@@ -33,10 +33,26 @@ GEN_BATCH = 20
 GEN_BATCH_JSON = 10  # JSON states are long; keep responses well under the output cap
 
 SEED_TOPICS = [
-    "a small e-commerce shop", "a hospital scheduling system", "a fintech app", "a university IT desk", "a video game studio",
-    "a logistics company", "a SaaS analytics product", "a city parking authority", "a dental clinic", "a music streaming service",
-    "a home-improvement retailer", "a nonprofit fundraising platform", "a ride-hailing app", "a law firm", "a food delivery service",
-    "an airline", "a cloud hosting provider", "a coworking space", "a language-learning app", "a pet insurance company",
+    "a small e-commerce shop",
+    "a hospital scheduling system",
+    "a fintech app",
+    "a university IT desk",
+    "a video game studio",
+    "a logistics company",
+    "a SaaS analytics product",
+    "a city parking authority",
+    "a dental clinic",
+    "a music streaming service",
+    "a home-improvement retailer",
+    "a nonprofit fundraising platform",
+    "a ride-hailing app",
+    "a law firm",
+    "a food delivery service",
+    "an airline",
+    "a cloud hosting provider",
+    "a coworking space",
+    "a language-learning app",
+    "a pet insurance company",
 ]
 
 
@@ -48,7 +64,7 @@ def _gen_prompt(fam: Family, n: int, rng: random.Random) -> str:
         f"Each STATE must be {fmt}. Vary length, register, difficulty, and domain; draw some from these settings: {', '.join(topics)}. "
         "Include easy, hard, ambiguous, and edge cases in roughly equal measure. Do not include the answer or any labels. "
         "Never use real people's personal details; invent names. "
-        f"The question that will be asked about each state is: \"{fam.instructions}\" — make sure the states exercise every plausible answer.\n"
+        f'The question that will be asked about each state is: "{fam.instructions}" — make sure the states exercise every plausible answer.\n'
         'Output a JSON object {"states": [ ... ]} and nothing else.'
     )
 

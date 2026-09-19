@@ -43,7 +43,12 @@ TRIAGE = {
         "urgency": {
             "type": "score",
             "instructions": "How urgent is this?",
-            "criteria": ["Low: cosmetic or a question; can wait a week", "Medium: a workaround exists; this week", "High: blocks important work; today", "Critical: outage, data loss, or security; now"],
+            "criteria": [
+                "Low: cosmetic or a question; can wait a week",
+                "Medium: a workaround exists; this week",
+                "High: blocks important work; today",
+                "Critical: outage, data loss, or security; now",
+            ],
         },
         "angry": {
             "type": "noul",
@@ -72,12 +77,18 @@ REDACT = {
         "pii": {
             "type": "noul",
             "instructions": "Does this text contain personally identifiable information about a private individual?",
-            "criteria": {"true": "Email, phone, home address, government ID, card number, or a name combined with such details", "false": "No PII, or only public/business information"},
+            "criteria": {
+                "true": "Email, phone, home address, government ID, card number, or a name combined with such details",
+                "false": "No PII, or only public/business information",
+            },
         },
         "business": {
             "type": "noul",
             "instructions": "Are all the identifying details in this text about a business or public organization rather than a private person?",
-            "criteria": {"true": "Company names, business addresses, support lines, public figures only", "false": "At least one detail belongs to a private individual"},
+            "criteria": {
+                "true": "Company names, business addresses, support lines, public figures only",
+                "false": "At least one detail belongs to a private individual",
+            },
         },
     },
     "gates": {
@@ -101,10 +112,26 @@ REDACT = {
 #    `days_since_purchase`: the model is not asked to subtract dates.
 REFUND = {
     "questions": {
-        "elig_a": {"type": "choice", "instructions": "Under `policy`, is this refund request eligible?", "criteria": {"eligible": "Every condition in the policy is met", "not_eligible": "At least one condition is not met"}},
-        "elig_b": {"type": "choice", "instructions": "Would a careful support agent approve this refund strictly following `policy`?", "criteria": {"eligible": "Yes, approve", "not_eligible": "No, decline"}},
-        "elig_c": {"type": "choice", "instructions": "Check `days_since_purchase` against the policy window, and `reason`/`item_condition` against the policy's exclusions. Does the request comply?", "criteria": {"eligible": "Complies on every point", "not_eligible": "Fails at least one point"}},
-        "excluded": {"type": "noul", "instructions": "Does `policy` explicitly exclude the customer's stated `reason` or `item_condition`?", "criteria": {"true": "The policy names this reason or condition as not refundable", "false": "The policy does not exclude it"}},
+        "elig_a": {
+            "type": "choice",
+            "instructions": "Under `policy`, is this refund request eligible?",
+            "criteria": {"eligible": "Every condition in the policy is met", "not_eligible": "At least one condition is not met"},
+        },
+        "elig_b": {
+            "type": "choice",
+            "instructions": "Would a careful support agent approve this refund strictly following `policy`?",
+            "criteria": {"eligible": "Yes, approve", "not_eligible": "No, decline"},
+        },
+        "elig_c": {
+            "type": "choice",
+            "instructions": "Check `days_since_purchase` against the policy window, and `reason`/`item_condition` against the policy's exclusions. Does the request comply?",
+            "criteria": {"eligible": "Complies on every point", "not_eligible": "Fails at least one point"},
+        },
+        "excluded": {
+            "type": "noul",
+            "instructions": "Does `policy` explicitly exclude the customer's stated `reason` or `item_condition`?",
+            "criteria": {"true": "The policy names this reason or condition as not refundable", "false": "The policy does not exclude it"},
+        },
     },
     "gates": {
         "vote": {"op": "majority", "inputs": ["elig_a", "elig_b", "elig_c"], "min_confidence": 0.6, "on_uncertain": "escalate"},
@@ -113,9 +140,27 @@ REFUND = {
         "approve": {"op": "and", "inputs": ["vote:eligible", "not_excluded", "in_window"], "tau": 0.6, "band": 0.1, "on_uncertain": "escalate"},
     },
     "states": [
-        {"policy": "Full refund within 30 days of purchase for unopened items. Opened software and gift cards are not refundable.", "purchase_date": "2026-08-30", "request_date": "2026-09-12", "reason": "Ordered the wrong edition", "item_condition": "unopened, shrink-wrap intact"},
-        {"policy": "Full refund within 30 days of purchase for unopened items. Opened software and gift cards are not refundable.", "purchase_date": "2026-07-01", "request_date": "2026-09-12", "reason": "Never used it", "item_condition": "unopened"},
-        {"policy": "Full refund within 30 days of purchase for unopened items. Opened software and gift cards are not refundable.", "purchase_date": "2026-09-05", "request_date": "2026-09-12", "reason": "Didn't like it", "item_condition": "opened, license key activated"},
+        {
+            "policy": "Full refund within 30 days of purchase for unopened items. Opened software and gift cards are not refundable.",
+            "purchase_date": "2026-08-30",
+            "request_date": "2026-09-12",
+            "reason": "Ordered the wrong edition",
+            "item_condition": "unopened, shrink-wrap intact",
+        },
+        {
+            "policy": "Full refund within 30 days of purchase for unopened items. Opened software and gift cards are not refundable.",
+            "purchase_date": "2026-07-01",
+            "request_date": "2026-09-12",
+            "reason": "Never used it",
+            "item_condition": "unopened",
+        },
+        {
+            "policy": "Full refund within 30 days of purchase for unopened items. Opened software and gift cards are not refundable.",
+            "purchase_date": "2026-09-05",
+            "request_date": "2026-09-12",
+            "reason": "Didn't like it",
+            "item_condition": "opened, license key activated",
+        },
     ],
 }
 
@@ -128,7 +173,13 @@ MODERATE = {
         "outcome": {
             "type": "choice",
             "instructions": "Which moderation outcome applies to this post?",
-            "criteria": {"allow": "Ordinary post within the rules", "remove_spam": "Unsolicited promotion, link farming, or repetitive content", "remove_harassment": "Insults, threats, or targeting of a person or group", "off_topic": "On-rules but belongs in a different forum", "needs_human": "Genuinely ambiguous; a moderator should decide"},
+            "criteria": {
+                "allow": "Ordinary post within the rules",
+                "remove_spam": "Unsolicited promotion, link farming, or repetitive content",
+                "remove_harassment": "Insults, threats, or targeting of a person or group",
+                "off_topic": "On-rules but belongs in a different forum",
+                "needs_human": "Genuinely ambiguous; a moderator should decide",
+            },
         },
         "clean": {
             "type": "noul",

@@ -92,7 +92,9 @@ def test_json_state_is_rendered_pretty():
 
 def test_structured_criteria_render_as_json():
     crit = {"a": {"covers": "x", "excludes": "y"}, "b": None}
-    q = SystemOneRequest.model_validate({"state": "s", "model": "m", "questions": {"q": {"type": "choice", "instructions": ["step 1", "step 2"], "criteria": crit}}})
+    q = SystemOneRequest.model_validate(
+        {"state": "s", "model": "m", "questions": {"q": {"type": "choice", "instructions": ["step 1", "step 2"], "criteria": crit}}}
+    )
     p = render(q.state, q.questions["q"])
     assert 'A. a — {"covers": "x", "excludes": "y"}' in p.text
     assert "B. b\n" in p.text

@@ -92,7 +92,12 @@ FAMILIES: list[Family] = [
         kind="score",
         state_brief="a message from a customer to a company (1-3 sentences), ranging from calm to furious, including passive-aggressive and resigned tones",
         instructions="How frustrated is the customer?",
-        criteria=["Calm: neutral or friendly, no complaint energy", "Annoyed: mild irritation, still polite", "Frustrated: clearly upset, demanding a fix", "Angry: hostile, threatening to leave or escalate"],
+        criteria=[
+            "Calm: neutral or friendly, no complaint energy",
+            "Annoyed: mild irritation, still polite",
+            "Frustrated: clearly upset, demanding a fix",
+            "Angry: hostile, threatening to leave or escalate",
+        ],
     ),
     # --- urgency / priority -------------------------------------------------
     Family(
@@ -100,7 +105,12 @@ FAMILIES: list[Family] = [
         kind="score",
         state_brief="a JSON object with `title`, `body`, `customer_tier` (free|pro|enterprise) and `affected_users` (integer) describing an issue report",
         instructions="How urgent is this ticket?",
-        criteria=["Low: cosmetic or a question; can wait a week", "Medium: a workaround exists; this week", "High: blocks important work for some users; today", "Critical: outage, data loss, or security; now"],
+        criteria=[
+            "Low: cosmetic or a question; can wait a week",
+            "Medium: a workaround exists; this week",
+            "High: blocks important work for some users; today",
+            "Critical: outage, data loss, or security; now",
+        ],
         state_format="json",
     ),
     Family(
@@ -108,7 +118,10 @@ FAMILIES: list[Family] = [
         kind="noul",
         state_brief="a short message (chat, email, or SMS) that may or may not be time-sensitive; vary explicit deadlines, implied urgency, and false urgency (marketing)",
         instructions="Does this message require action within the next few hours?",
-        criteria={"true": "Delay of a few hours would cause real harm or a missed commitment", "false": "It can wait until tomorrow or later without consequence"},
+        criteria={
+            "true": "Delay of a few hours would cause real harm or a missed commitment",
+            "false": "It can wait until tomorrow or later without consequence",
+        },
     ),
     # --- policy / safety checks -------------------------------------------------
     Family(
@@ -116,7 +129,10 @@ FAMILIES: list[Family] = [
         kind="noul",
         state_brief="a snippet of text (log line, form submission, chat message, or note) that may contain personal data such as full names with addresses, phone numbers, emails, SSNs, card numbers; include tricky negatives like order IDs and public company info",
         instructions="Does this text contain personally identifiable information about a private individual?",
-        criteria={"true": "Contains PII (email, phone, home address, government ID, card number, or a name combined with such details)", "false": "No PII, or only public/business information"},
+        criteria={
+            "true": "Contains PII (email, phone, home address, government ID, card number, or a name combined with such details)",
+            "false": "No PII, or only public/business information",
+        },
     ),
     Family(
         key="content_policy",
@@ -169,7 +185,12 @@ FAMILIES: list[Family] = [
         kind="score",
         state_brief="a JSON object describing a pull request: `title`, `summary` (2-3 sentences), `files_changed` (list of paths), `lines_added`, `lines_removed`, `touches_migration` (bool), `has_tests` (bool)",
         instructions="How risky is merging this PR?",
-        criteria=["Trivial: docs, comments, formatting", "Low: small, tested, isolated change", "Moderate: touches shared code or lacks tests", "High: schema/migration, auth, payments, or large untested change"],
+        criteria=[
+            "Trivial: docs, comments, formatting",
+            "Low: small, tested, isolated change",
+            "Moderate: touches shared code or lacks tests",
+            "High: schema/migration, auth, payments, or large untested change",
+        ],
         state_format="json",
     ),
     # --- language / semantics -------------------------------------------------
@@ -178,7 +199,11 @@ FAMILIES: list[Family] = [
         kind="choice",
         state_brief="a JSON object with `premise` (1-2 sentences) and `hypothesis` (1 sentence); balanced across entailment, contradiction, and neutral, with some subtle cases",
         instructions="Given `premise`, what is the status of `hypothesis`?",
-        criteria={"entailed": "The hypothesis must be true if the premise is true", "contradicted": "The hypothesis must be false if the premise is true", "neutral": "The premise does not settle it"},
+        criteria={
+            "entailed": "The hypothesis must be true if the premise is true",
+            "contradicted": "The hypothesis must be false if the premise is true",
+            "neutral": "The premise does not settle it",
+        },
         state_format="json",
     ),
     Family(
@@ -186,7 +211,12 @@ FAMILIES: list[Family] = [
         kind="choice",
         state_brief="a single sentence that is a checkable factual claim, a personal opinion, a prediction, or a question",
         instructions="What kind of statement is this?",
-        criteria={"fact_claim": "A claim about the world that could be checked", "opinion": "A preference, judgment, or feeling", "prediction": "A claim about the future", "question": "It asks rather than asserts"},
+        criteria={
+            "fact_claim": "A claim about the world that could be checked",
+            "opinion": "A preference, judgment, or feeling",
+            "prediction": "A claim about the future",
+            "question": "It asks rather than asserts",
+        },
     ),
     Family(
         key="same_place",
@@ -202,7 +232,13 @@ FAMILIES: list[Family] = [
         kind="choice",
         state_brief="a JSON object with `merchant`, `amount`, `memo` (may be empty), `date` describing a business expense",
         instructions="Which expense category does this belong to?",
-        criteria={"travel": "Flights, hotels, taxis, mileage", "meals": "Restaurants, coffee, client dinners", "software": "Subscriptions, licenses, cloud", "equipment": "Hardware, furniture, supplies", "other": "Anything else"},
+        criteria={
+            "travel": "Flights, hotels, taxis, mileage",
+            "meals": "Restaurants, coffee, client dinners",
+            "software": "Subscriptions, licenses, cloud",
+            "equipment": "Hardware, furniture, supplies",
+            "other": "Anything else",
+        },
         state_format="json",
         heldout=True,
     ),
@@ -211,7 +247,12 @@ FAMILIES: list[Family] = [
         kind="score",
         state_brief="a JSON object with `task` (1-2 sentence description), `estimate_hours` (int), `deadline_days` (int), `team_size` (int), `dependencies` (list of strings, may be empty)",
         instructions="How realistic is meeting this deadline?",
-        criteria=["Unrealistic: cannot be done in the time even with heroics", "Tight: possible only if nothing goes wrong", "Reasonable: normal effort with some slack", "Comfortable: plenty of slack"],
+        criteria=[
+            "Unrealistic: cannot be done in the time even with heroics",
+            "Tight: possible only if nothing goes wrong",
+            "Reasonable: normal effort with some slack",
+            "Comfortable: plenty of slack",
+        ],
         state_format="json",
         heldout=True,
     ),
@@ -220,7 +261,10 @@ FAMILIES: list[Family] = [
         kind="noul",
         state_brief="a JSON object with `source` (a 2-4 sentence passage) and `claim` (1 sentence); half of the claims are supported by the source, half are not (contradicted, unmentioned, or overstated)",
         instructions="Is `claim` supported by `source`?",
-        criteria={"true": "The source states or directly implies the claim", "false": "The source contradicts it, doesn't mention it, or the claim overstates it"},
+        criteria={
+            "true": "The source states or directly implies the claim",
+            "false": "The source contradicts it, doesn't mention it, or the claim overstates it",
+        },
         state_format="json",
         heldout=True,
     ),
@@ -229,7 +273,13 @@ FAMILIES: list[Family] = [
         kind="choice",
         state_brief="a single application log line (with timestamp, level may be missing or wrong, message text) from a web service",
         instructions="What severity does this log line actually describe?",
-        criteria={"debug": "Developer detail, no operational meaning", "info": "Normal operation", "warning": "Degraded but working; may need attention", "error": "An operation failed", "critical": "Service-wide failure or data loss"},
+        criteria={
+            "debug": "Developer detail, no operational meaning",
+            "info": "Normal operation",
+            "warning": "Degraded but working; may need attention",
+            "error": "An operation failed",
+            "critical": "Service-wide failure or data loss",
+        },
         heldout=True,
     ),
     Family(

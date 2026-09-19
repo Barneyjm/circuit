@@ -62,7 +62,14 @@ def main() -> None:
             parts = line.rstrip("\n").split("\t")
             if len(parts) < 2 or not parts[0]:
                 continue
-            labels.append({"item": parts[0].split("@")[0], "v": int(parts[0].split("@")[1]) if "@" in parts[0] else 1, "answer": None if parts[1] == "-" else parts[1], "unsure": len(parts) > 2 and parts[2] == "unsure"})
+            labels.append(
+                {
+                    "item": parts[0].split("@")[0],
+                    "v": int(parts[0].split("@")[1]) if "@" in parts[0] else 1,
+                    "answer": None if parts[1] == "-" else parts[1],
+                    "unsure": len(parts) > 2 and parts[2] == "unsure",
+                }
+            )
     else:
         labels = json.loads(raw)
         if isinstance(labels, dict):
@@ -90,7 +97,9 @@ def main() -> None:
         for name in ("jev", "gemini"):
             confs = [max(items[i]["refs"][name].values()) for i in ids]
             corr = [am(items[i]["refs"][name]) == human[i]["answer"] for i in ids]
-            print(f"  {name:6} calibration vs human: mean stated conf {sum(confs) / len(confs):.3f}  hit rate {sum(corr) / len(corr):.3f}  ECE {ece15(confs, corr):.3f}")
+            print(
+                f"  {name:6} calibration vs human: mean stated conf {sum(confs) / len(confs):.3f}  hit rate {sum(corr) / len(corr):.3f}  ECE {ece15(confs, corr):.3f}"
+            )
         for kind in ("noul", "choice", "score"):
             k_ids = [i for i in ids if items[i]["kind"] == kind]
             if k_ids:

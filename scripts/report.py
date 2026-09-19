@@ -1,6 +1,6 @@
 """Tabulate results/set_*.json into markdown for the writeups.
 
-    uv run python scripts/report.py results/set_8B_raw.json results/set_8B_temps.json ...
+uv run python scripts/report.py results/set_8B_raw.json results/set_8B_temps.json ...
 """
 
 from __future__ import annotations

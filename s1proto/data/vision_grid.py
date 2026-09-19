@@ -33,7 +33,23 @@ from typing import Any
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 STORES = ["Hofer", "Northside Market", "Blue Fern Grocery", "Quickmart", "Harbor Foods", "Cedar & Co", "Daily Basket"]
-ITEMS = ["Milk 1L", "Bread", "Eggs 12", "Coffee 250g", "Bananas", "Yogurt", "Pasta 500g", "Tomatoes", "Cheese", "Rice 1kg", "Apples", "Butter", "Juice", "Chicken", "Chocolate"]
+ITEMS = [
+    "Milk 1L",
+    "Bread",
+    "Eggs 12",
+    "Coffee 250g",
+    "Bananas",
+    "Yogurt",
+    "Pasta 500g",
+    "Tomatoes",
+    "Cheese",
+    "Rice 1kg",
+    "Apples",
+    "Butter",
+    "Juice",
+    "Chicken",
+    "Chocolate",
+]
 COLORS = {"red": (214, 69, 65), "blue": (52, 120, 210), "green": (60, 160, 90), "yellow": (240, 200, 60), "purple": (140, 90, 190), "orange": (240, 140, 50)}
 SHAPES = ["circle", "square", "triangle"]
 FIELDS = ["Name", "Date", "Order ID", "Amount", "City", "Status"]
@@ -41,7 +57,12 @@ CHART_KINDS = ["bar chart", "line chart", "pie chart", "table"]
 
 
 def _font(size: int) -> ImageFont.ImageFont:
-    for p in ["/System/Library/Fonts/Supplemental/Menlo.ttc", "/System/Library/Fonts/Menlo.ttc", "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf", "/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf"]:
+    for p in [
+        "/System/Library/Fonts/Supplemental/Menlo.ttc",
+        "/System/Library/Fonts/Menlo.ttc",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf",
+    ]:
         try:
             return ImageFont.truetype(p, size)
         except OSError:
@@ -82,15 +103,22 @@ def render_receipt(rng: random.Random) -> tuple[Image.Image, dict[str, Any]]:
     store = rng.choice(STORES)
     card = rng.random() < 0.6
     W, H = 420, 160 + 28 * n + 120
-    im = Image.new("RGB", (W, H), (250, 248, 242)); d = ImageDraw.Draw(im)
+    im = Image.new("RGB", (W, H), (250, 248, 242))
+    d = ImageDraw.Draw(im)
     f, fb = _font(20), _font(24)
     d.text((W / 2 - d.textlength(store, font=fb) / 2, 24), store, font=fb, fill=(20, 20, 20))
     d.text((30, 64), f"{rng.randint(1, 28):02d}.{rng.randint(1, 12):02d}.2026  {rng.randint(8, 21):02d}:{rng.randint(0, 59):02d}", font=f, fill=(60, 60, 60))
     y = 110
     for name, price in rows:
-        d.text((30, y), name, font=f, fill=(20, 20, 20)); s = f"{price:.2f}"; d.text((W - 30 - d.textlength(s, font=f), y), s, font=f, fill=(20, 20, 20)); y += 28
-    d.line([(30, y + 6), (W - 30, y + 6)], fill=(120, 120, 120), width=2); y += 18
-    d.text((30, y), "TOTAL", font=fb, fill=(20, 20, 20)); s = f"{total:.2f}"; d.text((W - 30 - d.textlength(s, font=fb), y), s, font=fb, fill=(20, 20, 20))
+        d.text((30, y), name, font=f, fill=(20, 20, 20))
+        s = f"{price:.2f}"
+        d.text((W - 30 - d.textlength(s, font=f), y), s, font=f, fill=(20, 20, 20))
+        y += 28
+    d.line([(30, y + 6), (W - 30, y + 6)], fill=(120, 120, 120), width=2)
+    y += 18
+    d.text((30, y), "TOTAL", font=fb, fill=(20, 20, 20))
+    s = f"{total:.2f}"
+    d.text((W - 30 - d.textlength(s, font=fb), y), s, font=fb, fill=(20, 20, 20))
     total_box = (W - 200, y - 4, W - 20, y + 30)
     y += 44
     d.text((30, y), "PAID: " + ("VISA ****" + str(rng.randint(1000, 9999)) if card else "CASH"), font=f, fill=(60, 60, 60))
@@ -102,11 +130,14 @@ def render_chart(rng: random.Random) -> tuple[Image.Image, dict[str, Any]]:
     labels = rng.sample(["Q1", "Q2", "Q3", "Q4", "North", "South", "East", "West", "2023", "2024", "2025", "2026"], k)
     vals = rng.sample(range(10, 100), k)
     W, H = 520, 340
-    im = Image.new("RGB", (W, H), (255, 255, 255)); d = ImageDraw.Draw(im); f = _font(16)
+    im = Image.new("RGB", (W, H), (255, 255, 255))
+    d = ImageDraw.Draw(im)
+    f = _font(16)
     d.line([(60, 20), (60, 280), (500, 280)], fill=(40, 40, 40), width=2)
     bw = 380 // k
     for i, (lab, v) in enumerate(zip(labels, vals, strict=True)):
-        x0 = 70 + i * bw; h = int(v * 2.4)
+        x0 = 70 + i * bw
+        h = int(v * 2.4)
         d.rectangle([x0, 280 - h, x0 + bw - 14, 280], fill=rng.choice(list(COLORS.values())))
         d.text((x0 + (bw - 14) / 2 - d.textlength(lab, font=f) / 2, 288), lab, font=f, fill=(40, 40, 40))
         d.text((x0 + (bw - 14) / 2 - d.textlength(str(v), font=f) / 2, 280 - h - 20), str(v), font=f, fill=(40, 40, 40))
@@ -117,28 +148,43 @@ def render_table(rng: random.Random) -> tuple[Image.Image, dict[str, Any]]:
     n = rng.randint(3, 7)
     rows = [(rng.choice(ITEMS), round(rng.uniform(1, 30), 2), rng.random() < 0.4) for _ in range(n)]
     W, H = 460, 60 + 34 * (n + 1)
-    im = Image.new("RGB", (W, H), (255, 255, 255)); d = ImageDraw.Draw(im); f = _font(17)
+    im = Image.new("RGB", (W, H), (255, 255, 255))
+    d = ImageDraw.Draw(im)
+    f = _font(17)
     cols = [30, 230, 340]
     for x, h in zip(cols, ["Item", "Price", "Flagged"], strict=True):
         d.text((x, 24), h, font=f, fill=(20, 20, 20))
     d.line([(20, 52), (W - 20, 52)], fill=(90, 90, 90), width=2)
     for i, (name, price, flag) in enumerate(rows):
         y = 64 + i * 34
-        d.text((cols[0], y), name, font=f, fill=(20, 20, 20)); d.text((cols[1], y), f"${price:.2f}", font=f, fill=(20, 20, 20)); d.text((cols[2], y), "YES" if flag else "no", font=f, fill=(180, 30, 30) if flag else (90, 90, 90))
+        d.text((cols[0], y), name, font=f, fill=(20, 20, 20))
+        d.text((cols[1], y), f"${price:.2f}", font=f, fill=(20, 20, 20))
+        d.text((cols[2], y), "YES" if flag else "no", font=f, fill=(180, 30, 30) if flag else (90, 90, 90))
         d.line([(20, y + 28), (W - 20, y + 28)], fill=(220, 220, 220), width=1)
     return im, {"rows": rows}
 
 
 def render_form(rng: random.Random) -> tuple[Image.Image, dict[str, Any]]:
-    vals = {"Name": rng.choice(["Priya Raman", "Marcus Hale", "Elena Vidal", "Kenji Sato", "Nora Flynn"]), "Date": f"2026-{rng.randint(1, 12):02d}-{rng.randint(1, 28):02d}", "Order ID": f"ORD-{rng.randint(10000, 99999)}", "Amount": f"${rng.randint(10, 900)}.{rng.randint(0, 99):02d}", "City": rng.choice(["Austin", "Lisbon", "Osaka", "Denver", "Dublin"]), "Status": rng.choice(["Delivered", "Shipped", "Processing"])}
+    vals = {
+        "Name": rng.choice(["Priya Raman", "Marcus Hale", "Elena Vidal", "Kenji Sato", "Nora Flynn"]),
+        "Date": f"2026-{rng.randint(1, 12):02d}-{rng.randint(1, 28):02d}",
+        "Order ID": f"ORD-{rng.randint(10000, 99999)}",
+        "Amount": f"${rng.randint(10, 900)}.{rng.randint(0, 99):02d}",
+        "City": rng.choice(["Austin", "Lisbon", "Osaka", "Denver", "Dublin"]),
+        "Status": rng.choice(["Delivered", "Shipped", "Processing"]),
+    }
     checks = {"Gift wrap": rng.random() < 0.5, "Express": rng.random() < 0.5, "Insured": rng.random() < 0.5}
     W, H = 480, 380
-    im = Image.new("RGB", (W, H), (252, 252, 250)); d = ImageDraw.Draw(im); f, fb = _font(17), _font(20)
+    im = Image.new("RGB", (W, H), (252, 252, 250))
+    d = ImageDraw.Draw(im)
+    f, fb = _font(17), _font(20)
     d.text((30, 20), "ORDER FORM", font=fb, fill=(20, 20, 20))
     boxes = {}
     for i, k in enumerate(FIELDS):
         y = 64 + i * 38
-        d.text((30, y), k + ":", font=f, fill=(90, 90, 90)); d.rectangle([160, y - 4, 440, y + 24], outline=(170, 170, 170)); d.text((168, y), vals[k], font=f, fill=(20, 20, 20))
+        d.text((30, y), k + ":", font=f, fill=(90, 90, 90))
+        d.rectangle([160, y - 4, 440, y + 24], outline=(170, 170, 170))
+        d.text((168, y), vals[k], font=f, fill=(20, 20, 20))
         boxes[k] = (160, y - 4, 440, y + 24)
     for i, (k, on) in enumerate(checks.items()):
         y = 300 + i * 26
@@ -151,7 +197,8 @@ def render_form(rng: random.Random) -> tuple[Image.Image, dict[str, Any]]:
 
 def render_scene(rng: random.Random) -> tuple[Image.Image, dict[str, Any]]:
     W, H = 480, 360
-    im = Image.new("RGB", (W, H), (245, 245, 240)); d = ImageDraw.Draw(im)
+    im = Image.new("RGB", (W, H), (245, 245, 240))
+    d = ImageDraw.Draw(im)
     n = rng.randint(2, 9)
     placed = []
     counts: dict[tuple[str, str], int] = {}
@@ -182,14 +229,17 @@ def cell_receipt_extract(rng: random.Random) -> VItem:
     amb = rng.random() < 0.08
     if which == "total":
         wrong = [f"{meta['total'] + rng.choice([-5.0, 3.1, 10.0]):.2f}", f"{meta['total'] * 0.9:.2f}", f"{meta['rows'][0][1]:.2f}"]
-        opts = [f"{meta['total']:.2f}", *wrong, "Cannot tell"]; rng.shuffle(opts)
+        opts = [f"{meta['total']:.2f}", *wrong, "Cannot tell"]
+        rng.shuffle(opts)
         if amb:
             im = blur(im, meta["total_box"], 8)
         q = {"type": "choice", "instructions": "What is the total on the receipt?", "criteria": {o: None for o in opts}}
-        ref = {o: 0.0 for o in opts}; ref["Cannot tell" if amb else f"{meta['total']:.2f}"] = 1.0
+        ref = {o: 0.0 for o in opts}
+        ref["Cannot tell" if amb else f"{meta['total']:.2f}"] = 1.0
         return VItem("extract/receipt", "choice", im, None, q, ref, amb)
     if which == "store":
-        opts = [meta["store"], *rng.sample([s for s in STORES if s != meta["store"]], 3)]; rng.shuffle(opts)
+        opts = [meta["store"], *rng.sample([s for s in STORES if s != meta["store"]], 3)]
+        rng.shuffle(opts)
         q = {"type": "choice", "instructions": "Which store issued this receipt?", "criteria": {o: None for o in opts}}
         return VItem("extract/receipt", "choice", im, None, q, onehot(opts, meta["store"]))
     q = {"type": "noul", "instructions": "Was this receipt paid by card?", "criteria": {"true": "A card payment line is shown", "false": "Paid in cash"}}
@@ -216,11 +266,14 @@ def cell_chart_compare(rng: random.Random) -> VItem:
 
 def render_chart_with(rng: random.Random, labels: list[str], vals: list[int]) -> Image.Image:
     W, H = 520, 340
-    im = Image.new("RGB", (W, H), (255, 255, 255)); d = ImageDraw.Draw(im); f = _font(16)
+    im = Image.new("RGB", (W, H), (255, 255, 255))
+    d = ImageDraw.Draw(im)
+    f = _font(16)
     d.line([(60, 20), (60, 280), (500, 280)], fill=(40, 40, 40), width=2)
     bw = 380 // len(labels)
     for i, (lab, v) in enumerate(zip(labels, vals, strict=True)):
-        x0 = 70 + i * bw; h = int(v * 2.4)
+        x0 = 70 + i * bw
+        h = int(v * 2.4)
         d.rectangle([x0, 280 - h, x0 + bw - 14, 280], fill=rng.choice(list(COLORS.values())))
         d.text((x0 + (bw - 14) / 2 - d.textlength(lab, font=f) / 2, 288), lab, font=f, fill=(40, 40, 40))
         d.text((x0 + (bw - 14) / 2 - d.textlength(str(v), font=f) / 2, 280 - h - 20), str(v), font=f, fill=(40, 40, 40))
@@ -230,9 +283,11 @@ def render_chart_with(rng: random.Random, labels: list[str], vals: list[int]) ->
 def cell_table_count(rng: random.Random) -> VItem:
     im, meta = render_table(rng)
     if rng.random() < 0.5:
-        k = sum(1 for _, _, flag in meta["rows"] if flag); q_text = "How many rows are flagged?"
+        k = sum(1 for _, _, flag in meta["rows"] if flag)
+        q_text = "How many rows are flagged?"
     else:
-        k = sum(1 for _, price, _ in meta["rows"] if price > 10); q_text = "How many items cost more than $10?"
+        k = sum(1 for _, price, _ in meta["rows"] if price > 10)
+        q_text = "How many items cost more than $10?"
     q = {"type": "score", "instructions": q_text, "criteria": ["0", "1", "2", "3 or more"]}
     return VItem("count/table", "score", im, None, q, onehot(["0", "1", "2", "3"], str(min(k, 3))))
 
@@ -252,10 +307,19 @@ def cell_form_read(rng: random.Random) -> VItem:
     amb = rng.random() < 0.08
     if amb:
         im = blur(im, meta["boxes"][field], 7)
-    decoys = {"Name": ["Priya Raman", "Marcus Hale", "Elena Vidal", "Kenji Sato", "Nora Flynn"], "Date": [f"2026-{rng.randint(1, 12):02d}-{rng.randint(1, 28):02d}" for _ in range(6)], "Order ID": [f"ORD-{rng.randint(10000, 99999)}" for _ in range(6)], "Amount": [f"${rng.randint(10, 900)}.{rng.randint(0, 99):02d}" for _ in range(6)], "City": ["Austin", "Lisbon", "Osaka", "Denver", "Dublin"], "Status": ["Delivered", "Shipped", "Processing"]}[field]
-    opts = [truth, *[x for x in decoys if x != truth][:3], "Cannot tell"]; rng.shuffle(opts)
+    decoys = {
+        "Name": ["Priya Raman", "Marcus Hale", "Elena Vidal", "Kenji Sato", "Nora Flynn"],
+        "Date": [f"2026-{rng.randint(1, 12):02d}-{rng.randint(1, 28):02d}" for _ in range(6)],
+        "Order ID": [f"ORD-{rng.randint(10000, 99999)}" for _ in range(6)],
+        "Amount": [f"${rng.randint(10, 900)}.{rng.randint(0, 99):02d}" for _ in range(6)],
+        "City": ["Austin", "Lisbon", "Osaka", "Denver", "Dublin"],
+        "Status": ["Delivered", "Shipped", "Processing"],
+    }[field]
+    opts = [truth, *[x for x in decoys if x != truth][:3], "Cannot tell"]
+    rng.shuffle(opts)
     q = {"type": "choice", "instructions": f"What is written in the {field} field?", "criteria": {o: None for o in opts}}
-    ref = {o: 0.0 for o in opts}; ref["Cannot tell" if amb else truth] = 1.0
+    ref = {o: 0.0 for o in opts}
+    ref["Cannot tell" if amb else truth] = 1.0
     return VItem("read/form", "choice", im, None, q, ref, amb)
 
 
@@ -263,9 +327,17 @@ def cell_form_consistency(rng: random.Random) -> VItem:
     im, meta = render_form(rng)
     field = rng.choice(FIELDS)
     consistent = rng.random() < 0.5
-    claim_val = meta["vals"][field] if consistent else {"Name": "Sam Okoro", "Date": "2025-11-30", "Order ID": "ORD-00001", "Amount": "$1.00", "City": "Perth", "Status": "Cancelled"}[field]
+    claim_val = (
+        meta["vals"][field]
+        if consistent
+        else {"Name": "Sam Okoro", "Date": "2025-11-30", "Order ID": "ORD-00001", "Amount": "$1.00", "City": "Perth", "Status": "Cancelled"}[field]
+    )
     caption = f"Customer claim: the {field.lower()} on my order was {claim_val}."
-    q = {"type": "noul", "instructions": "Is the customer's claim consistent with the form?", "criteria": {"true": "The form shows the claimed value", "false": "The form shows something else"}}
+    q = {
+        "type": "noul",
+        "instructions": "Is the customer's claim consistent with the form?",
+        "criteria": {"true": "The form shows the claimed value", "false": "The form shows something else"},
+    }
     return VItem("consistency/form", "noul", im, caption, q, noul(1.0 if consistent else 0.0))
 
 
@@ -274,7 +346,11 @@ def cell_receipt_consistency(rng: random.Random) -> VItem:
     consistent = rng.random() < 0.5
     item = rng.choice(meta["rows"])[0] if consistent else rng.choice([i for i in ITEMS if i not in {r[0] for r in meta["rows"]}])
     caption = f"Customer claim: I bought {item} at {meta['store']}."
-    q = {"type": "noul", "instructions": "Does the receipt support the customer's claim?", "criteria": {"true": "The item and store both appear", "false": "The item is not on the receipt"}}
+    q = {
+        "type": "noul",
+        "instructions": "Does the receipt support the customer's claim?",
+        "criteria": {"true": "The item and store both appear", "false": "The item is not on the receipt"},
+    }
     return VItem("consistency/receipt", "noul", im, caption, q, noul(1.0 if consistent else 0.0))
 
 
@@ -300,7 +376,11 @@ def cell_scene_negation(rng: random.Random) -> VItem:
     im, meta = render_scene(rng)
     color, shape = rng.choice(list(COLORS)), rng.choice(SHAPES)
     present = meta["counts"].get((color, shape), 0) > 0
-    q = {"type": "noul", "instructions": f"Is there NO {color} {shape} in the image?", "criteria": {"true": f"No {color} {shape} anywhere", "false": f"At least one {color} {shape}"}}
+    q = {
+        "type": "noul",
+        "instructions": f"Is there NO {color} {shape} in the image?",
+        "criteria": {"true": f"No {color} {shape} anywhere", "false": f"At least one {color} {shape}"},
+    }
     return VItem("negation/scene", "noul", im, None, q, noul(0.0 if present else 1.0))
 
 
@@ -366,4 +446,6 @@ if __name__ == "__main__":
         with open(out / f"{split}.jsonl", "w") as f:
             for r in rows:
                 f.write(json.dumps(r, ensure_ascii=False) + "\n")
-        print(f"{split}: {len(rows)} items, cells {len(Counter(r['family'] for r in rows if not r['ambiguous']))}, ambiguous {sum(r['ambiguous'] for r in rows)} -> {out / f'{split}.jsonl'}")
+        print(
+            f"{split}: {len(rows)} items, cells {len(Counter(r['family'] for r in rows if not r['ambiguous']))}, ambiguous {sum(r['ambiguous'] for r in rows)} -> {out / f'{split}.jsonl'}"
+        )

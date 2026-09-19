@@ -12,7 +12,13 @@ ANSWERS = {
     "dept2": {"type": "choice", "choice": "billing", "probabilities": {"billing": 0.6, "technical": 0.3, "sales": 0.1}, "confidence": 0.4},
     "dept3": {"type": "choice", "choice": "technical", "probabilities": {"billing": 0.4, "technical": 0.5, "sales": 0.1}, "confidence": 0.3},
     "supported": {"type": "noul", "noul": 0.85},
-    "urgency": {"type": "score", "score": 2.4, "legend": {"0": "low", "1": "med", "2": "high", "3": "critical"}, "probabilities": {"0": 0.0, "1": 0.1, "2": 0.4, "3": 0.5}, "confidence": 0.6},
+    "urgency": {
+        "type": "score",
+        "score": 2.4,
+        "legend": {"0": "low", "1": "med", "2": "high", "3": "critical"},
+        "probabilities": {"0": 0.0, "1": 0.1, "2": 0.4, "3": 0.5},
+        "confidence": 0.6,
+    },
 }
 
 
@@ -91,7 +97,14 @@ def test_service_returns_gates_only_when_requested():
         }
         r = c.post("/v1/systemone", json=base, headers={"Authorization": "Bearer x"})
         assert r.status_code == 200 and "gates" not in r.json()
-        r = c.post("/v1/systemone", json={**base, "gates": {"route": {"op": "argmax", "input": "dept", "min_confidence": 0.0}, "rush": {"op": "threshold", "input": "urgent", "tau": 0.5}}}, headers={"Authorization": "Bearer x"})
+        r = c.post(
+            "/v1/systemone",
+            json={
+                **base,
+                "gates": {"route": {"op": "argmax", "input": "dept", "min_confidence": 0.0}, "rush": {"op": "threshold", "input": "urgent", "tau": 0.5}},
+            },
+            headers={"Authorization": "Bearer x"},
+        )
         body = r.json()
         assert r.status_code == 200 and set(body["gates"]) == {"route", "rush"}
         assert body["gates"]["route"]["value"] in {"billing", "technical", "sales"}

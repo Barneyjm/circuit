@@ -95,7 +95,12 @@ _noul = st.fixed_dictionaries(
     {"type": st.just("noul"), "instructions": _json},
     optional={"criteria": st.fixed_dictionaries({}, optional={"true": _text, "false": _text})},
 )
-_choice = st.builds(lambda names, descs, instr: {"type": "choice", "instructions": instr, "criteria": dict(zip(names, descs))}, _opt_names, st.lists(st.one_of(st.none(), _text), min_size=26, max_size=26), _json)
+_choice = st.builds(
+    lambda names, descs, instr: {"type": "choice", "instructions": instr, "criteria": dict(zip(names, descs))},
+    _opt_names,
+    st.lists(st.one_of(st.none(), _text), min_size=26, max_size=26),
+    _json,
+)
 _score = st.fixed_dictionaries({"type": st.just("score"), "instructions": _json, "criteria": st.lists(_json, min_size=2, max_size=26)})
 _request = st.fixed_dictionaries(
     {

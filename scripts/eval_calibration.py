@@ -27,7 +27,12 @@ from s1proto.scorer import HFScorer
 from s1proto.template import render
 
 AG_LABELS = ["world", "sports", "business", "sci_tech"]
-AG_CRITERIA = {"world": "World news, politics, international affairs", "sports": "Sports", "business": "Business, markets, companies, economy", "sci_tech": "Science and technology"}
+AG_CRITERIA = {
+    "world": "World news, politics, international affairs",
+    "sports": "Sports",
+    "business": "Business, markets, companies, economy",
+    "sci_tech": "Science and technology",
+}
 
 
 def ece(confs: list[float], correct: list[bool], bins: int = 15) -> float:
@@ -82,7 +87,9 @@ def content_free_prior(scorer: HFScorer, q) -> list[float]:
 
 
 def run_noul(scorer: HFScorer, items, temperature: float, batch: int, debias: bool = False):
-    q = NoulQuestion(type="noul", instructions="Is this movie review positive?", criteria={"true": "The reviewer liked the film", "false": "The reviewer disliked the film"})
+    q = NoulQuestion(
+        type="noul", instructions="Is this movie review positive?", criteria={"true": "The reviewer liked the film", "false": "The reviewer disliked the film"}
+    )
     prompts = [render(text, q) for text, _ in items]
     results = []
     for chunk in batched(prompts, batch):
@@ -93,7 +100,9 @@ def run_noul(scorer: HFScorer, items, temperature: float, batch: int, debias: bo
         prior = content_free_prior(scorer, q)
         logits = [[x - pr for x, pr in zip(lg, prior, strict=True)] for lg in logits]
     summary = _noul_metrics(logits, truth, temperature)
-    summary["temperature_sweep"] = {str(t): {k: round(v, 4) for k, v in _noul_metrics(logits, truth, t).items() if k in ("ece", "brier", "accuracy")} for t in SWEEP}
+    summary["temperature_sweep"] = {
+        str(t): {k: round(v, 4) for k, v in _noul_metrics(logits, truth, t).items() if k in ("ece", "brier", "accuracy")} for t in SWEEP
+    }
     return summary
 
 
@@ -145,7 +154,9 @@ def run_choice(scorer: HFScorer, items, temperature: float, batch: int, reverse:
     # position bias: which *letter* (position) won, in the order shown
     pos_winner = Counter(max(range(4), key=lambda i: r.logits[i]) for r in results)
     summary["position_winner_rate"] = {f"pos{k}": round(v / len(items), 3) for k, v in sorted(pos_winner.items())}
-    summary["temperature_sweep"] = {str(t): {k: round(v, 4) for k, v in _choice_metrics(logits, truth, t)[0].items() if k in ("ece", "brier", "accuracy")} for t in SWEEP}
+    summary["temperature_sweep"] = {
+        str(t): {k: round(v, 4) for k, v in _choice_metrics(logits, truth, t)[0].items() if k in ("ece", "brier", "accuracy")} for t in SWEEP
+    }
     return summary, pred
 
 

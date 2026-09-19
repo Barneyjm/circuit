@@ -93,7 +93,9 @@ def main() -> None:
     ap.add_argument("--model", default="Qwen/Qwen3-VL-4B-Instruct")
     ap.add_argument("--device", default="mps" if torch.backends.mps.is_available() else "cpu")
     ap.add_argument("--crop", default=None, help="left,top,right,bottom as fractions, e.g. 0.1,0.55,0.9,1.0")
-    ap.add_argument("--set", default=None, help="JSON: [{image, questions: [{q, options, expect}]}]; expect may be a list for acceptable answers or null for ambiguous")
+    ap.add_argument(
+        "--set", default=None, help="JSON: [{image, questions: [{q, options, expect}]}]; expect may be a list for acceptable answers or null for ambiguous"
+    )
     ap.add_argument("--frames", default=None, help="directory of frame images (e.g. from `ffmpeg -vf fps=1`) to pass as one video instead of an image")
     args = ap.parse_args()
     if args.set:

@@ -74,10 +74,31 @@ def main() -> None:
     en = [i for i in range(len(t)) if t[i]["language"] == "en" and t[i]["subject"] and t[i]["body"]]
     if train:
         en = []  # noisy labels; not worth training on
-    queues = ["Technical Support", "Product Support", "Customer Service", "IT Support", "Billing and Payments", "Returns and Exchanges", "Service Outages and Maintenance", "Sales and Pre-Sales", "Human Resources", "General Inquiry"]
+    queues = [
+        "Technical Support",
+        "Product Support",
+        "Customer Service",
+        "IT Support",
+        "Billing and Payments",
+        "Returns and Exchanges",
+        "Service Outages and Maintenance",
+        "Sales and Pre-Sales",
+        "Human Resources",
+        "General Inquiry",
+    ]
     prios = ["very_low", "low", "medium", "high", "critical"]
     qq = {"type": "choice", "instructions": "Which support queue should this ticket go to?", "criteria": {k: None for k in queues}}
-    qp = {"type": "score", "instructions": "What priority should this ticket have?", "criteria": ["Very low: cosmetic, no impact", "Low: minor, can wait", "Medium: normal request", "High: significant impact, needs prompt attention", "Critical: outage, security, or data loss"]}
+    qp = {
+        "type": "score",
+        "instructions": "What priority should this ticket have?",
+        "criteria": [
+            "Very low: cosmetic, no impact",
+            "Low: minor, can wait",
+            "Medium: normal request",
+            "High: significant impact, needs prompt attention",
+            "Critical: outage, security, or data loss",
+        ],
+    }
     rng.shuffle(en)
     nq = npr = 0
     for i in en:
@@ -96,7 +117,15 @@ def main() -> None:
     m = load_dataset("nyu-mll/multi_nli", split="train" if train else "validation_matched")
     keys = ["entailed", "neutral", "contradicted"]
     lab = {0: "entailed", 1: "neutral", 2: "contradicted"}
-    qm = {"type": "choice", "instructions": "Given `premise`, what is the status of `hypothesis`?", "criteria": {"entailed": "The hypothesis must be true if the premise is true", "neutral": "The premise does not settle it", "contradicted": "The hypothesis must be false if the premise is true"}}
+    qm = {
+        "type": "choice",
+        "instructions": "Given `premise`, what is the status of `hypothesis`?",
+        "criteria": {
+            "entailed": "The hypothesis must be true if the premise is true",
+            "neutral": "The premise does not settle it",
+            "contradicted": "The hypothesis must be false if the premise is true",
+        },
+    }
     for i in rng.sample(range(len(m)), args.n):
         if m[i]["label"] < 0:
             continue
@@ -107,14 +136,22 @@ def main() -> None:
     scan = range(min(len(c), 200_000))
     tox = [i for i in scan if c[i]["toxicity"] >= 0.5]
     non = [i for i in scan if c[i]["toxicity"] < 0.2]
-    qc = {"type": "noul", "instructions": "Would most people consider this comment toxic (rude, disrespectful, or likely to make someone leave the discussion)?", "criteria": {"true": "Toxic", "false": "Not toxic"}}
+    qc = {
+        "type": "noul",
+        "instructions": "Would most people consider this comment toxic (rude, disrespectful, or likely to make someone leave the discussion)?",
+        "criteria": {"true": "Toxic", "false": "Not toxic"},
+    }
     for i in rng.sample(tox, min(args.n // 2, len(tox))) + rng.sample(non, min(args.n - args.n // 2, len(non))):
         p = float(c[i]["toxicity"])
         out.append(item("civil_toxic", "noul", c[i]["text"][:1500], qc, {"yes": p, "no": 1 - p}))
 
     # --- SMS spam
     s = load_dataset("ucirvine/sms_spam", split="train")
-    qs = {"type": "noul", "instructions": "Is this SMS spam?", "criteria": {"true": "Unsolicited promotion, scam, or bulk message", "false": "A normal personal or transactional message"}}
+    qs = {
+        "type": "noul",
+        "instructions": "Is this SMS spam?",
+        "criteria": {"true": "Unsolicited promotion, scam, or bulk message", "false": "A normal personal or transactional message"},
+    }
     spam = [i for i in range(len(s)) if s[i]["label"] == 1]
     ham = [i for i in range(len(s)) if s[i]["label"] == 0]
     for i in rng.sample(spam, min(args.n // 2, len(spam))) + rng.sample(ham, min(args.n - args.n // 2, len(ham))):

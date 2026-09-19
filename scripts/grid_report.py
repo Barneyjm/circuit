@@ -65,7 +65,10 @@ def main() -> None:
             print("| **mean** | " + " | ".join(fmt_v(col[f], args.metric).strip() for f in FORMATS) + " | |")
         amb = {k[7 + len("ambiguous/") :]: v for k, v in m.items() if k.startswith("family:ambiguous/")}
         if args.md and amb:
-            print("\nAmbiguous items (soft label 0.5; ideal: mean confidence near 0, ECE near 0): " + ", ".join(f"{op} conf {v['mean_conf']:.2f} ece {v['ece']:.2f}" for op, v in sorted(amb.items())))
+            print(
+                "\nAmbiguous items (soft label 0.5; ideal: mean confidence near 0, ECE near 0): "
+                + ", ".join(f"{op} conf {v['mean_conf']:.2f} ece {v['ece']:.2f}" for op, v in sorted(amb.items()))
+            )
         if not args.md:
             print(f"\n{title}")
             print(f"{'':<12}" + "".join(f"{f:>10}" for f in FORMATS) + f"{'mean':>10}")

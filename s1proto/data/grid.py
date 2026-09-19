@@ -54,7 +54,23 @@ OPERATIONS = ["extract", "classify", "compare", "consistency", "count", "rule", 
 FORMATS = ["string", "json", "nested", "list", "thread", "document"]
 
 NAMES = ["Priya", "Marcus", "Elena", "Tomás", "Aisha", "Kenji", "Nora", "Dev", "Lucia", "Omar", "Hana", "Felix", "Ingrid", "Sam", "Yara"]
-ITEMS = ["ceramic mug", "rain jacket", "wireless headphones", "desk lamp", "yoga mat", "blender", "phone case", "running shoes", "backpack", "coffee grinder", "throw blanket", "bike pump", "notebook set", "water bottle", "board game"]
+ITEMS = [
+    "ceramic mug",
+    "rain jacket",
+    "wireless headphones",
+    "desk lamp",
+    "yoga mat",
+    "blender",
+    "phone case",
+    "running shoes",
+    "backpack",
+    "coffee grinder",
+    "throw blanket",
+    "bike pump",
+    "notebook set",
+    "water bottle",
+    "board game",
+]
 CITIES = ["Austin", "Lisbon", "Toronto", "Nairobi", "Osaka", "Denver", "Dublin", "Santiago", "Seoul", "Perth"]
 FILLER = [
     "Thanks again for the quick turnaround last quarter; the team was impressed.",
@@ -69,30 +85,102 @@ FILLER = [
     "The knowledge base has a new article on setting up two-factor authentication.",
 ]
 CATEGORIES = {
-    "billing": ("Charges, invoices, refunds, payment methods", ["I was charged twice", "my invoice is wrong", "refund my last payment", "update my card on file", "why is there a fee"]),
-    "technical": ("Bugs, errors, outages, integrations", ["the app crashes on launch", "getting a 500 error", "the API returns nothing", "sync stopped working", "login page is blank"]),
-    "shipping": ("Delivery, tracking, lost or late packages", ["where is my package", "tracking hasn't updated", "delivered to the wrong address", "the box arrived damaged", "can I change the delivery date"]),
+    "billing": (
+        "Charges, invoices, refunds, payment methods",
+        ["I was charged twice", "my invoice is wrong", "refund my last payment", "update my card on file", "why is there a fee"],
+    ),
+    "technical": (
+        "Bugs, errors, outages, integrations",
+        ["the app crashes on launch", "getting a 500 error", "the API returns nothing", "sync stopped working", "login page is blank"],
+    ),
+    "shipping": (
+        "Delivery, tracking, lost or late packages",
+        ["where is my package", "tracking hasn't updated", "delivered to the wrong address", "the box arrived damaged", "can I change the delivery date"],
+    ),
     "account": ("Login, passwords, permissions, profile", ["reset my password", "add a teammate", "change my email", "I'm locked out", "delete my account"]),
-    "sales": ("Pricing, upgrades, quotes, trials", ["how much is the pro plan", "extend my trial", "do you offer discounts", "send me a quote", "compare the plans"]),
-    "returns": ("Returning or exchanging an item", ["I want to return this", "exchange for a larger size", "return window question", "print a return label", "is this eligible for return"]),
-    "feedback": ("Suggestions, praise, complaints without a request", ["love the new design", "the checkout is confusing", "just wanted to say thanks", "your ads are annoying", "feature request: dark mode"]),
-    "legal": ("Privacy, terms, data requests, compliance", ["delete my personal data", "GDPR request", "where are your terms", "who do you share data with", "I need a data export"]),
-    "hr": ("Jobs, applications, employment", ["is the designer role open", "status of my application", "do you hire remote", "internship program", "benefits question"]),
-    "partnership": ("Reseller, affiliate, integration partnerships", ["become a reseller", "affiliate program", "co-marketing idea", "integrate with your platform", "referral terms"]),
-    "security": ("Suspicious activity, phishing, vulnerabilities", ["I got a phishing email", "someone logged in from another country", "reporting a vulnerability", "is this email really from you", "enable stricter security"]),
-    "cancellation": ("Ending a subscription or order", ["cancel my subscription", "stop the renewal", "cancel order before it ships", "close my plan", "how do I unsubscribe"]),
-    "product_info": ("Specs, compatibility, availability", ["does it fit a 15 inch laptop", "is it dishwasher safe", "when is it back in stock", "what colors are available", "is it compatible with android"]),
-    "events": ("Webinars, meetups, conferences", ["register for the webinar", "is the meetup recorded", "conference ticket prices", "speaker application", "add the event to my calendar"]),
-    "press": ("Media, interviews, press kit", ["press kit request", "interview with your founder", "logo usage rights", "quote for an article", "media contact"]),
-    "abuse": ("Harassment, spam, policy violations by others", ["a user is harassing me", "reporting spam", "someone impersonates our brand", "fake reviews on the listing", "report a policy violation"]),
-    "accessibility": ("Screen readers, captions, accommodations", ["screen reader can't read the menu", "captions on videos", "keyboard navigation broken", "font is too small", "color contrast issue"]),
-    "localization": ("Languages, currencies, regions", ["is the app in Spanish", "charge me in euros", "ship to Brazil", "date format is wrong for my region", "translate the invoice"]),
-    "outage": ("Service down for everyone", ["is the service down", "status page says degraded", "nothing loads for our whole team", "outage since this morning", "when will it be back"]),
-    "training": ("Docs, tutorials, onboarding", ["is there a tutorial", "onboarding session", "where are the docs", "video walkthrough", "certification program"]),
-    "warranty": ("Repairs and warranty claims", ["is this under warranty", "repair request", "replacement part", "warranty period", "it broke after two months"]),
-    "gift": ("Gift cards, gift orders, wrapping", ["buy a gift card", "gift wrap option", "hide the price on the receipt", "gift card balance", "send to a different address as a gift"]),
+    "sales": (
+        "Pricing, upgrades, quotes, trials",
+        ["how much is the pro plan", "extend my trial", "do you offer discounts", "send me a quote", "compare the plans"],
+    ),
+    "returns": (
+        "Returning or exchanging an item",
+        ["I want to return this", "exchange for a larger size", "return window question", "print a return label", "is this eligible for return"],
+    ),
+    "feedback": (
+        "Suggestions, praise, complaints without a request",
+        ["love the new design", "the checkout is confusing", "just wanted to say thanks", "your ads are annoying", "feature request: dark mode"],
+    ),
+    "legal": (
+        "Privacy, terms, data requests, compliance",
+        ["delete my personal data", "GDPR request", "where are your terms", "who do you share data with", "I need a data export"],
+    ),
+    "hr": (
+        "Jobs, applications, employment",
+        ["is the designer role open", "status of my application", "do you hire remote", "internship program", "benefits question"],
+    ),
+    "partnership": (
+        "Reseller, affiliate, integration partnerships",
+        ["become a reseller", "affiliate program", "co-marketing idea", "integrate with your platform", "referral terms"],
+    ),
+    "security": (
+        "Suspicious activity, phishing, vulnerabilities",
+        [
+            "I got a phishing email",
+            "someone logged in from another country",
+            "reporting a vulnerability",
+            "is this email really from you",
+            "enable stricter security",
+        ],
+    ),
+    "cancellation": (
+        "Ending a subscription or order",
+        ["cancel my subscription", "stop the renewal", "cancel order before it ships", "close my plan", "how do I unsubscribe"],
+    ),
+    "product_info": (
+        "Specs, compatibility, availability",
+        ["does it fit a 15 inch laptop", "is it dishwasher safe", "when is it back in stock", "what colors are available", "is it compatible with android"],
+    ),
+    "events": (
+        "Webinars, meetups, conferences",
+        ["register for the webinar", "is the meetup recorded", "conference ticket prices", "speaker application", "add the event to my calendar"],
+    ),
+    "press": (
+        "Media, interviews, press kit",
+        ["press kit request", "interview with your founder", "logo usage rights", "quote for an article", "media contact"],
+    ),
+    "abuse": (
+        "Harassment, spam, policy violations by others",
+        ["a user is harassing me", "reporting spam", "someone impersonates our brand", "fake reviews on the listing", "report a policy violation"],
+    ),
+    "accessibility": (
+        "Screen readers, captions, accommodations",
+        ["screen reader can't read the menu", "captions on videos", "keyboard navigation broken", "font is too small", "color contrast issue"],
+    ),
+    "localization": (
+        "Languages, currencies, regions",
+        ["is the app in Spanish", "charge me in euros", "ship to Brazil", "date format is wrong for my region", "translate the invoice"],
+    ),
+    "outage": (
+        "Service down for everyone",
+        ["is the service down", "status page says degraded", "nothing loads for our whole team", "outage since this morning", "when will it be back"],
+    ),
+    "training": (
+        "Docs, tutorials, onboarding",
+        ["is there a tutorial", "onboarding session", "where are the docs", "video walkthrough", "certification program"],
+    ),
+    "warranty": (
+        "Repairs and warranty claims",
+        ["is this under warranty", "repair request", "replacement part", "warranty period", "it broke after two months"],
+    ),
+    "gift": (
+        "Gift cards, gift orders, wrapping",
+        ["buy a gift card", "gift wrap option", "hide the price on the receipt", "gift card balance", "send to a different address as a gift"],
+    ),
     "loyalty": ("Points, rewards, tiers", ["how many points do I have", "redeem rewards", "loyalty tier benefits", "points didn't post", "expiring rewards"]),
-    "tax": ("Tax documents, VAT, exemptions", ["I need a VAT invoice", "tax exempt certificate", "sales tax charged twice", "year-end tax summary", "tax id on invoice"]),
+    "tax": (
+        "Tax documents, VAT, exemptions",
+        ["I need a VAT invoice", "tax exempt certificate", "sales tax charged twice", "year-end tax summary", "tax id on invoice"],
+    ),
     "other": ("None of the above", ["what's the weather like", "tell me a joke", "wrong number", "hello?", "is anyone there"]),
 }
 
@@ -127,7 +215,16 @@ def paraphrase(rng: random.Random, options: list[str]) -> str:
 
 
 # ------------------------------------------------------------- formatting
-def render(rng: random.Random, fmt: str, fields: dict[str, Any], *, prose: Callable[[dict[str, Any]], str], nest: dict[str, list[str]] | None = None, others: list[dict[str, Any]] | None = None, focus_id: str | None = None) -> Any:
+def render(
+    rng: random.Random,
+    fmt: str,
+    fields: dict[str, Any],
+    *,
+    prose: Callable[[dict[str, Any]], str],
+    nest: dict[str, list[str]] | None = None,
+    others: list[dict[str, Any]] | None = None,
+    focus_id: str | None = None,
+) -> Any:
     """Lay the same fields out in one of the six formats."""
     if fmt == "string":
         return prose(fields)
@@ -174,14 +271,36 @@ def gen_extract(rng: random.Random, fmt: str) -> Item:
         maker, tmpl = kinds[target]
         parts.append(tmpl.format(v=maker()))
     elif ambiguous:
-        parts.append({"phone number": "call me on my cell", "email address": "email me", "date": "it was sometime last spring", "price": "it cost a bit", "order id": "the order from last week"}[target])
+        parts.append(
+            {
+                "phone number": "call me on my cell",
+                "email address": "email me",
+                "date": "it was sometime last spring",
+                "price": "it cost a bit",
+                "order id": "the order from last week",
+            }[target]
+        )
     else:
         maker, tmpl = kinds[decoy]
         parts.append(tmpl.format(v=maker()))
     rng.shuffle(parts)
     fields = {"name": rng.choice(NAMES), "text": " ".join(parts)}
-    state = render(rng, fmt, fields, prose=lambda f: f"{f['name']} wrote: {f['text']}", others=[{"name": rng.choice(NAMES), "text": rng.choice(FILLER)} for _ in range(2)], focus_id="m1")
-    q = {"type": "noul", "instructions": paraphrase(rng, [f"Does the message contain a {target}?", f"Is a {target} given anywhere in the text?", f"Does the writer include a {target}?"]) + (" (the message with id m1)" if fmt == "list" else ""), "criteria": {"true": f"A specific {target} appears", "false": f"No {target}, or only a vague reference"}}
+    state = render(
+        rng,
+        fmt,
+        fields,
+        prose=lambda f: f"{f['name']} wrote: {f['text']}",
+        others=[{"name": rng.choice(NAMES), "text": rng.choice(FILLER)} for _ in range(2)],
+        focus_id="m1",
+    )
+    q = {
+        "type": "noul",
+        "instructions": paraphrase(
+            rng, [f"Does the message contain a {target}?", f"Is a {target} given anywhere in the text?", f"Does the writer include a {target}?"]
+        )
+        + (" (the message with id m1)" if fmt == "list" else ""),
+        "criteria": {"true": f"A specific {target} appears", "false": f"No {target}, or only a vague reference"},
+    }
     return Item(f"extract/{fmt}", "extract", fmt, "noul", state, q, noul(0.5 if ambiguous else (1.0 if present else 0.0)), ambiguous)
 
 
@@ -199,9 +318,21 @@ def gen_classify(rng: random.Random, fmt: str) -> Item:
     else:
         truth_text = rng.choice(CATEGORIES[truth][1])
     fields = {"from": rng.choice(NAMES), "message": truth_text[0].upper() + truth_text[1:] + rng.choice([".", "!", "?", ""])}
-    state = render(rng, fmt, fields, prose=lambda f: f"Message from {f['from']}: {f['message']}", others=[{"from": rng.choice(NAMES), "message": rng.choice(FILLER)} for _ in range(2)], focus_id="m1")
+    state = render(
+        rng,
+        fmt,
+        fields,
+        prose=lambda f: f"Message from {f['from']}: {f['message']}",
+        others=[{"from": rng.choice(NAMES), "message": rng.choice(FILLER)} for _ in range(2)],
+        focus_id="m1",
+    )
     crit = {c: (CATEGORIES[c][0] if with_desc else None) for c in cats}
-    q = {"type": "choice", "instructions": paraphrase(rng, ["Which category does this message belong to?", "Classify the message.", "Pick the best category for the message."]) + (" (the message with id m1)" if fmt == "list" else ""), "criteria": crit}
+    q = {
+        "type": "choice",
+        "instructions": paraphrase(rng, ["Which category does this message belong to?", "Classify the message.", "Pick the best category for the message."])
+        + (" (the message with id m1)" if fmt == "list" else ""),
+        "criteria": crit,
+    }
     return Item(f"classify/{fmt}", "classify", fmt, "choice", state, q, onehot(cats, truth))
 
 
@@ -222,9 +353,13 @@ def gen_compare(rng: random.Random, fmt: str) -> Item:
         if fmt == "string":
             state = "; ".join(f"{r['id']}: {r['item']} with {field_name} {r[field_name]}" for r in state)
         elif fmt == "thread":
-            state = [{"role": "customer", "text": "Here are the options."}] + [{"role": "customer", "text": f"{r['id']}: {r['item']}, {field_name} {r[field_name]}"} for r in state]
+            state = [{"role": "customer", "text": "Here are the options."}] + [
+                {"role": "customer", "text": f"{r['id']}: {r['item']}, {field_name} {r[field_name]}"} for r in state
+            ]
         elif fmt == "document":
-            state = "\n\n".join([rng.choice(FILLER), "Options: " + "; ".join(f"{r['id']} ({r['item']}) {field_name}={r[field_name]}" for r in state), rng.choice(FILLER)])
+            state = "\n\n".join(
+                [rng.choice(FILLER), "Options: " + "; ".join(f"{r['id']} ({r['item']}) {field_name}={r[field_name]}" for r in state), rng.choice(FILLER)]
+            )
         elif fmt in ("json", "nested"):
             state = {"options": state} if fmt == "json" else {"request": {"kind": "compare"}, "catalog": {"options": state}}
         q = {"type": "choice", "instructions": f"Which option has the {'lowest' if want_low else 'highest'} {field_name}?", "criteria": {i: None for i in ids}}
@@ -239,15 +374,36 @@ def gen_compare(rng: random.Random, fmt: str) -> Item:
     if ambiguous:
         b = a
     fields = {"a": {"item": rng.choice(ITEMS), field_name: a}, "b": {"item": rng.choice(ITEMS), field_name: b}}
-    prose = lambda f: f"Option A is a {f['a']['item']} with {field_name} {f['a'][field_name]}; option B is a {f['b']['item']} with {field_name} {f['b'][field_name]}."
+    prose = lambda f: (
+        f"Option A is a {f['a']['item']} with {field_name} {f['a'][field_name]}; option B is a {f['b']['item']} with {field_name} {f['b'][field_name]}."
+    )
     state = render(rng, fmt, fields, prose=prose, nest={"a": ["a"], "b": ["b"]}) if fmt != "nested" else fields
-    q = {"type": "noul", "instructions": paraphrase(rng, [f"Is option A's {field_name} strictly lower than option B's?", f"Does A have a lower {field_name} than B?", f"Comparing A and B, is A's {field_name} the smaller one (strictly)?"]), "criteria": {"true": "A is strictly lower", "false": "A is equal or higher"}}
+    q = {
+        "type": "noul",
+        "instructions": paraphrase(
+            rng,
+            [
+                f"Is option A's {field_name} strictly lower than option B's?",
+                f"Does A have a lower {field_name} than B?",
+                f"Comparing A and B, is A's {field_name} the smaller one (strictly)?",
+            ],
+        ),
+        "criteria": {"true": "A is strictly lower", "false": "A is equal or higher"},
+    }
     return Item(f"compare/{fmt}", "compare", fmt, "noul", state, q, noul(0.0 if ambiguous else (1.0 if a < b else 0.0)), False)
 
 
 def _order(rng: random.Random) -> dict[str, Any]:
     d = date(2026, rng.randint(1, 9), rng.randint(1, 28))
-    return {"item": rng.choice(ITEMS), "amount_usd": rng.randint(8, 400), "ordered_on": d.isoformat(), "delivered_on": (d + timedelta(days=rng.randint(2, 9))).isoformat(), "status": rng.choice(["delivered", "shipped", "processing"]), "city": rng.choice(CITIES), "prior_refunds": rng.randint(0, 3)}
+    return {
+        "item": rng.choice(ITEMS),
+        "amount_usd": rng.randint(8, 400),
+        "ordered_on": d.isoformat(),
+        "delivered_on": (d + timedelta(days=rng.randint(2, 9))).isoformat(),
+        "status": rng.choice(["delivered", "shipped", "processing"]),
+        "city": rng.choice(CITIES),
+        "prior_refunds": rng.randint(0, 3),
+    }
 
 
 def gen_consistency(rng: random.Random, fmt: str) -> Item:
@@ -271,9 +427,34 @@ def gen_consistency(rng: random.Random, fmt: str) -> Item:
     consistent = rng.random() < 0.5
     claim = rng.choice(claims_vague) if ambiguous else (rng.choice(claims_true) if consistent else rng.choice(claims_false))(order)
     fields = {"claim": claim, "order": order}
-    prose = lambda f: f"Customer says: \"{f['claim']}\" Our record: {f['order']['item']}, ${f['order']['amount_usd']}, ordered {f['order']['ordered_on']}, delivered {f['order']['delivered_on']} to {f['order']['city']}, status {f['order']['status']}."
-    state = fields if fmt in ("json", "nested") else render(rng, fmt, {"claim": claim, **order}, prose=lambda f: prose({"claim": f["claim"], "order": f}), others=[dict(_order(rng), claim=rng.choice(claims_vague)) for _ in range(2)], focus_id="c1")
-    q = {"type": "noul", "instructions": paraphrase(rng, ["Is the customer's claim consistent with the order record?", "Does the record support what the customer says?", "Check the claim against the record: does it hold?"]) + (" (record c1)" if fmt == "list" else ""), "criteria": {"true": "The claim matches the record", "false": "The claim contradicts the record"}}
+    prose = lambda f: (
+        f'Customer says: "{f["claim"]}" Our record: {f["order"]["item"]}, ${f["order"]["amount_usd"]}, ordered {f["order"]["ordered_on"]}, delivered {f["order"]["delivered_on"]} to {f["order"]["city"]}, status {f["order"]["status"]}.'
+    )
+    state = (
+        fields
+        if fmt in ("json", "nested")
+        else render(
+            rng,
+            fmt,
+            {"claim": claim, **order},
+            prose=lambda f: prose({"claim": f["claim"], "order": f}),
+            others=[dict(_order(rng), claim=rng.choice(claims_vague)) for _ in range(2)],
+            focus_id="c1",
+        )
+    )
+    q = {
+        "type": "noul",
+        "instructions": paraphrase(
+            rng,
+            [
+                "Is the customer's claim consistent with the order record?",
+                "Does the record support what the customer says?",
+                "Check the claim against the record: does it hold?",
+            ],
+        )
+        + (" (record c1)" if fmt == "list" else ""),
+        "criteria": {"true": "The claim matches the record", "false": "The claim contradicts the record"},
+    }
     return Item(f"consistency/{fmt}", "consistency", fmt, "noul", state, q, noul(0.5 if ambiguous else (1.0 if consistent else 0.0)), ambiguous)
 
 
@@ -288,12 +469,20 @@ def gen_count(rng: random.Random, fmt: str) -> Item:
         body = "; ".join(f"{r['id']} {r['item']} ({'is ' + flag[0] if r[flag[0]] else 'not ' + flag[0]})" for r in rows)
         state = body if fmt == "string" else "\n\n".join([rng.choice(FILLER), "Items: " + body, rng.choice(FILLER)])
     elif fmt == "thread":
-        state = [{"role": "agent", "text": "Reading the list."}] + [{"role": "system", "text": f"{r['id']}: {r['item']}, {flag[0]}={str(r[flag[0]]).lower()}"} for r in rows]
+        state = [{"role": "agent", "text": "Reading the list."}] + [
+            {"role": "system", "text": f"{r['id']}: {r['item']}, {flag[0]}={str(r[flag[0]]).lower()}"} for r in rows
+        ]
     elif fmt == "nested":
         state = {"batch": {"id": f"B{rng.randint(100, 999)}", "items": rows}}
     else:
         state = rows if fmt == "list" else {"items": rows}
-    q = {"type": "score", "instructions": paraphrase(rng, [f"How many items are {flag[0]}?", f"Count the {flag[0]} items.", f"How many of the listed items are marked {flag[0]}?"]), "criteria": levels}
+    q = {
+        "type": "score",
+        "instructions": paraphrase(
+            rng, [f"How many items are {flag[0]}?", f"Count the {flag[0]} items.", f"How many of the listed items are marked {flag[0]}?"]
+        ),
+        "criteria": levels,
+    }
     return Item(f"count/{fmt}", "count", fmt, "score", state, q, onehot([str(i) for i in range(4)], str(truth)))
 
 
@@ -302,16 +491,39 @@ def gen_rule(rng: random.Random, fmt: str) -> Item:
     order["final_sale"] = rng.random() < 0.3
     order["days_since_delivery"] = rng.randint(1, 60)
     rules = [
-        ("A refund is allowed if delivered within the last 30 days and the item is not final sale.", lambda o: o["days_since_delivery"] <= 30 and not o["final_sale"]),
+        (
+            "A refund is allowed if delivered within the last 30 days and the item is not final sale.",
+            lambda o: o["days_since_delivery"] <= 30 and not o["final_sale"],
+        ),
         ("Free reshipping applies if the status is delivered and the amount is under $100.", lambda o: o["status"] == "delivered" and o["amount_usd"] < 100),
         ("Escalate if there are 2 or more prior refunds or the amount is over $250.", lambda o: o["prior_refunds"] >= 2 or o["amount_usd"] > 250),
-        ("A goodwill credit applies if the amount is at least $50, prior refunds are 0, and it is not final sale.", lambda o: o["amount_usd"] >= 50 and o["prior_refunds"] == 0 and not o["final_sale"]),
+        (
+            "A goodwill credit applies if the amount is at least $50, prior refunds are 0, and it is not final sale.",
+            lambda o: o["amount_usd"] >= 50 and o["prior_refunds"] == 0 and not o["final_sale"],
+        ),
     ]
     rule_text, fn = rng.choice(rules)
     fields = {"rule": rule_text, **order}
-    prose = lambda f: f"Rule: {f['rule']} Record: {f['item']}, ${f['amount_usd']}, status {f['status']}, delivered {f['days_since_delivery']} days ago, final sale {'yes' if f['final_sale'] else 'no'}, prior refunds {f['prior_refunds']}."
-    state = render(rng, fmt, fields, prose=prose, nest={"record": [k for k in fields if k != "rule"]}, others=[dict(_order(rng), rule=rule_text, final_sale=False, days_since_delivery=rng.randint(1, 60)) for _ in range(2)], focus_id="o1")
-    q = {"type": "noul", "instructions": paraphrase(rng, ["Does the record satisfy the rule?", "Apply the rule to the record: does it hold?", "Given the rule, does this record qualify?"]) + (" (record o1)" if fmt == "list" else ""), "criteria": {"true": "Every condition of the rule is met", "false": "At least one condition fails"}}
+    prose = lambda f: (
+        f"Rule: {f['rule']} Record: {f['item']}, ${f['amount_usd']}, status {f['status']}, delivered {f['days_since_delivery']} days ago, final sale {'yes' if f['final_sale'] else 'no'}, prior refunds {f['prior_refunds']}."
+    )
+    state = render(
+        rng,
+        fmt,
+        fields,
+        prose=prose,
+        nest={"record": [k for k in fields if k != "rule"]},
+        others=[dict(_order(rng), rule=rule_text, final_sale=False, days_since_delivery=rng.randint(1, 60)) for _ in range(2)],
+        focus_id="o1",
+    )
+    q = {
+        "type": "noul",
+        "instructions": paraphrase(
+            rng, ["Does the record satisfy the rule?", "Apply the rule to the record: does it hold?", "Given the rule, does this record qualify?"]
+        )
+        + (" (record o1)" if fmt == "list" else ""),
+        "criteria": {"true": "Every condition of the rule is met", "false": "At least one condition fails"},
+    }
     return Item(f"rule/{fmt}", "rule", fmt, "noul", state, q, noul(1.0 if fn(order) else 0.0))
 
 
@@ -325,15 +537,34 @@ def gen_temporal(rng: random.Random, fmt: str) -> Item:
         sb = b.strftime("%B %-d")  # no year: undecidable across a year boundary only if it matters; keep simple: mark soft
     fields = {"event_a": ea, "when_a": sa, "event_b": eb, "when_b": sb}
     prose = lambda f: f"{f['event_a'].capitalize()} was on {f['when_a']}. {f['event_b'].capitalize()} was on {f['when_b']}."
-    state = render(rng, fmt, fields, prose=prose, nest={"a": ["event_a", "when_a"], "b": ["event_b", "when_b"]}, others=[{"event_a": "the survey", "when_a": _dstr(a, 0), "event_b": "the newsletter", "when_b": _dstr(b, 1)} for _ in range(2)], focus_id="e1")
-    q = {"type": "noul", "instructions": paraphrase(rng, [f"Did {ea} happen before {eb}?", f"Was {ea} earlier than {eb}?", f"In time order, does {ea} come first?"]) + (" (entry e1)" if fmt == "list" else ""), "criteria": {"true": f"{ea} is strictly earlier", "false": f"{ea} is later or the same day"}}
+    state = render(
+        rng,
+        fmt,
+        fields,
+        prose=prose,
+        nest={"a": ["event_a", "when_a"], "b": ["event_b", "when_b"]},
+        others=[{"event_a": "the survey", "when_a": _dstr(a, 0), "event_b": "the newsletter", "when_b": _dstr(b, 1)} for _ in range(2)],
+        focus_id="e1",
+    )
+    q = {
+        "type": "noul",
+        "instructions": paraphrase(rng, [f"Did {ea} happen before {eb}?", f"Was {ea} earlier than {eb}?", f"In time order, does {ea} come first?"])
+        + (" (entry e1)" if fmt == "list" else ""),
+        "criteria": {"true": f"{ea} is strictly earlier", "false": f"{ea} is later or the same day"},
+    }
     return Item(f"temporal/{fmt}", "temporal", fmt, "noul", state, q, noul(0.5 if ambiguous else (1.0 if a < b else 0.0)), ambiguous)
 
 
 def gen_negation(rng: random.Random, fmt: str) -> Item:
     offer = rng.choice(["the upgrade", "the replacement", "the extended warranty", "the call back", "the discount"])
     accept = [f"Yes, let's go ahead with {offer}.", f"Sounds good, please proceed with {offer}.", f"I'll take {offer}, thanks.", f"Sign me up for {offer}."]
-    decline = [f"No thanks, I don't want {offer}.", f"Please don't proceed with {offer}.", f"I'd rather not take {offer}.", f"Cancel {offer}, I've changed my mind.", f"Not {offer}, not now."]
+    decline = [
+        f"No thanks, I don't want {offer}.",
+        f"Please don't proceed with {offer}.",
+        f"I'd rather not take {offer}.",
+        f"Cancel {offer}, I've changed my mind.",
+        f"Not {offer}, not now.",
+    ]
     tricky_accept = [f"I can't say no to {offer}.", f"Don't skip {offer}, I want it.", f"It's not that I don't want {offer}; go ahead."]
     tricky_decline = [f"I'm not sure {offer} is for me; skip it.", f"Not interested in {offer}, sorry."]
     vague = [f"Let me think about {offer}.", f"What does {offer} involve?", f"Maybe later for {offer}."]
@@ -350,22 +581,60 @@ def gen_negation(rng: random.Random, fmt: str) -> Item:
     else:
         text, p = rng.choice(tricky_decline), 1.0
     fields = {"from": rng.choice(NAMES), "reply": text}
-    state = render(rng, fmt, fields, prose=lambda f: f"{f['from']} replied: {f['reply']}", others=[{"from": rng.choice(NAMES), "reply": rng.choice(FILLER)} for _ in range(2)], focus_id="m1")
-    q = {"type": "noul", "instructions": paraphrase(rng, [f"Is the customer declining {offer}?", f"Does the reply turn down {offer}?", f"Is this a refusal of {offer}?"]) + (" (message m1)" if fmt == "list" else ""), "criteria": {"true": "They decline or cancel it", "false": "They accept it, or ask for it"}}
+    state = render(
+        rng,
+        fmt,
+        fields,
+        prose=lambda f: f"{f['from']} replied: {f['reply']}",
+        others=[{"from": rng.choice(NAMES), "reply": rng.choice(FILLER)} for _ in range(2)],
+        focus_id="m1",
+    )
+    q = {
+        "type": "noul",
+        "instructions": paraphrase(rng, [f"Is the customer declining {offer}?", f"Does the reply turn down {offer}?", f"Is this a refusal of {offer}?"])
+        + (" (message m1)" if fmt == "list" else ""),
+        "criteria": {"true": "They decline or cancel it", "false": "They accept it, or ask for it"},
+    }
     return Item(f"negation/{fmt}", "negation", fmt, "noul", state, q, noul(p), ambiguous)
 
 
 def gen_ordinal(rng: random.Random, fmt: str) -> Item:
     tiers = [
         ("Cosmetic", ["a typo on the settings page", "the logo is slightly off-center", "a button label is lowercase", "the footer link color is wrong"]),
-        ("Degraded", ["search results load slowly", "exports take twice as long as usual", "one report shows stale numbers", "email notifications are delayed"]),
-        ("Blocking", ["users can't complete checkout", "the login page errors for some accounts", "the API rejects all uploads", "invoices are generating with the wrong totals"]),
+        (
+            "Degraded",
+            ["search results load slowly", "exports take twice as long as usual", "one report shows stale numbers", "email notifications are delayed"],
+        ),
+        (
+            "Blocking",
+            [
+                "users can't complete checkout",
+                "the login page errors for some accounts",
+                "the API rejects all uploads",
+                "invoices are generating with the wrong totals",
+            ],
+        ),
         ("Outage", ["the whole site is down", "no one can log in", "all API calls time out", "data is being lost on save"]),
     ]
     t = rng.randrange(4)
-    fields = {"reporter": rng.choice(NAMES), "report": rng.choice(tiers[t][1]) + rng.choice([".", " since this morning.", ", affecting several customers.", ""])}
-    state = render(rng, fmt, fields, prose=lambda f: f"Incident reported by {f['reporter']}: {f['report']}", others=[{"reporter": rng.choice(NAMES), "report": rng.choice(FILLER)} for _ in range(2)], focus_id="i1")
-    q = {"type": "score", "instructions": paraphrase(rng, ["How severe is this incident?", "Rate the severity of the report.", "What severity level is this?"]) + (" (incident i1)" if fmt == "list" else ""), "criteria": [f"{name}: {', '.join(ex[:2])}" for name, ex in tiers]}
+    fields = {
+        "reporter": rng.choice(NAMES),
+        "report": rng.choice(tiers[t][1]) + rng.choice([".", " since this morning.", ", affecting several customers.", ""]),
+    }
+    state = render(
+        rng,
+        fmt,
+        fields,
+        prose=lambda f: f"Incident reported by {f['reporter']}: {f['report']}",
+        others=[{"reporter": rng.choice(NAMES), "report": rng.choice(FILLER)} for _ in range(2)],
+        focus_id="i1",
+    )
+    q = {
+        "type": "score",
+        "instructions": paraphrase(rng, ["How severe is this incident?", "Rate the severity of the report.", "What severity level is this?"])
+        + (" (incident i1)" if fmt == "list" else ""),
+        "criteria": [f"{name}: {', '.join(ex[:2])}" for name, ex in tiers],
+    }
     return Item(f"ordinal/{fmt}", "ordinal", fmt, "score", state, q, onehot([str(i) for i in range(4)], str(t)))
 
 

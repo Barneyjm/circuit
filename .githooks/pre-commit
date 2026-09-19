@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Refuse a commit that would fail lint: ruff format and ruff check on the staged Python files.
+set -e
+files=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.py$' || true)
+[ -z "$files" ] && exit 0
+uv run ruff format --check $files || { echo "pre-commit: run 'uv run ruff format .' and re-stage"; exit 1; }
+uv run ruff check $files || { echo "pre-commit: fix the ruff findings (uv run ruff check --fix .) and re-stage"; exit 1; }

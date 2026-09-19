@@ -43,7 +43,9 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("data")
     ap.add_argument("--model", default="Qwen/Qwen3-VL-4B-Instruct")
-    ap.add_argument("--lora", default=None, help="a trained vision run dir (adapter/, head.pt, config.json); scores with its pointer head instead of letter logits")
+    ap.add_argument(
+        "--lora", default=None, help="a trained vision run dir (adapter/, head.pt, config.json); scores with its pointer head instead of letter logits"
+    )
     ap.add_argument("--out", required=True)
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--device", default="mps" if torch.backends.mps.is_available() else ("cuda" if torch.cuda.is_available() else "cpu"))
@@ -65,7 +67,9 @@ def main() -> None:
         img = Image.open(base_dir / it["state"]["image"]).convert("RGB")
         opts = option_texts(it["question"])
         lines = "\n".join(f"{LETTERS[j]}. {o}" for j, o in enumerate(opts))
-        text = (it["state"].get("text", "") + "\n\n" if it["state"].get("text") else "") + f"{it['question']['instructions']}\n\nOptions:\n{lines}\n\nAnswer with the single letter of the best option."
+        text = (
+            it["state"].get("text", "") + "\n\n" if it["state"].get("text") else ""
+        ) + f"{it['question']['instructions']}\n\nOptions:\n{lines}\n\nAnswer with the single letter of the best option."
         messages = [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": text}]}]
         prompt = proc.apply_chat_template(messages, add_generation_prompt=True, tokenize=False)
         inputs = proc(text=[prompt], images=[img], return_tensors="pt").to(args.device)
@@ -81,7 +85,13 @@ def main() -> None:
 
 def finish(args, items, preds, lat, model_name: str) -> None:
     summary = summarize(items, preds)
-    timing = {"device": args.device, "items": len(items), "ms_per_item": round(sum(lat) / len(lat), 1), "batch": 1, "note": "pointer head" if args.lora else "letter logits on a raw vision-language model"}
+    timing = {
+        "device": args.device,
+        "items": len(items),
+        "ms_per_item": round(sum(lat) / len(lat), 1),
+        "batch": 1,
+        "note": "pointer head" if args.lora else "letter logits on a raw vision-language model",
+    }
     result = {"model": model_name, "data": args.data, "timing": timing, "metrics": summary}
     print("timing:", json.dumps(timing))
     for k, v in summary.items():
@@ -113,7 +123,9 @@ def score_lora(run_dir: str, items: list, base_dir: Path, device: str):
     rng = random.Random(0)
     for i, it in enumerate(items):
         t0 = time.perf_counter()
-        enc, _ref, nopts, opt_pos, dec_pos = build_batch(tok, [it], rng, device, 4096, train=False, layout=cfg.get("layout", "pointer"), proc=proc, image_root=base_dir)
+        enc, _ref, nopts, opt_pos, dec_pos = build_batch(
+            tok, [it], rng, device, 4096, train=False, layout=cfg.get("layout", "pointer"), proc=proc, image_root=base_dir
+        )
         logits = head_logits(head, hidden_states(model, enc, "vision"), nopts, opt_pos, dec_pos)[0, : int(nopts[0])]
         preds.append(torch.softmax(logits, dim=-1).tolist())
         lat.append((time.perf_counter() - t0) * 1000)

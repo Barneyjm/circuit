@@ -48,7 +48,9 @@ def to_schema(q: dict) -> tuple[dict, bool]:
             field["choice_descriptions"] = desc
         return {"q": field}, False
     levels = [str(i) for i in range(len(crit))]
-    return {"q": {"type": "enum", "choices": levels, "description": str(q["instructions"]), "choice_descriptions": {str(i): str(t) for i, t in enumerate(crit)}}}, True
+    return {
+        "q": {"type": "enum", "choices": levels, "description": str(q["instructions"]), "choice_descriptions": {str(i): str(t) for i, t in enumerate(crit)}}
+    }, True
 
 
 def main() -> None:
@@ -104,7 +106,15 @@ def main() -> None:
 
     summary = summarize(items, preds)
     lat_sorted = sorted(lat)
-    timing = {"device": args.device, "items": len(items), "skipped": skipped, "ms_per_item": round(sum(lat) / len(lat), 1) if lat else None, "ms_per_item_p50": round(lat_sorted[len(lat_sorted) // 2], 1) if lat else None, "batch": 1, "note": "one forward per question, Nimble's own prompt builder"}
+    timing = {
+        "device": args.device,
+        "items": len(items),
+        "skipped": skipped,
+        "ms_per_item": round(sum(lat) / len(lat), 1) if lat else None,
+        "ms_per_item_p50": round(lat_sorted[len(lat_sorted) // 2], 1) if lat else None,
+        "batch": 1,
+        "note": "one forward per question, Nimble's own prompt builder",
+    }
     result = {"model": "bespokelabs/Bespoke-Nimble-9B", "data": args.data, "timing": timing, "metrics": summary}
     print("timing:", json.dumps(timing))
     for k, v in summary.items():

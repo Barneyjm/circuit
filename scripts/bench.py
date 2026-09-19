@@ -39,8 +39,21 @@ def make_request(scorer: HFScorer, target_tokens: int = 512) -> dict:
         "state": state,
         "model": "bench",
         "questions": {
-            "department": {"type": "choice", "instructions": "Which team should handle this?", "criteria": {"billing": "Payments, invoicing, refunds", "technical": "Bugs, outages, integrations", "sales": "Pricing, upgrades, new accounts", "trust": "Fraud, holds, compliance"}},
-            "action": {"type": "choice", "instructions": "What should the assistant do next?", "criteria": {"say": None, "refund": None, "escalate": None, "close": None, "flag": None}},
+            "department": {
+                "type": "choice",
+                "instructions": "Which team should handle this?",
+                "criteria": {
+                    "billing": "Payments, invoicing, refunds",
+                    "technical": "Bugs, outages, integrations",
+                    "sales": "Pricing, upgrades, new accounts",
+                    "trust": "Fraud, holds, compliance",
+                },
+            },
+            "action": {
+                "type": "choice",
+                "instructions": "What should the assistant do next?",
+                "criteria": {"say": None, "refund": None, "escalate": None, "close": None, "flag": None},
+            },
             "frustration": {"type": "score", "instructions": "How frustrated is the customer?", "criteria": ["Calm", "Frustrated", "Very angry"]},
             "urgent": {"type": "noul", "instructions": "Does this convey urgency?"},
         },
