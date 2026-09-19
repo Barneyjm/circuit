@@ -80,8 +80,8 @@ one scale-to-zero GPU container per model, weights pulled from the Hub
 into a volume on first boot, idle containers stopped after two minutes.
 
 ```bash
-uv run modal setup                                        # once
-S1_API_KEY=... uv run modal deploy deploy/modal_app.py    # the key is required as the bearer token
+uv run --group deploy modal setup                                        # once
+S1_API_KEY=... uv run --group deploy modal deploy deploy/modal_app.py    # the key is required as the bearer token
 ```
 
 That gives `https://<workspace>--circuit-1-7b.modal.run/v1/systemone` (L4)

@@ -1,7 +1,7 @@
 """Serve the circuit models on Modal: scale-to-zero GPU containers, one URL per model.
 
-    uv run modal setup                                   # once, logs the CLI in
-    S1_API_KEY=... uv run modal deploy deploy/modal_app.py
+    uv run --group deploy modal setup                                   # once, logs the CLI in
+    S1_API_KEY=... uv run --group deploy modal deploy deploy/modal_app.py
 
 Each model is a class: the container downloads the adapter, head, and base
 weights into a persistent volume on first boot, builds the same FastAPI app
@@ -41,6 +41,7 @@ image = (
 # Deploy-time environment becomes the container's: set S1_API_KEY to require it on every call.
 secret = modal.Secret.from_dict({k: v for k in ("S1_API_KEY",) if (v := os.environ.get(k))})
 
+# max_containers=1 on every class is the spend ceiling: one warm container per model, extra requests queue behind it.
 MODELS = {
     "circuit-1.7b": {"repo": "jbarney/circuit-1.7b", "gpu": "L4"},
     "circuit-8b": {"repo": "jbarney/circuit-8b", "gpu": "L40S"},
@@ -64,7 +65,7 @@ def build(name: str):
     return create_app(scorer)
 
 
-@app.cls(image=image, gpu=MODELS["circuit-1.7b"]["gpu"], volumes={"/vol": weights}, secrets=[secret], scaledown_window=120, timeout=600)
+@app.cls(image=image, gpu=MODELS["circuit-1.7b"]["gpu"], volumes={"/vol": weights}, secrets=[secret], scaledown_window=120, max_containers=1, timeout=600)
 @modal.concurrent(max_inputs=8)
 class Circuit17B:
     @modal.enter()
@@ -76,7 +77,7 @@ class Circuit17B:
         return self.web
 
 
-@app.cls(image=image, gpu=MODELS["circuit-8b"]["gpu"], volumes={"/vol": weights}, secrets=[secret], scaledown_window=120, timeout=900)
+@app.cls(image=image, gpu=MODELS["circuit-8b"]["gpu"], volumes={"/vol": weights}, secrets=[secret], scaledown_window=120, max_containers=1, timeout=900)
 @modal.concurrent(max_inputs=8)
 class Circuit8B:
     @modal.enter()
@@ -88,7 +89,7 @@ class Circuit8B:
         return self.web
 
 
-@app.cls(image=image, gpu=MODELS["circuit-vl-4b"]["gpu"], volumes={"/vol": weights}, secrets=[secret], scaledown_window=120, timeout=600)
+@app.cls(image=image, gpu=MODELS["circuit-vl-4b"]["gpu"], volumes={"/vol": weights}, secrets=[secret], scaledown_window=120, max_containers=1, timeout=600)
 @modal.concurrent(max_inputs=4)
 class CircuitVL4B:
     @modal.enter()
@@ -100,7 +101,7 @@ class CircuitVL4B:
         return self.web
 
 
-@app.cls(image=image, gpu=MODELS["circuit-audio-7b"]["gpu"], volumes={"/vol": weights}, secrets=[secret], scaledown_window=120, timeout=900)
+@app.cls(image=image, gpu=MODELS["circuit-audio-7b"]["gpu"], volumes={"/vol": weights}, secrets=[secret], scaledown_window=120, max_containers=1, timeout=900)
 @modal.concurrent(max_inputs=4)
 class CircuitAudio7B:
     @modal.enter()
