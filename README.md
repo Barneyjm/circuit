@@ -68,6 +68,21 @@ curl -s localhost:8901/v1/systemone -H 'Authorization: Bearer x' -H 'Content-Typ
 Or with [decision-circuits](https://pypi.org/project/decision-circuits/):
 `SystemOne("http://localhost:8901/v1/systemone", api_key="x")`.
 
+## Serve it serverless
+
+`deploy/modal_app.py` runs the same service on [Modal](https://modal.com):
+one scale-to-zero GPU container per model, weights pulled from the Hub
+into a volume on first boot, idle containers stopped after two minutes.
+
+```bash
+uv run modal setup                                        # once
+S1_API_KEY=... uv run modal deploy deploy/modal_app.py    # the key is required as the bearer token
+```
+
+That gives `https://<workspace>--circuit-1-7b.modal.run/v1/systemone` (L4)
+and `...--circuit-8b.modal.run/v1/systemone` (L40S). Cold start is about
+75 s for the 1.7B; a warm single-question call round-trips in 0.4 s.
+
 ## Train one
 
 ```bash
