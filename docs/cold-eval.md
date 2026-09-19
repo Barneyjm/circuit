@@ -145,3 +145,16 @@ Cells are accuracy / ECE against human labels. Nimble's letter scoring caps at 2
 Water-utility calls (the article's 100): Jev 98% / 0.02, Nimble 93% / 0.05, circuit-1.7b 92% / 0.08, kev 80% / 0.13, 1.7B raw 79% / 0.15.
 
 circuit-1.7b trained on grid + commercial wide mix + CC real data (MNLI, civil_comments, sms_spam, CLINC train splits), pointer head, 2 epochs on an RTX 4090 in 61 minutes. Those four tasks are therefore in-distribution for it and not, presumably, for Jev; the water calls and Cole's bench are the out-of-distribution checks.
+
+## Cole's bench, 2026-09-19 (546 production questions, agreement with Jev / ECE)
+
+| model | agreement | ECE | noul | choice | score |
+|---|---|---|---|---|---|
+| Bespoke-Nimble-9B | 0.84 | 0.05 | | | |
+| 8B tuned on synthetic (Jev-derived targets; not published) | 0.82 | 0.06 | 0.91 | 0.64 | 0.88 |
+| 14B raw | 0.80 | 0.09 | 0.92 | 0.66 | 0.68 |
+| 1.7B real-data fine-tune (slot head) | 0.71 | 0.07 | 0.87 | 0.57 | 0.49 |
+| circuit-1.7b | 0.70 | 0.05 | 0.83 | 0.53 | 0.64 |
+| kev-0.5b | 0.49 | 0.11 | 0.56 | 0.42 | 0.38 |
+
+Nimble leads the open models on production-style questions. circuit-1.7b is the best calibrated but mid-pack on agreement: clean data bought calibration and the public benchmarks, not this style of question. circuit-8b (clean data, pointer head) is the direct test of whether size closes it.
