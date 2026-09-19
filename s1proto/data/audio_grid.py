@@ -102,7 +102,7 @@ def noul(p: float) -> dict[str, float]:
 # --- synthesis ---------------------------------------------------------------
 
 
-TTS = os.environ.get("S1_TTS", "voxcpm")  # voxcpm: clone a random LibriSpeech speaker; kokoro: stock voices
+TTS = os.environ.get("S1_TTS", "kokoro")  # kokoro: stock voices, fast; voxcpm: clone a random LibriSpeech speaker, about 9 s per clip
 VOXCPM_PY = os.environ.get("VOXCPM_PY", str(Path.home() / "Documents/code/VoxCPM/.venv/bin/python"))
 _BRIDGE: Any = None
 
