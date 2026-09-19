@@ -16,6 +16,7 @@ SSH="ssh -i $KEY -p $PORT -o StrictHostKeyChecking=accept-new root@$HOST"
 SRC="$(cd "$(dirname "$0")/.." && pwd)"
 
 echo "== rsync repo"
+$SSH 'command -v rsync >/dev/null || (apt-get update -qq && apt-get install -y -qq rsync >/dev/null)' </dev/null
 rsync -rltDz --no-owner --no-group --delete -e "ssh -i $KEY -p $PORT -o StrictHostKeyChecking=accept-new" \
   --exclude .venv --exclude runs --exclude wandb --exclude '.git/objects' --exclude '__pycache__' --exclude '.pytest_cache' \
   "$SRC/" "root@$HOST:/workspace/s1-proto/"
