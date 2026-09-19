@@ -30,3 +30,5 @@ data/audio/grid/train/
 data/audio/grid/eval/
 # real-recording sources are downloaded by the generator docs (LibriSpeech dev-clean, FSDD)
 data/audio/sources/
+# downloaded photo sources (Open Images, per-image attribution in index.json)
+data/vision/sources/

@@ -384,6 +384,84 @@ def cell_scene_negation(rng: random.Random) -> VItem:
     return VItem("negation/scene", "noul", im, None, q, noul(0.0 if present else 1.0))
 
 
+# --- real photographs ------------------------------------------------------------
+# Open Images V7 validation photos (images CC BY 2.0 by their Flickr authors, labels
+# CC BY 4.0) with human-verified positive and negative image labels, so presence
+# questions are labeled by people. data/vision/sources/openimages/index.json carries
+# per-image attribution; the generator copies each photo it uses next to its item.
+
+PHOTOS = Path(__file__).resolve().parents[2] / "data" / "vision" / "sources" / "openimages"
+_PHOTOS: list[dict[str, Any]] | None = None
+
+
+def photos() -> list[dict[str, Any]]:
+    global _PHOTOS
+    if _PHOTOS is None:
+        _PHOTOS = json.loads((PHOTOS / "index.json").read_text())
+    return _PHOTOS
+
+
+def load_photo(row: dict[str, Any]) -> Image.Image:
+    return Image.open(PHOTOS / row["file"]).convert("RGB")
+
+
+def obscure(im: Image.Image, rng: random.Random) -> Image.Image:
+    """Make a photo undecidable: blur it hard, or keep a small corner and black out the rest."""
+    if rng.random() < 0.5:
+        return im.filter(ImageFilter.GaussianBlur(radius=max(im.size) / 24))
+    w, h = im.size
+    out = Image.new("RGB", (w, h), (0, 0, 0))
+    cw, ch = w // 5, h // 5
+    x, y = rng.randrange(0, w - cw), rng.randrange(0, h - ch)
+    out.paste(im.crop((x, y, x + cw, y + ch)), (x, y))
+    return out
+
+
+def cell_photo_present(rng: random.Random) -> VItem:
+    row = rng.choice(photos())
+    present = rng.random() < 0.5
+    thing = rng.choice(row["positives"] if present else row["negatives"])
+    im = load_photo(row)
+    amb = rng.random() < 0.08
+    if amb:
+        im = obscure(im, rng)
+    q = {
+        "type": "noul",
+        "instructions": f"Is there a {thing.lower()} in the photo?",
+        "criteria": {"true": f"at least one {thing.lower()} is visible", "false": "none"},
+    }
+    return VItem("present/photo", "noul", im, None, q, noul(0.5) if amb else noul(1.0 if present else 0.0), amb)
+
+
+def cell_photo_classify(rng: random.Random) -> VItem:
+    row = rng.choice([r for r in photos() if len(r["negatives"]) >= 3])
+    thing = rng.choice(row["positives"])
+    keys = [thing, *rng.sample(row["negatives"], 3)]
+    rng.shuffle(keys)
+    im = load_photo(row)
+    amb = rng.random() < 0.08
+    if amb:
+        im = obscure(im, rng)
+    q = {"type": "choice", "instructions": "Which of these is in the photo?", "criteria": {k: None for k in keys}}
+    return VItem("classify/photo", "choice", im, None, q, {k: 1.0 / len(keys) for k in keys} if amb else onehot(keys, thing), amb)
+
+
+def cell_photo_negation(rng: random.Random) -> VItem:
+    row = rng.choice(photos())
+    absent = rng.random() < 0.5
+    thing = rng.choice(row["negatives"] if absent else row["positives"])
+    im = load_photo(row)
+    amb = rng.random() < 0.08
+    if amb:
+        im = obscure(im, rng)
+    q = {
+        "type": "noul",
+        "instructions": f"Is there NO {thing.lower()} anywhere in the photo?",
+        "criteria": {"true": f"no {thing.lower()} at all", "false": f"at least one {thing.lower()}"},
+    }
+    return VItem("negation/photo", "noul", im, None, q, noul(0.5) if amb else noul(1.0 if absent else 0.0), amb)
+
+
 CELLS = {
     "extract/receipt": cell_receipt_extract,
     "compare/chart": cell_chart_compare,
@@ -395,6 +473,9 @@ CELLS = {
     "classify/any": cell_classify,
     "negation/form": cell_form_negation,
     "negation/scene": cell_scene_negation,
+    "present/photo": cell_photo_present,
+    "classify/photo": cell_photo_classify,
+    "negation/photo": cell_photo_negation,
 }
 
 

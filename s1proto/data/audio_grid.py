@@ -170,7 +170,7 @@ def speak_voxcpm(text: str, rng: random.Random) -> np.ndarray:
         json.dumps(
             {
                 "text": text,
-                "prompt_wav": str(SOURCES / "librispeech" / ref["file"]),
+                "prompt_wav": str(clip_path(ref)),
                 "prompt_text": ref["text"],
                 "out": out,
                 "steps": 12,
@@ -400,7 +400,7 @@ def cell_sounds_classify(rng: random.Random) -> AItem:
     kinds = ["speech", "beeps", "noise", "silence"]
     kind = rng.choice(kinds)
     if kind == "speech":
-        audio = load_clip(SOURCES / "librispeech" / rng.choice(libri())["file"])[: int(4 * SR)]
+        audio = load_clip(clip_path(rng.choice(libri())))[: int(4 * SR)]
     elif kind == "beeps":
         audio = beeps(rng.randint(2, 5), rng)
     elif kind == "noise":
@@ -502,10 +502,23 @@ _FSDD: dict[str, list[Path]] | None = None
 
 
 def libri() -> list[dict[str, Any]]:
+    """Real recordings with transcripts: LibriSpeech dev-clean (CC BY 4.0, read
+    audiobook prose) and Common Voice English (CC0, volunteers reading short
+    sentences on their own microphones). Each row's `file` is resolved against
+    its source folder by `clip_path`."""
     global _LIBRI
     if _LIBRI is None:
-        _LIBRI = json.loads((SOURCES / "librispeech" / "index.json").read_text())
+        rows = []
+        for src in ("librispeech", "commonvoice"):
+            idx = SOURCES / src / "index.json"
+            if idx.exists():
+                rows += [{**r, "source": src} for r in json.loads(idx.read_text())]
+        _LIBRI = rows
     return _LIBRI
+
+
+def clip_path(row: dict[str, Any]) -> Path:
+    return SOURCES / row.get("source", "librispeech") / row["file"]
 
 
 def fsdd() -> dict[str, list[Path]]:
@@ -555,7 +568,7 @@ def cell_speech_mention(rng: random.Random) -> AItem:
         if not cands:
             return cell_speech_mention(rng)
         word = rng.choice(cands)
-    audio = load_clip(SOURCES / "librispeech" / row["file"])
+    audio = load_clip(clip_path(row))
     amb = rng.random() < 0.08
     if amb:
         audio = drown(audio, rng)
@@ -574,7 +587,7 @@ def cell_speech_which(rng: random.Random) -> AItem:
     snippet = lambda r: " ".join(r["text"].split()[:9]) + ("…" if len(r["text"].split()) > 9 else "")
     keys = [snippet(r) for r in [row, *others]]
     rng.shuffle(keys)
-    audio = load_clip(SOURCES / "librispeech" / row["file"])
+    audio = load_clip(clip_path(row))
     amb = rng.random() < 0.08
     if amb:
         audio = drown(audio, rng)
@@ -591,7 +604,7 @@ def cell_speech_order(rng: random.Random) -> AItem:
     a, b = rng.sample(words, 2)
     toks = ["".join(ch for ch in t.replace("'", "") if ch.isalpha()) for t in row["text"].split()]
     first = toks.index(a) < toks.index(b)  # content_words strips tokens the same way, so both are present
-    audio = load_clip(SOURCES / "librispeech" / row["file"])
+    audio = load_clip(clip_path(row))
     amb = rng.random() < 0.08
     if amb:
         audio = drown(audio, rng)
