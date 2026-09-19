@@ -158,3 +158,17 @@ circuit-1.7b trained on grid + commercial wide mix + CC real data (MNLI, civil_c
 | kev-0.5b | 0.49 | 0.11 | 0.56 | 0.42 | 0.38 |
 
 Nimble leads the open models on production-style questions. circuit-1.7b is the best calibrated but mid-pack on agreement: clean data bought calibration and the public benchmarks, not this style of question. circuit-8b (clean data, pointer head) is the direct test of whether size closes it.
+
+## circuit-8b (added 2026-09-19)
+
+Same recipe as circuit-1.7b on Qwen3-8B-Base, 1 epoch, bf16, 75 minutes on
+an RTX A6000; best validation ECE 0.014 at step 2,800. Accuracy / ECE.
+
+| | MultiNLI | SMS spam | toxicity | CLINC 151-way | water calls | grid | typesafe-bench (agree / ECE) |
+|---|---|---|---|---|---|---|---|
+| circuit-8b | 86% / 0.08 | 98% / 0.02 | 93% / 0.14 | 95% / 0.03 | 93% / 0.05 | 98% | 0.84 / 0.04 |
+| circuit-1.7b | 81% / 0.09 | 98% / 0.02 | 90% / 0.16 | 86% / 0.06 | 92% / 0.08 | 97% | 0.70 / 0.05 |
+| Jev | 88% / 0.04 | 96% / 0.05 | 82% / 0.06 | 90% / 0.05 | 98% / 0.02 | 95% | 1.0 by definition |
+
+Throughput on the A6000, batch 8: 72 ms per grid item, 178 ms per cold-eval
+item, 198 ms per typesafe-bench item. Results: `results/*_circuit-8b.json`.

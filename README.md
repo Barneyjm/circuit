@@ -11,7 +11,7 @@ them with a URL change.
 | model | base | status |
 |---|---|---|
 | [circuit-1.7b](https://huggingface.co/jbarney/circuit-1.7b) | Qwen3-1.7B-Base | released |
-| circuit-8b | Qwen3-8B-Base | training |
+| [circuit-8b](https://huggingface.co/jbarney/circuit-8b) | Qwen3-8B-Base | released |
 | circuit-vl-4b | Qwen3-VL-4B | training (images, video frames) |
 | circuit-audio | Qwen2-Audio-7B | planned |
 
@@ -33,10 +33,11 @@ Same items, same labels, every model we can run. Accuracy / ECE.
 | Bespoke-Nimble-9B | 84% / 0.09 | 91% / 0.06 | 86% / 0.08 | n/a (26-option cap) |
 | kev-0.5b | 46% / 0.28 | 50% / 0.30 | 62% / 0.16 | 62% / 0.17 |
 | circuit-1.7b | 81% / 0.09 | 98% / 0.02 | 90% / 0.16 | 86% / 0.06 |
+| circuit-8b | 86% / 0.08 | 98% / 0.02 | 93% / 0.14 | 95% / 0.03 |
 
 Out of distribution for everyone: the 100 water-utility calls from
 [the article](https://towardsdatascience.com/attaining-llm-certainty-with-ai-decision-circuits/),
-Jev 98%, Nimble 93%, circuit-1.7b 92%, kev 80%. Full tables and the
+Jev 98%, Nimble 93%, circuit-8b 93%, circuit-1.7b 92%, kev 80%. Full tables and the
 generalization grid (9 judgment operations x 6 state formats, labels
 computed by code) in [docs/cold-eval.md](docs/cold-eval.md) and
 [docs/grid.md](docs/grid.md).
