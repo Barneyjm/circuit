@@ -28,3 +28,5 @@ wandb/
 # synthesized audio-grid clips are regenerated from the seed (macOS say)
 data/audio/grid/train/
 data/audio/grid/eval/
+# real-recording sources are downloaded by the generator docs (LibriSpeech dev-clean, FSDD)
+data/audio/sources/

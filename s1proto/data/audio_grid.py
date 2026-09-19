@@ -3,18 +3,20 @@
 Same idea as the text and vision grids: span the structure of judgments
 about sound rather than a catalogue of sounds, and know every label by
 construction. Speech is synthesized from scripted templates with the
-macOS `say` voices (the generator runs on the Mac; the WAVs then travel
-with the data), non-speech is generated with numpy. About 8% of items
+Kokoro-82M voices (Apache 2.0; the WAVs travel with the data), non-speech is generated with numpy. About 8% of items
 are made undecidable (the key words drowned in noise, or the clip cut
 before they arrive) with a soft label.
 
-Formats (columns)                  Operations (rows)
-  call     a scripted support call   classify     which kind of call is this?              choice
-  list     a spoken enumeration      extract      what amount / account did they say?      choice
-  numbers  a spoken readback         count        how many items / beeps?                  choice
-  sounds   beeps, tones, noise       compare      which amount was larger / said first?    choice / noul
-                                     consistency  does the claim match what was said?      noul
-                                     negation     did they NOT mention X?                  noul
+Formats (columns)                       Operations (rows)
+  call     a scripted support call        classify     which kind of call is this?              choice
+  list     a spoken enumeration           extract      what amount / number did they say?       choice
+  numbers  a spoken readback              count        how many items / beeps?                  choice
+  sounds   beeps, tones, noise            compare      which amount was larger / said first?    noul
+  speech   a real LibriSpeech recording   consistency  does the claim match what was said?      noul
+  digits   real people saying digits      negation     did they NOT mention X?                  noul
+                                          mention      is the word X spoken?                    noul
+                                          which        which sentence was read?                 choice
+                                          order        is A said before B?                      noul
 
 Output: data/audio/grid/<split>/<id>.wav plus a JSONL whose `state` is
 {"audio": <relative path>, "text": <optional caption>}.
@@ -24,9 +26,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import random
-import subprocess
-import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -35,7 +36,9 @@ import numpy as np
 import soundfile as sf
 
 SR = 16000
-VOICES = ["Samantha", "Daniel", "Karen", "Moira", "Rishi", "Tessa", "Fred", "Kathy"]
+# Kokoro-82M (Apache 2.0) voices, American and British, both sexes. The model runs on the laptop.
+VOICES = ["af_heart", "af_bella", "af_sarah", "af_nicole", "am_adam", "am_michael", "am_fenrir", "bf_emma", "bf_isabella", "bm_george", "bm_lewis"]
+_PIPELINES: dict[str, Any] = {}
 
 CATEGORIES = {
     "billing": [
@@ -99,17 +102,84 @@ def noul(p: float) -> dict[str, float]:
 # --- synthesis ---------------------------------------------------------------
 
 
-def speak(text: str, rng: random.Random, voice: str | None = None) -> np.ndarray:
-    voice = voice or rng.choice(VOICES)
-    rate = rng.randint(150, 210)
-    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
-        path = f.name
-    subprocess.run(["say", "-v", voice, "-r", str(rate), "-o", path, f"--data-format=LEI16@{SR}", text], check=True)
-    data, sr = sf.read(path, dtype="float32")
-    Path(path).unlink()
-    assert sr == SR
+TTS = os.environ.get("S1_TTS", "voxcpm")  # voxcpm: clone a random LibriSpeech speaker; kokoro: stock voices
+VOXCPM_PY = os.environ.get("VOXCPM_PY", str(Path.home() / "Documents/code/VoxCPM/.venv/bin/python"))
+_BRIDGE: Any = None
+
+
+def _bridge():
+    """The VoxCPM subprocess (its own venv), started on first use."""
+    global _BRIDGE
+    if _BRIDGE is None:
+        import subprocess
+
+        _BRIDGE = subprocess.Popen(
+            [VOXCPM_PY, str(Path(__file__).resolve().parents[2] / "scripts" / "voxcpm_bridge.py")],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        )
+        while True:
+            line = _BRIDGE.stdout.readline()
+            if not line:
+                raise RuntimeError("VoxCPM bridge failed to start")
+            if line.startswith("{") and json.loads(line).get("ready"):
+                break
+    return _BRIDGE
+
+
+def speak_voxcpm(text: str, rng: random.Random) -> np.ndarray:
+    """VoxCPM cloning the voice of a random LibriSpeech reader (a paired clip and transcript as the prompt)."""
+    import tempfile
+
+    import librosa
+
+    ref = rng.choice(libri())
+    out = tempfile.NamedTemporaryFile(suffix=".wav", delete=False).name
+    b = _bridge()
+    b.stdin.write(
+        json.dumps(
+            {
+                "text": text,
+                "prompt_wav": str(SOURCES / "librispeech" / ref["file"]),
+                "prompt_text": ref["text"],
+                "out": out,
+                "steps": 12,
+                "seed": rng.randrange(1 << 30),
+            }
+        )
+        + "\n"
+    )
+    b.stdin.flush()
+    resp = json.loads(b.stdout.readline())
+    if "error" in resp:
+        raise RuntimeError(resp["error"])
+    data, sr = sf.read(out, dtype="float32")
+    Path(out).unlink()
     if data.ndim > 1:
         data = data.mean(axis=1)
+    data = librosa.resample(data, orig_sr=sr, target_sr=SR)
+    peak = float(np.abs(data).max()) or 1.0
+    return (data / peak * 0.8).astype(np.float32)
+
+
+def speak(text: str, rng: random.Random, voice: str | None = None) -> np.ndarray:
+    """Natural speech at 16 kHz, peak-normalized. VoxCPM by default (see TTS), Kokoro stock voices otherwise."""
+    import librosa
+
+    if TTS == "voxcpm" and voice is None:
+        return speak_voxcpm(text, rng)
+    voice = voice or rng.choice(VOICES)
+    lang = "b" if voice.startswith("b") else "a"
+    if lang not in _PIPELINES:
+        from kokoro import KPipeline
+
+        _PIPELINES[lang] = KPipeline(lang_code=lang, repo_id="hexgrad/Kokoro-82M")
+    speed = rng.uniform(0.9, 1.12)
+    parts = [a for _gs, _ps, a in _PIPELINES[lang](text, voice=voice, speed=speed)]
+    data = np.concatenate([np.asarray(a, dtype=np.float32) for a in parts])
+    data = librosa.resample(data, orig_sr=24000, target_sr=SR)
     peak = float(np.abs(data).max()) or 1.0
     return (data / peak * 0.8).astype(np.float32)
 
@@ -296,7 +366,7 @@ def cell_sounds_classify(rng: random.Random) -> AItem:
     kinds = ["speech", "beeps", "noise", "silence"]
     kind = rng.choice(kinds)
     if kind == "speech":
-        audio = speak(rng.choice([line for lines in CATEGORIES.values() for line in lines]), rng)
+        audio = load_clip(SOURCES / "librispeech" / rng.choice(libri())["file"])[: int(4 * SR)]
     elif kind == "beeps":
         audio = beeps(rng.randint(2, 5), rng)
     elif kind == "noise":
@@ -315,6 +385,214 @@ def cell_sounds_classify(rng: random.Random) -> AItem:
     return AItem("classify/sounds", "choice", audio, None, q, ref, amb)
 
 
+# --- real recordings ---------------------------------------------------------------
+# LibriSpeech (CC BY 4.0): read sentences with transcripts, so questions about what was
+# said are labeled from the transcript. Free Spoken Digit Dataset (CC BY-SA 4.0): real
+# people saying digits, stitched into account-number readbacks.
+
+SOURCES = Path(__file__).resolve().parents[2] / "data" / "audio" / "sources"
+STOP = frozenset(
+    [
+        "the",
+        "a",
+        "an",
+        "and",
+        "or",
+        "of",
+        "to",
+        "in",
+        "on",
+        "at",
+        "for",
+        "with",
+        "by",
+        "from",
+        "that",
+        "this",
+        "these",
+        "those",
+        "is",
+        "was",
+        "were",
+        "be",
+        "been",
+        "are",
+        "it",
+        "its",
+        "he",
+        "she",
+        "they",
+        "we",
+        "you",
+        "i",
+        "his",
+        "her",
+        "their",
+        "our",
+        "your",
+        "not",
+        "no",
+        "as",
+        "but",
+        "if",
+        "so",
+        "than",
+        "then",
+        "there",
+        "here",
+        "which",
+        "what",
+        "who",
+        "whom",
+        "when",
+        "where",
+        "how",
+        "all",
+        "any",
+        "some",
+        "such",
+        "very",
+        "into",
+        "out",
+        "up",
+        "down",
+        "over",
+        "under",
+        "again",
+        "more",
+        "most",
+    ]
+)
+_LIBRI: list[dict[str, Any]] | None = None
+_FSDD: dict[str, list[Path]] | None = None
+
+
+def libri() -> list[dict[str, Any]]:
+    global _LIBRI
+    if _LIBRI is None:
+        _LIBRI = json.loads((SOURCES / "librispeech" / "index.json").read_text())
+    return _LIBRI
+
+
+def fsdd() -> dict[str, list[Path]]:
+    """speaker -> digit clips (file names are <digit>_<speaker>_<take>.wav)."""
+    global _FSDD
+    if _FSDD is None:
+        _FSDD = {}
+        for p in sorted((SOURCES / "fsdd" / "recordings").glob("*.wav")):
+            _FSDD.setdefault(p.stem.split("_")[1], []).append(p)
+    return _FSDD
+
+
+def load_clip(path: Path) -> np.ndarray:
+    import librosa
+
+    data, sr = sf.read(path, dtype="float32")
+    if data.ndim > 1:
+        data = data.mean(axis=1)
+    if sr != SR:
+        data = librosa.resample(data, orig_sr=sr, target_sr=SR)
+    peak = float(np.abs(data).max()) or 1.0
+    return (data / peak * 0.8).astype(np.float32)
+
+
+def content_words(text: str) -> list[str]:
+    seen, out = set(), []
+    for w in text.replace("'", "").split():
+        w = "".join(ch for ch in w if ch.isalpha())
+        if len(w) >= 5 and w not in STOP and w not in seen:
+            seen.add(w)
+            out.append(w)
+    return out
+
+
+def cell_speech_mention(rng: random.Random) -> AItem:
+    rows = libri()
+    row = rng.choice(rows)
+    words = content_words(row["text"])
+    if len(words) < 2:
+        return cell_speech_mention(rng)
+    present = rng.random() < 0.5
+    if present:
+        word = rng.choice(words)
+    else:
+        other = content_words(rng.choice(rows)["text"])
+        cands = [w for w in other if w not in row["text"].split()]
+        if not cands:
+            return cell_speech_mention(rng)
+        word = rng.choice(cands)
+    audio = load_clip(SOURCES / "librispeech" / row["file"])
+    amb = rng.random() < 0.08
+    if amb:
+        audio = drown(audio, rng)
+    q = {
+        "type": "noul",
+        "instructions": f'Does the speaker say the word "{word}"?',
+        "criteria": {"true": "the word is spoken in the clip", "false": "it is not"},
+    }
+    return AItem("mention/speech", "noul", audio, None, q, noul(0.5) if amb else noul(1.0 if present else 0.0), amb)
+
+
+def cell_speech_which(rng: random.Random) -> AItem:
+    rows = libri()
+    row = rng.choice(rows)
+    others = rng.sample([r for r in rows if r is not row], 3)
+    snippet = lambda r: " ".join(r["text"].split()[:9]) + ("…" if len(r["text"].split()) > 9 else "")
+    keys = [snippet(r) for r in [row, *others]]
+    rng.shuffle(keys)
+    audio = load_clip(SOURCES / "librispeech" / row["file"])
+    amb = rng.random() < 0.08
+    if amb:
+        audio = drown(audio, rng)
+    q = {"type": "choice", "instructions": "Which of these did the speaker read?", "criteria": {k: None for k in keys}}
+    return AItem("which/speech", "choice", audio, None, q, uniform(keys) if amb else onehot(keys, snippet(row)), amb)
+
+
+def cell_speech_order(rng: random.Random) -> AItem:
+    rows = libri()
+    row = rng.choice(rows)
+    words = content_words(row["text"])
+    if len(words) < 3:
+        return cell_speech_order(rng)
+    a, b = rng.sample(words, 2)
+    toks = row["text"].split()
+    first = min(i for i, t in enumerate(toks) if a in t) < min(i for i, t in enumerate(toks) if b in t)
+    audio = load_clip(SOURCES / "librispeech" / row["file"])
+    amb = rng.random() < 0.08
+    if amb:
+        audio = drown(audio, rng)
+    q = {"type": "noul", "instructions": f'Does the speaker say "{a}" before "{b}"?', "criteria": {"true": f"{a} comes first", "false": f"{b} comes first"}}
+    return AItem("order/speech", "noul", audio, None, q, noul(0.5) if amb else noul(1.0 if first else 0.0), amb)
+
+
+def cell_digits_extract(rng: random.Random) -> AItem:
+    """A real person reading four digits, one clip per digit, one speaker."""
+    speaker = rng.choice(list(fsdd()))
+    clips = fsdd()[speaker]
+    by_digit: dict[str, list[Path]] = {}
+    for p in clips:
+        by_digit.setdefault(p.stem.split("_")[0], []).append(p)
+    digits = [rng.choice("0123456789") for _ in range(4)]
+    said = "".join(digits)
+    parts = [silence(0.25)]
+    for d in digits:
+        parts += [load_clip(rng.choice(by_digit[d])), silence(rng.uniform(0.15, 0.35))]
+    audio = np.concatenate(parts)
+    others: set[str] = set()
+    while len(others) < 3:
+        d = digits[:]
+        i = rng.randrange(4)
+        d[i] = str((int(d[i]) + rng.randint(1, 9)) % 10)
+        if "".join(d) != said:
+            others.add("".join(d))
+    amb = rng.random() < 0.08
+    if amb:
+        audio = drown(audio, rng)
+    keys = sorted([said, *others])
+    q = {"type": "choice", "instructions": "Which four-digit number does the speaker read out?", "criteria": {k: None for k in keys}}
+    return AItem("extract/digits", "choice", audio, None, q, uniform(keys) if amb else onehot(keys, said), amb)
+
+
 CELLS = {
     "classify/call": cell_call_classify,
     "extract/call": cell_call_extract,
@@ -326,6 +604,10 @@ CELLS = {
     "compare/numbers": cell_numbers_compare,
     "count/sounds": cell_sounds_count,
     "classify/sounds": cell_sounds_classify,
+    "mention/speech": cell_speech_mention,
+    "which/speech": cell_speech_which,
+    "order/speech": cell_speech_order,
+    "extract/digits": cell_digits_extract,
 }
 
 

@@ -27,6 +27,10 @@ dependencies = [
 ]
 
 [dependency-groups]
+audio = [
+    "kokoro>=0.9.4",
+    "soundfile>=0.14.0",
+]
 deploy = [
     "modal>=1.5.5",
 ]
