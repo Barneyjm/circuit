@@ -46,10 +46,10 @@ Vision: on the rendered vision grid (receipts, charts, tables, forms,
 scenes; 300 held-out items) circuit-vl-4b scores 98.3% / ECE 0.018 against
 the raw base's 96.0% / 0.041 by letter logits. Seven minutes of training.
 
-Audio: on the synthesized audio grid (support calls, spoken lists and
-numbers, beeps and noise; 279 decidable held-out clips) circuit-audio-7b
-scores 93.5% / ECE 0.072 against the raw base's 72.0% / 0.188. Trained on
-a laptop in 35 minutes.
+Audio: on the audio grid (scripted calls in Kokoro voices, real LibriSpeech
+recordings and spoken digits, beeps and noise; 385 decidable held-out
+clips) circuit-audio-7b scores 94.5% / ECE 0.039 against the raw base's
+73.2% / 0.199. Trained on a laptop in 55 minutes.
 
 ## Run a model
 

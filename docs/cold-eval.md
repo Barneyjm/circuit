@@ -223,3 +223,21 @@ budget (half the batch size over the same single epoch, early-stopped at
 step 4,000 of 6,800) than the base; with the 8B already at or above Jev on
 most rows, the next spend goes to data, not parameters. Timing on the A6000:
 n/a ms per cold-eval item batched. Results: `results/*_circuit-14b.json`.
+
+## circuit-audio-7b v2 (added 2026-09-19, published over v1)
+
+Audio grid v2: 14 cells, 1,400 training clips. Scripted calls, lists, and
+readbacks in 27 Kokoro voices with random blends; real LibriSpeech
+dev-clean recordings (CC BY 4.0) with mention / which-sentence / word-order
+questions labeled from transcripts; Free Spoken Digit Dataset (CC BY-SA
+4.0) digits stitched into account numbers; generated sounds. Same recipe,
+1 epoch, 55 minutes on the laptop, best validation ECE 0.052 at step 300.
+420 held-out clips:
+
+| model | decidable (385) acc / ECE | all 420 acc / ECE | ambiguous mean conf (35) |
+|---|---|---|---|
+| Qwen2-Audio-7B-Instruct raw, letter logits | 73.2% / 0.199 | 68.1% / 0.232 | 0.69 |
+| circuit-audio-7b v2 | 94.5% / 0.039 | 88.8% / 0.073 | 0.54 |
+
+Weak cell: count/sounds 44% (raw 8%). Results:
+`results/agrid2_circuit-audio-7b-v2.json`, `results/agrid2_qwen2audio_raw.json`.
