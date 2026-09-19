@@ -204,3 +204,22 @@ Biggest gains: count/sounds 15% -> 67%, count/list 63% -> 89%, negation/list
 55% -> 100%, compare/numbers 46% -> 89%. Weakest cell after training:
 count/sounds. Results: `results/agrid_circuit-audio-7b.json`,
 `results/agrid_qwen2audio_raw.json`.
+
+## circuit-14b (trained 2026-09-19, not published)
+
+Same recipe on Qwen3-14B-Base, 1 epoch at batch 2 with gradient checkpointing,
+132 minutes on an RTX A6000, best validation ECE 0.032 at step 4,000. It does
+not beat circuit-8b, so it is not in the family. Accuracy / ECE:
+
+| | MultiNLI | SMS spam | toxicity | CLINC 151-way | water calls | grid | typesafe-bench (agree / ECE) |
+|---|---|---|---|---|---|---|---|
+| circuit-14b | 85.5% / 0.120 | 96.0% / 0.039 | 85.0% / 0.143 | 93.5% / 0.051 | 93% / 0.037 | 98% | 0.857 / 0.070 |
+| circuit-8b | 86.0% / 0.083 | 97.5% / 0.023 | 92.5% / 0.135 | 95.0% / 0.031 | 93% / 0.048 | 98% | 0.841 / 0.039 |
+
+Reading: a 1.6-point gain in agreement on the production questions, paid for
+with worse calibration everywhere (Brier 0.140 vs 0.128 there) and lower
+accuracy on all four cold-eval tasks. The likelier cause is the training
+budget (half the batch size over the same single epoch, early-stopped at
+step 4,000 of 6,800) than the base; with the 8B already at or above Jev on
+most rows, the next spend goes to data, not parameters. Timing on the A6000:
+n/a ms per cold-eval item batched. Results: `results/*_circuit-14b.json`.
