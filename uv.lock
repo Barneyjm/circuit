@@ -839,31 +839,10 @@ wheels = [
 [[package]]
 name = "decision-circuits"
 version = "0.4.0"
-source = { directory = "../decision-circuits" }
-
-[package.metadata]
-requires-dist = [
-    { name = "anthropic", marker = "extra == 'all'", specifier = ">=1.0,<2" },
-    { name = "anthropic", marker = "extra == 'anthropic'", specifier = ">=1.0,<2" },
-    { name = "claude-agent-sdk", marker = "extra == 'all'", specifier = ">=0.2" },
-    { name = "claude-agent-sdk", marker = "extra == 'claude'", specifier = ">=0.2" },
-    { name = "langchain", marker = "extra == 'all'", specifier = ">=1.4,<2" },
-    { name = "langchain", marker = "extra == 'langchain'", specifier = ">=1.4,<2" },
-    { name = "openai", marker = "extra == 'all'", specifier = ">=2.44,<4" },
-    { name = "openai", marker = "extra == 'openai'", specifier = ">=2.44,<4" },
-    { name = "openai-agents", marker = "extra == 'all'", specifier = ">=0.22" },
-    { name = "openai-agents", marker = "extra == 'openai-agents'", specifier = ">=0.22" },
-]
-provides-extras = ["openai", "anthropic", "langchain", "openai-agents", "claude", "all"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "claude-agent-sdk", specifier = ">=0.2" },
-    { name = "httpx", specifier = ">=0.25" },
-    { name = "langchain", specifier = ">=1.4,<2" },
-    { name = "openai-agents", specifier = ">=0.22" },
-    { name = "pytest", specifier = ">=8" },
-    { name = "ruff", specifier = ">=0.6" },
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/59/27/1d6e58fa804d802d19a5d91909968e00028b432689ea9bebd24fae719e40/decision_circuits-0.4.0.tar.gz", hash = "sha256:8b0fa733e90f82950cc0ad6c31a8771d87b869e230733e4722985c2778124f3c", size = 41753, upload-time = "2026-09-19T18:21:12.78Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d6/ab/501308db30e72b3ccdf9926431b9d3da2871473c4730f3edc55dfcb6b996/decision_circuits-0.4.0-py3-none-any.whl", hash = "sha256:886decee9cdab2483cd258028dce400e3407203284a62754bd175e8314d8737c", size = 41276, upload-time = "2026-09-19T18:21:11.452Z" },
 ]
 
 [[package]]
@@ -3382,7 +3361,7 @@ dev = [
 requires-dist = [
     { name = "accelerate", specifier = ">=1.15.0" },
     { name = "datasets", specifier = ">=5.0.1" },
-    { name = "decision-circuits", directory = "../decision-circuits" },
+    { name = "decision-circuits", specifier = ">=0.4.0" },
     { name = "fastapi", specifier = ">=0.141.1" },
     { name = "google-genai", specifier = ">=2.24.0" },
     { name = "httpx", specifier = ">=0.28.1" },
