@@ -24,7 +24,7 @@ rsync -rltDz --no-owner --no-group --delete -e "ssh -i $KEY -p $PORT -o StrictHo
   "$SRC/../decision-circuits/" "root@$HOST:/workspace/decision-circuits/"
 scp -i "$KEY" -P "$PORT" "$SRC/.env" "root@$HOST:/workspace/s1-proto/.env"
 
-$SSH bash -s <<'EOF'
+$SSH BASES="${BASES:-}" bash -s <<'EOF'
 set -euo pipefail
 cd /workspace/s1-proto
 export PATH="$HOME/.local/bin:$PATH"
@@ -38,7 +38,8 @@ uv pip install -q --index-url https://download.pytorch.org/whl/cu128 torch torch
 uv run python -c "import torch; print('torch', torch.__version__, 'cuda', torch.cuda.is_available(), torch.cuda.get_device_name(0) if torch.cuda.is_available() else '')"
 uv run python - <<'PY'
 from huggingface_hub import snapshot_download
-for m in ["Qwen/Qwen3-1.7B-Base", "Qwen/Qwen3-8B-Base"]:
+import os
+for m in os.environ.get("BASES", "Qwen/Qwen3-1.7B-Base,Qwen/Qwen3-8B-Base").split(","):
     snapshot_download(m, allow_patterns=["*.json", "*.safetensors", "*.txt", "*.jinja"]); print("cached", m)
 PY
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
