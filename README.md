@@ -102,7 +102,8 @@ uv run python scripts/grid_report.py results/grid_*.json
 
 `--modality vision` trains the same head on a Qwen3-VL base with the
 vision grid (`python -m s1proto.data.vision_grid`); `--modality audio` on
-Qwen2-Audio with the audio grid (`python -m s1proto.data.audio_grid`, macOS). `--load-4bit` for
+Qwen2-Audio with the audio grid (`uv run --group audio python -m s1proto.data.audio_grid`;
+Kokoro voices plus LibriSpeech and spoken-digit recordings, see the module docstring). `--load-4bit` for
 QLoRA on small cards. `scripts/remote_setup.sh`, `remote_watch.sh`, and
 `remote_events.sh` run all of this on a rented GPU and pull the weights
 back.
