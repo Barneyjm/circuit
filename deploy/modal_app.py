@@ -30,6 +30,9 @@ image = (
         "pydantic>=2.13",
         "numpy",
         "decision-circuits",
+        "pillow",
+        "soundfile",
+        "librosa",
     )
     .env({"HF_HOME": "/vol/hf", "HF_HUB_ENABLE_HF_TRANSFER": "0"})
     .add_local_python_source("s1proto")
@@ -40,6 +43,8 @@ secret = modal.Secret.from_dict({k: v for k in ("S1_API_KEY",) if (v := os.envir
 MODELS = {
     "circuit-1.7b": {"repo": "jbarney/circuit-1.7b", "gpu": "L4"},
     "circuit-8b": {"repo": "jbarney/circuit-8b", "gpu": "L40S"},
+    "circuit-vl-4b": {"repo": "jbarney/circuit-vl-4b", "gpu": "L4"},
+    "circuit-audio-7b": {"repo": "jbarney/circuit-audio-7b", "gpu": "L40S"},
 }
 
 
@@ -50,10 +55,10 @@ def build(name: str):
     run_dir = f"/vol/runs/{name}"
     snapshot_download(MODELS[name]["repo"], local_dir=run_dir)
     weights.commit()
-    from s1proto.scorer import LoRAScorer
+    from s1proto.scorer import load_scorer
     from s1proto.service import create_app
 
-    scorer = LoRAScorer(run_dir=run_dir)  # downloads the base into HF_HOME on the volume the first time
+    scorer = load_scorer(f"lora:{run_dir}")  # text, vision, or audio by the run's config; downloads the base into the volume the first time
     weights.commit()
     return create_app(scorer)
 
@@ -78,5 +83,29 @@ class Circuit8B:
         self.web = build("circuit-8b")
 
     @modal.asgi_app(label="circuit-8b")
+    def api(self):
+        return self.web
+
+
+@app.cls(image=image, gpu=MODELS["circuit-vl-4b"]["gpu"], volumes={"/vol": weights}, secrets=[secret], scaledown_window=120, timeout=600)
+@modal.concurrent(max_inputs=4)
+class CircuitVL4B:
+    @modal.enter()
+    def load(self) -> None:
+        self.web = build("circuit-vl-4b")
+
+    @modal.asgi_app(label="circuit-vl-4b")
+    def api(self):
+        return self.web
+
+
+@app.cls(image=image, gpu=MODELS["circuit-audio-7b"]["gpu"], volumes={"/vol": weights}, secrets=[secret], scaledown_window=120, timeout=900)
+@modal.concurrent(max_inputs=4)
+class CircuitAudio7B:
+    @modal.enter()
+    def load(self) -> None:
+        self.web = build("circuit-audio-7b")
+
+    @modal.asgi_app(label="circuit-audio-7b")
     def api(self):
         return self.web
