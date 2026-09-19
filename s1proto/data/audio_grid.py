@@ -37,7 +37,35 @@ import soundfile as sf
 
 SR = 16000
 # Kokoro-82M (Apache 2.0) voices, American and British, both sexes. The model runs on the laptop.
-VOICES = ["af_heart", "af_bella", "af_sarah", "af_nicole", "am_adam", "am_michael", "am_fenrir", "bf_emma", "bf_isabella", "bm_george", "bm_lewis"]
+VOICES = [  # every English voice Kokoro ships: American / British, women / men
+    "af_alloy",
+    "af_aoede",
+    "af_bella",
+    "af_heart",
+    "af_jessica",
+    "af_kore",
+    "af_nicole",
+    "af_nova",
+    "af_river",
+    "af_sarah",
+    "af_sky",
+    "am_adam",
+    "am_echo",
+    "am_eric",
+    "am_fenrir",
+    "am_liam",
+    "am_michael",
+    "am_onyx",
+    "am_puck",
+    "bf_alice",
+    "bf_emma",
+    "bf_isabella",
+    "bf_lily",
+    "bm_daniel",
+    "bm_fable",
+    "bm_george",
+    "bm_lewis",
+]
 _PIPELINES: dict[str, Any] = {}
 
 CATEGORIES = {
@@ -177,7 +205,13 @@ def speak(text: str, rng: random.Random, voice: str | None = None) -> np.ndarray
 
         _PIPELINES[lang] = KPipeline(lang_code=lang, repo_id="hexgrad/Kokoro-82M")
     speed = rng.uniform(0.9, 1.12)
-    parts = [a for _gs, _ps, a in _PIPELINES[lang](text, voice=voice, speed=speed)]
+    pipe = _PIPELINES[lang]
+    v: Any = voice
+    if rng.random() < 0.35:  # a blend of two voices of the same accent: a voice nobody shipped
+        other = rng.choice([x for x in VOICES if x[0] == voice[0] and x != voice])
+        w = rng.uniform(0.3, 0.7)
+        v = w * pipe.load_voice(voice) + (1 - w) * pipe.load_voice(other)
+    parts = [a for _gs, _ps, a in pipe(text, voice=v, speed=speed)]
     data = np.concatenate([np.asarray(a, dtype=np.float32) for a in parts])
     data = librosa.resample(data, orig_sr=24000, target_sr=SR)
     peak = float(np.abs(data).max()) or 1.0
