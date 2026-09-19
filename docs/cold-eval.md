@@ -241,3 +241,22 @@ questions labeled from transcripts; Free Spoken Digit Dataset (CC BY-SA
 
 Weak cell: count/sounds 44% (raw 8%). Results:
 `results/agrid2_circuit-audio-7b-v2.json`, `results/agrid2_qwen2audio_raw.json`.
+
+## circuit-vl-4b v2 (added 2026-09-19, published over v1)
+
+Vision grid v2 adds three real-photo cells from 700 Open Images V7
+validation photos (images CC BY 2.0 by their Flickr authors, labels CC BY
+4.0; per-image attribution in `data/vision/sources/openimages/index.json`):
+present/photo, classify/photo, negation/photo, labeled by the human-verified
+image labels. 16 cells, 1,408 training items, 2 epochs, 85 minutes on the
+laptop, best validation ECE 0.035 at step 600. 390 held-out items:
+
+| model | all 390 acc / ECE | real photos (86) | rendered (293) | ambiguous mean conf (11) |
+|---|---|---|---|---|
+| Qwen3-VL-4B-Instruct raw, letter logits | 92.6% / 0.079 | 81.4% / 0.192 | ~96% | 0.96 |
+| circuit-vl-4b v2 | 96.4% / 0.036 | 89.5% / 0.105 | ~99% | 0.88 |
+
+Photo cells: classify 97% (raw 79%), present 86% (raw 76%), negation 86%
+(raw 89%). Open Images' verified labels are not exhaustive, which caps the
+presence cells. Results: `results/vgrid2_circuit-vl-4b-v2.json`,
+`results/vgrid2_qwen3vl4b_raw.json`.

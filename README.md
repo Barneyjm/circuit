@@ -42,9 +42,11 @@ generalization grid (9 judgment operations x 6 state formats, labels
 computed by code) in [docs/cold-eval.md](docs/cold-eval.md) and
 [docs/grid.md](docs/grid.md).
 
-Vision: on the rendered vision grid (receipts, charts, tables, forms,
-scenes; 300 held-out items) circuit-vl-4b scores 98.3% / ECE 0.018 against
-the raw base's 96.0% / 0.041 by letter logits. Seven minutes of training.
+Vision: on the vision grid (rendered receipts, charts, tables, forms, and
+scenes plus real Open Images photos with human-verified labels; 390
+held-out items) circuit-vl-4b scores 96.4% / ECE 0.036 against the raw
+base's 92.6% / 0.079; on the real photos alone 89.5% / 0.105 against
+81.4% / 0.192. 85 minutes of training on a laptop.
 
 Audio: on the audio grid (scripted calls in Kokoro voices, real LibriSpeech
 recordings and spoken digits, beeps and noise; 385 decidable held-out
