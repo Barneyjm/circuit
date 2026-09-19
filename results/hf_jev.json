@@ -1,0 +1,116 @@
+{
+ "model": "jev-latest",
+ "data": "data/hf_eval.jsonl",
+ "timing": {
+  "items": 1200,
+  "errors": 0,
+  "concurrency": 8,
+  "wall_seconds": 26.9,
+  "ms_per_item_p50": 164.2,
+  "ms_per_item_p90": 228.4,
+  "ms_per_item_mean": 178.1,
+  "note": "client-side round trip from a laptop to api.typesafe.ai; includes network"
+ },
+ "metrics": {
+  "all": {
+   "n": 1200,
+   "kl_to_ref": 3.1251,
+   "brier": 0.505,
+   "accuracy": 0.68,
+   "ece": 0.1756,
+   "sel_acc_90": 0.712,
+   "agree_jev": 0.68,
+   "mean_conf": 0.8555
+  },
+  "type:choice": {
+   "n": 600,
+   "kl_to_ref": 3.2292,
+   "brier": 0.4988,
+   "accuracy": 0.6817,
+   "ece": 0.1838,
+   "sel_acc_90": 0.7204,
+   "agree_jev": 0.6817,
+   "mean_conf": 0.8655
+  },
+  "family:mnli (heldout)": {
+   "n": 200,
+   "kl_to_ref": 0.3929,
+   "brier": 0.1846,
+   "accuracy": 0.88,
+   "ece": 0.0441,
+   "sel_acc_90": 0.9111,
+   "agree_jev": 0.88,
+   "mean_conf": 0.8969
+  },
+  "type:score": {
+   "n": 200,
+   "kl_to_ref": 8.629,
+   "brier": 1.2722,
+   "accuracy": 0.255,
+   "ece": 0.5951,
+   "sel_acc_90": 0.2444,
+   "agree_jev": 0.255,
+   "mean_conf": 0.8481
+  },
+  "family:ticket_priority (heldout)": {
+   "n": 200,
+   "kl_to_ref": 8.629,
+   "brier": 1.2722,
+   "accuracy": 0.255,
+   "ece": 0.5951,
+   "sel_acc_90": 0.2444,
+   "agree_jev": 0.255,
+   "mean_conf": 0.8481
+  },
+  "family:ticket_queue (heldout)": {
+   "n": 200,
+   "kl_to_ref": 8.5538,
+   "brier": 1.1542,
+   "accuracy": 0.26,
+   "ece": 0.5231,
+   "sel_acc_90": 0.2722,
+   "agree_jev": 0.26,
+   "mean_conf": 0.7831
+  },
+  "family:clinc_intent (heldout)": {
+   "n": 200,
+   "kl_to_ref": 0.7409,
+   "brier": 0.1577,
+   "accuracy": 0.905,
+   "ece": 0.0484,
+   "sel_acc_90": 0.9333,
+   "agree_jev": 0.905,
+   "mean_conf": 0.9164
+  },
+  "type:noul": {
+   "n": 400,
+   "kl_to_ref": 0.2169,
+   "brier": 0.1307,
+   "accuracy": 0.89,
+   "ece": 0.0492,
+   "sel_acc_90": 0.9278,
+   "agree_jev": 0.89,
+   "mean_conf": 0.8442
+  },
+  "family:civil_toxic (heldout)": {
+   "n": 200,
+   "kl_to_ref": 0.2984,
+   "brier": 0.1953,
+   "accuracy": 0.82,
+   "ece": 0.0617,
+   "sel_acc_90": 0.8556,
+   "agree_jev": 0.82,
+   "mean_conf": 0.7697
+  },
+  "family:sms_spam (heldout)": {
+   "n": 200,
+   "kl_to_ref": 0.1354,
+   "brier": 0.0661,
+   "accuracy": 0.96,
+   "ece": 0.0451,
+   "sel_acc_90": 0.9833,
+   "agree_jev": 0.96,
+   "mean_conf": 0.9187
+  }
+ }
+}

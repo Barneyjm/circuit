@@ -1,0 +1,104 @@
+{
+ "model": "Qwen3-8B-Base",
+ "data": "data/hf_eval_small.jsonl",
+ "temps": {
+  "noul": 1.0,
+  "choice": 1.0,
+  "score": 1.0
+ },
+ "fitted": null,
+ "permutations": 1,
+ "debias": false,
+ "metrics": {
+  "all": {
+   "n": 1000,
+   "kl_to_ref": 1.0248,
+   "brier": 0.4998,
+   "accuracy": 0.616,
+   "ece": 0.0819,
+   "sel_acc_90": 0.6533,
+   "agree_jev": 0.616,
+   "mean_conf": 0.6773
+  },
+  "type:choice": {
+   "n": 400,
+   "kl_to_ref": 1.3765,
+   "brier": 0.5762,
+   "accuracy": 0.5675,
+   "ece": 0.0805,
+   "sel_acc_90": 0.6167,
+   "agree_jev": 0.5675,
+   "mean_conf": 0.6311
+  },
+  "family:mnli (heldout)": {
+   "n": 200,
+   "kl_to_ref": 0.4839,
+   "brier": 0.2824,
+   "accuracy": 0.8,
+   "ece": 0.1007,
+   "sel_acc_90": 0.85,
+   "agree_jev": 0.8,
+   "mean_conf": 0.7295
+  },
+  "type:score": {
+   "n": 200,
+   "kl_to_ref": 1.6624,
+   "brier": 0.8802,
+   "accuracy": 0.325,
+   "ece": 0.3179,
+   "sel_acc_90": 0.3111,
+   "agree_jev": 0.325,
+   "mean_conf": 0.6288
+  },
+  "family:ticket_priority (heldout)": {
+   "n": 200,
+   "kl_to_ref": 1.6624,
+   "brier": 0.8802,
+   "accuracy": 0.325,
+   "ece": 0.3179,
+   "sel_acc_90": 0.3111,
+   "agree_jev": 0.325,
+   "mean_conf": 0.6288
+  },
+  "family:ticket_queue (heldout)": {
+   "n": 200,
+   "kl_to_ref": 2.2691,
+   "brier": 0.87,
+   "accuracy": 0.335,
+   "ece": 0.2004,
+   "sel_acc_90": 0.3667,
+   "agree_jev": 0.335,
+   "mean_conf": 0.5326
+  },
+  "type:noul": {
+   "n": 400,
+   "kl_to_ref": 0.3542,
+   "brier": 0.2331,
+   "accuracy": 0.81,
+   "ece": 0.0947,
+   "sel_acc_90": 0.8528,
+   "agree_jev": 0.81,
+   "mean_conf": 0.7478
+  },
+  "family:civil_toxic (heldout)": {
+   "n": 200,
+   "kl_to_ref": 0.3979,
+   "brier": 0.2871,
+   "accuracy": 0.735,
+   "ece": 0.0574,
+   "sel_acc_90": 0.7778,
+   "agree_jev": 0.735,
+   "mean_conf": 0.7126
+  },
+  "family:sms_spam (heldout)": {
+   "n": 200,
+   "kl_to_ref": 0.3104,
+   "brier": 0.1792,
+   "accuracy": 0.885,
+   "ece": 0.132,
+   "sel_acc_90": 0.9222,
+   "agree_jev": 0.885,
+   "mean_conf": 0.783
+  }
+ }
+}

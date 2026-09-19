@@ -1,0 +1,124 @@
+
+==============================================================================
+support_triage
+==============================================================================
+
+STATE: Your app deleted every invoice from March when I clicked export. I have an audit Friday. Fix this now or we ca…
+  dept         billing conf=0.20  billing=0.37  technical=0.29  account=0.28
+  urgency      score=2.88 conf=0.73
+  angry        P(yes)=0.93
+  => route        None         ABSTAIN   dept -> billing p=0.37 conf=0.20 (min 0.35) | uncertain -> abstain
+  => tier         3                      urgency score=2.88 cutpoints=[1.0, 2.0, 2.6] -> bucket 3
+  => critical     True                   urgency[3] p=0.90
+  => human        True                   angry p=0.93 | gate critical p=0.90 | or under independence -> p=0.99
+
+STATE: Hi! Quick one: does the Pro plan include SSO? Trying to decide before our renewal next month.
+  dept         sales conf=0.45  sales=0.72  account=0.16  billing=0.07
+  urgency      score=0.04 conf=0.89
+  angry        P(yes)=0.04
+  => route        sales                  dept -> sales p=0.72 conf=0.45 (min 0.35)
+  => tier         0                      urgency score=0.04 cutpoints=[1.0, 2.0, 2.6] -> bucket 0
+  => critical     False                  urgency[3] p=0.00
+  => human        False                  angry p=0.04 | gate critical p=0.00 | or under independence -> p=0.05
+
+STATE: Login keeps saying my password is wrong even after I reset it twice. Not urgent, I can use the mobile app for …
+  dept         account conf=0.88  account=0.96  other=0.02  technical=0.01
+  urgency      score=0.54 conf=0.43
+  angry        P(yes)=0.04
+  => route        account                dept -> account p=0.96 conf=0.88 (min 0.35)
+  => tier         0                      urgency score=0.54 cutpoints=[1.0, 2.0, 2.6] -> bucket 0
+  => critical     False                  urgency[3] p=0.01
+  => human        False                  angry p=0.04 | gate critical p=0.01 | or under independence -> p=0.05
+
+==============================================================================
+pii_redaction
+==============================================================================
+
+STATE: Order 48213 shipped to Maria Delgado, 14 Ash Grove Ln, Tulsa OK 74105, tel 918-555-0142.
+  pii          P(yes)=0.97
+  business     P(yes)=0.10
+  => has_pii      True                   pii p=0.97
+  => private      True                   business p=0.10 | not -> p=0.90
+  => redact       True                   gate has_pii p=0.97 | gate private p=0.90 | and under independence -> p=0.87
+
+STATE: Contact Acme Support at 1-800-555-0199 or support@acme.example, 200 Market St, San Francisco.
+  pii          P(yes)=0.03
+  business     P(yes)=0.96
+  => has_pii      False                  pii p=0.03
+  => private      False                  business p=0.96 | not -> p=0.04
+  => redact       False                  gate has_pii p=0.03 | gate private p=0.04 | and under independence -> p=0.00
+
+STATE: Reset requested for user j.patel — see ticket #9921 for details.
+  pii          P(yes)=0.41
+  business     P(yes)=0.11
+  => has_pii      False                  pii p=0.41
+  => private      True                   business p=0.11 | not -> p=0.89
+  => redact       False                  gate has_pii p=0.41 | gate private p=0.89 | and under independence -> p=0.36
+
+==============================================================================
+refund_decision
+==============================================================================
+
+STATE: {"policy": "Full refund within 30 days of purchase for unopened items. Opened software and gift cards are not …
+  elig_a       eligible conf=0.62  eligible=0.93  not_eligible=0.07
+  elig_b       eligible conf=0.33  eligible=0.82  not_eligible=0.18
+  elig_c       eligible conf=0.53  eligible=0.90  not_eligible=0.10
+  excluded     P(yes)=0.50
+  within_window P(yes)=1.00
+  => vote         eligible               elig_a -> eligible (0.93) | elig_b -> eligible (0.82) | elig_c -> eligible (0.90) | majority eligible 3/3, mean p=0.88
+  => not_excluded False                  excluded p=0.50 | not -> p=0.50
+  => in_window    True                   within_window p=1.00
+  => approve      False                  gate vote=eligible -> P(eligible)=0.88 | gate not_excluded p=0.50 | gate in_window p=1.00 | and under independence -> p=0.44
+
+STATE: {"policy": "Full refund within 30 days of purchase for unopened items. Opened software and gift cards are not …
+  elig_a       eligible conf=0.53  eligible=0.90  not_eligible=0.10
+  elig_b       eligible conf=0.26  eligible=0.79  not_eligible=0.21
+  elig_c       eligible conf=0.47  eligible=0.88  not_eligible=0.12
+  excluded     P(yes)=0.69
+  within_window P(yes)=0.00
+  => vote         eligible               elig_a -> eligible (0.90) | elig_b -> eligible (0.79) | elig_c -> eligible (0.88) | majority eligible 3/3, mean p=0.86
+  => not_excluded False                  excluded p=0.69 | not -> p=0.31
+  => in_window    False                  within_window p=0.00
+  => approve      False                  gate vote=eligible -> P(eligible)=0.86 | gate not_excluded p=0.31 | gate in_window p=0.00 | and under independence -> p=0.00
+
+STATE: {"policy": "Full refund within 30 days of purchase for unopened items. Opened software and gift cards are not …
+  elig_a       not_eligible conf=0.88  not_eligible=0.98  eligible=0.02
+  elig_b       not_eligible conf=0.83  not_eligible=0.98  eligible=0.02
+  elig_c       not_eligible conf=0.78  not_eligible=0.97  eligible=0.03
+  excluded     P(yes)=0.94
+  within_window P(yes)=1.00
+  => vote         not_eligible           elig_a -> not_eligible (0.98) | elig_b -> not_eligible (0.98) | elig_c -> not_eligible (0.97) | majority not_eligible 3/3, mean p=0.97
+  => not_excluded False                  excluded p=0.94 | not -> p=0.06
+  => in_window    True                   within_window p=1.00
+  => approve      False                  gate vote=not_eligible -> P(eligible)=0.03 | gate not_excluded p=0.06 | gate in_window p=1.00 | and under independence -> p=0.00
+
+==============================================================================
+moderation
+==============================================================================
+
+STATE: Anyone else's dishwasher tablets leave a white film? Switched brands twice, same thing. Hard water maybe?
+  outcome      allow conf=0.88  allow=0.96  needs_human=0.02  remove_spam=0.01
+  clean        P(yes)=0.69
+  => decision     allow                  outcome -> allow p=0.96 conf=0.88 (min 0.4)
+  => not_clean    False                  clean p=0.69 | not -> p=0.31
+  => allow_ok     True                   gate decision=allow -> P(allow)=0.96 | clean p=0.69 | and under independence -> p=0.66
+  => is_removal   False                  gate decision=allow -> P(allow)=0.96 | not -> p=0.04
+  => remove_ok    False                  gate is_removal p=0.04 | gate not_clean p=0.31 | and under independence -> p=0.01
+
+STATE: You people are morons, this whole thread is proof. Go back to whatever hole you crawled out of, Dave.
+  outcome      remove_harassment conf=0.86  remove_harassment=0.96  remove_spam=0.01  needs_human=0.01
+  clean        P(yes)=0.09
+  => decision     remove_harassment           outcome -> remove_harassment p=0.96 conf=0.86 (min 0.4)
+  => not_clean    True                   clean p=0.09 | not -> p=0.91
+  => allow_ok     False                  gate decision=remove_harassment -> P(allow)=0.04 | clean p=0.09 | and under independence -> p=0.00
+  => is_removal   True                   gate decision=remove_harassment -> P(allow)=0.04 | not -> p=0.96
+  => remove_ok    True                   gate is_removal p=0.96 | gate not_clean p=0.91 | and under independence -> p=0.87
+
+STATE: Tired of white film on dishes?? Our tablets fix it GUARANTEED 👉 cleanbrite.example/promo use code FILM20
+  outcome      remove_spam conf=0.87  remove_spam=0.96  allow=0.02  needs_human=0.01
+  clean        P(yes)=0.13
+  => decision     remove_spam            outcome -> remove_spam p=0.96 conf=0.87 (min 0.4)
+  => not_clean    True                   clean p=0.13 | not -> p=0.87
+  => allow_ok     False                  gate decision=remove_spam -> P(allow)=0.04 | clean p=0.13 | and under independence -> p=0.00
+  => is_removal   True                   gate decision=remove_spam -> P(allow)=0.04 | not -> p=0.96
+  => remove_ok    True                   gate is_removal p=0.96 | gate not_clean p=0.87 | and under independence -> p=0.84

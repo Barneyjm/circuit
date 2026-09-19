@@ -1,0 +1,116 @@
+{
+ "model": "kev-latest",
+ "data": "data/hf_eval.jsonl",
+ "timing": {
+  "items": 1200,
+  "errors": 0,
+  "concurrency": 2,
+  "wall_seconds": 205.4,
+  "ms_per_item_p50": 325.0,
+  "ms_per_item_p90": 549.4,
+  "ms_per_item_mean": 342.2,
+  "note": "client-side round trip to http://localhost:8009/v1/systemone"
+ },
+ "metrics": {
+  "all": {
+   "n": 1200,
+   "kl_to_ref": 1.8097,
+   "brier": 0.6611,
+   "accuracy": 0.465,
+   "ece": 0.2247,
+   "sel_acc_90": 0.4898,
+   "agree_jev": 0.465,
+   "mean_conf": 0.6897
+  },
+  "type:choice": {
+   "n": 600,
+   "kl_to_ref": 2.6342,
+   "brier": 0.727,
+   "accuracy": 0.4283,
+   "ece": 0.2228,
+   "sel_acc_90": 0.4574,
+   "agree_jev": 0.4283,
+   "mean_conf": 0.6511
+  },
+  "family:mnli (heldout)": {
+   "n": 200,
+   "kl_to_ref": 1.0612,
+   "brier": 0.6597,
+   "accuracy": 0.455,
+   "ece": 0.2821,
+   "sel_acc_90": 0.45,
+   "agree_jev": 0.455,
+   "mean_conf": 0.7161
+  },
+  "type:score": {
+   "n": 200,
+   "kl_to_ref": 1.6491,
+   "brier": 0.8624,
+   "accuracy": 0.375,
+   "ece": 0.2831,
+   "sel_acc_90": 0.3778,
+   "agree_jev": 0.375,
+   "mean_conf": 0.6406
+  },
+  "family:ticket_priority (heldout)": {
+   "n": 200,
+   "kl_to_ref": 1.6491,
+   "brier": 0.8624,
+   "accuracy": 0.375,
+   "ece": 0.2831,
+   "sel_acc_90": 0.3778,
+   "agree_jev": 0.375,
+   "mean_conf": 0.6406
+  },
+  "family:ticket_queue (heldout)": {
+   "n": 200,
+   "kl_to_ref": 3.9157,
+   "brier": 0.9461,
+   "accuracy": 0.21,
+   "ece": 0.2584,
+   "sel_acc_90": 0.2167,
+   "agree_jev": 0.21,
+   "mean_conf": 0.4684
+  },
+  "family:clinc_intent (heldout)": {
+   "n": 200,
+   "kl_to_ref": 2.9257,
+   "brier": 0.5754,
+   "accuracy": 0.62,
+   "ece": 0.1662,
+   "sel_acc_90": 0.6667,
+   "agree_jev": 0.62,
+   "mean_conf": 0.7688
+  },
+  "type:noul": {
+   "n": 400,
+   "kl_to_ref": 0.6531,
+   "brier": 0.4615,
+   "accuracy": 0.565,
+   "ece": 0.2182,
+   "sel_acc_90": 0.5722,
+   "agree_jev": 0.565,
+   "mean_conf": 0.7722
+  },
+  "family:civil_toxic (heldout)": {
+   "n": 200,
+   "kl_to_ref": 0.3839,
+   "brier": 0.2648,
+   "accuracy": 0.625,
+   "ece": 0.1574,
+   "sel_acc_90": 0.6278,
+   "agree_jev": 0.625,
+   "mean_conf": 0.7363
+  },
+  "family:sms_spam (heldout)": {
+   "n": 200,
+   "kl_to_ref": 0.9224,
+   "brier": 0.6583,
+   "accuracy": 0.505,
+   "ece": 0.3032,
+   "sel_acc_90": 0.5111,
+   "agree_jev": 0.505,
+   "mean_conf": 0.8081
+  }
+ }
+}

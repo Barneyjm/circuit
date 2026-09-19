@@ -1,0 +1,45 @@
+{
+ "model": "bespokelabs/Bespoke-Nimble-9B",
+ "data": "data/water_calls.jsonl",
+ "timing": {
+  "device": "mps",
+  "items": 100,
+  "skipped": 0,
+  "ms_per_item": 3184.7,
+  "ms_per_item_p50": 3163.8,
+  "batch": 1,
+  "note": "one forward per question, Nimble's own prompt builder"
+ },
+ "metrics": {
+  "all": {
+   "n": 100,
+   "kl_to_ref": 0.1906,
+   "brier": 0.1085,
+   "accuracy": 0.93,
+   "ece": 0.0528,
+   "sel_acc_90": 0.9778,
+   "agree_jev": 0.93,
+   "mean_conf": 0.9714
+  },
+  "type:choice": {
+   "n": 100,
+   "kl_to_ref": 0.1906,
+   "brier": 0.1085,
+   "accuracy": 0.93,
+   "ece": 0.0528,
+   "sel_acc_90": 0.9778,
+   "agree_jev": 0.93,
+   "mean_conf": 0.9714
+  },
+  "family:water_calls (heldout)": {
+   "n": 100,
+   "kl_to_ref": 0.1906,
+   "brier": 0.1085,
+   "accuracy": 0.93,
+   "ece": 0.0528,
+   "sel_acc_90": 0.9778,
+   "agree_jev": 0.93,
+   "mean_conf": 0.9714
+  }
+ }
+}

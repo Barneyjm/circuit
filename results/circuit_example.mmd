@@ -1,0 +1,38 @@
+%%{init: {'theme': 'base', 'flowchart': {'nodeSpacing': 40, 'rankSpacing': 120, 'curve': 'basis', 'useMaxWidth': false, 'htmlLabels': true}, 'themeVariables': {'fontFamily': 'IBM Plex Sans, system-ui, sans-serif', 'fontSize': '13px', 'lineColor': '#5F6B78'}}}%%
+flowchart LR
+  classDef q fill:#FFFFFF,stroke:#1264A3,stroke-width:1.5px,color:#1B1F24;
+  classDef logic fill:#F7F8F6,stroke:#5F6B78,stroke-width:1.5px,color:#1B1F24;
+  classDef yes fill:#DDF3E4,stroke:#2E7D4F,stroke-width:2.5px,color:#0F3D22;
+  classDef no fill:#EEF0F2,stroke:#98A2AD,stroke-width:2px,color:#3B4550;
+  classDef hold fill:#FFF1CC,stroke:#9A6B00,stroke-width:2.5px,color:#4A3300;
+  classDef col fill:none,stroke:#D9DEE3,stroke-dasharray:3 3,color:#5F6B78;
+  subgraph IN["Inputs"]
+    direction TB
+    q_pii["<b>pii</b><br/>yes 92%"]:::q
+    q_business["<b>business</b><br/>yes 10%"]:::q
+    q_angry["<b>angry</b><br/>yes 93%"]:::q
+    q_dept["<b>dept</b><br/>billing 70%"]:::q
+    q_urgency["<b>urgency</b><br/>2.9 / 3"]:::q
+  end
+  class IN col
+  subgraph LOGIC["Logic"]
+    direction TB
+    g_route["<b>route</b><br/>PICK<br/><span style='color:#5F6B78'>conf ≥ 0.35</span><br/>→ <b>billing</b> · 70%"]:::logic
+    g_tier["<b>tier</b><br/>BUCKET 1 | 2 | 2.6<br/>→ <b>3</b>"]:::logic
+  end
+  class LOGIC col
+  subgraph OUT["Decisions"]
+    direction TB
+    g_redact["<b>Redact</b><br/>AND ≥ 0.6<br/><b>✓ YES</b> · 83%"]:::yes
+    g_human["<b>Human</b><br/>OR ≥ 0.6<br/><b>✓ YES</b> · 99%"]:::yes
+    g_bill_and_hot["<b>Bill And Hot</b><br/>AND ≥ 0.5<br/><b>✓ YES</b> · 70%"]:::yes
+  end
+  class OUT col
+  q_dept --> g_route
+  q_urgency --> g_tier
+  q_pii -->|≥ 0.7| g_redact
+  q_business -->|NOT| g_redact
+  q_angry --> g_human
+  q_urgency -->|level 3| g_human
+  g_route -->|billing| g_bill_and_hot
+  g_tier -->|3| g_bill_and_hot

@@ -1,0 +1,54 @@
+{
+ "model": "lora:1.7b-grid-holdout",
+ "data": "data/water_calls.jsonl",
+ "temps": {
+  "noul": 1.0,
+  "choice": 1.0,
+  "score": 1.0
+ },
+ "fitted": null,
+ "permutations": 1,
+ "debias": false,
+ "timing": {
+  "device": "mps",
+  "items": 100,
+  "passes": 1,
+  "seconds": 23.1,
+  "ms_per_item": 230.8,
+  "input_tokens": 31712,
+  "tokens_per_s": 1374.1,
+  "batch": 8
+ },
+ "metrics": {
+  "all": {
+   "n": 100,
+   "kl_to_ref": 0.2999,
+   "brier": 0.1264,
+   "accuracy": 0.93,
+   "ece": 0.0623,
+   "sel_acc_90": 0.9778,
+   "agree_jev": 0.93,
+   "mean_conf": 0.9795
+  },
+  "type:choice": {
+   "n": 100,
+   "kl_to_ref": 0.2999,
+   "brier": 0.1264,
+   "accuracy": 0.93,
+   "ece": 0.0623,
+   "sel_acc_90": 0.9778,
+   "agree_jev": 0.93,
+   "mean_conf": 0.9795
+  },
+  "family:water_calls (heldout)": {
+   "n": 100,
+   "kl_to_ref": 0.2999,
+   "brier": 0.1264,
+   "accuracy": 0.93,
+   "ece": 0.0623,
+   "sel_acc_90": 0.9778,
+   "agree_jev": 0.93,
+   "mean_conf": 0.9795
+  }
+ }
+}

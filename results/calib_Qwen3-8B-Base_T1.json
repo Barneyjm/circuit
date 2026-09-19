@@ -1,0 +1,137 @@
+{
+ "model": "Qwen3-8B-Base",
+ "temperature": 1.0,
+ "sst2_noul": {
+  "n": 200,
+  "accuracy": 0.915,
+  "ece": 0.0435,
+  "brier": 0.1225,
+  "mean_confidence": 0.9015,
+  "yes_rate_pred": 0.545,
+  "yes_rate_true": 0.51,
+  "temperature_sweep": {
+   "0.5": {
+    "accuracy": 0.915,
+    "ece": 0.0462,
+    "brier": 0.1291
+   },
+   "0.7": {
+    "accuracy": 0.915,
+    "ece": 0.04,
+    "brier": 0.1234
+   },
+   "1.0": {
+    "accuracy": 0.915,
+    "ece": 0.0435,
+    "brier": 0.1225
+   },
+   "1.3": {
+    "accuracy": 0.915,
+    "ece": 0.06,
+    "brier": 0.1288
+   },
+   "1.6": {
+    "accuracy": 0.915,
+    "ece": 0.095,
+    "brier": 0.1403
+   },
+   "2.0": {
+    "accuracy": 0.915,
+    "ece": 0.1376,
+    "brier": 0.1603
+   },
+   "2.5": {
+    "accuracy": 0.915,
+    "ece": 0.1793,
+    "brier": 0.1877
+   },
+   "3.0": {
+    "accuracy": 0.915,
+    "ece": 0.2117,
+    "brier": 0.2141
+   },
+   "4.0": {
+    "accuracy": 0.915,
+    "ece": 0.2539,
+    "brier": 0.2593
+   }
+  }
+ },
+ "ag_news_choice": {
+  "n": 200,
+  "accuracy": 0.87,
+  "ece": 0.0754,
+  "brier": 0.2069,
+  "mean_confidence": 0.8169,
+  "pred_label_rate": {
+   "world": 0.325,
+   "sports": 0.24,
+   "business": 0.255,
+   "sci_tech": 0.18
+  },
+  "true_label_rate": {
+   "world": 0.27,
+   "sports": 0.225,
+   "business": 0.26,
+   "sci_tech": 0.245
+  },
+  "position_winner_rate": {
+   "pos0": 0.325,
+   "pos1": 0.24,
+   "pos2": 0.255,
+   "pos3": 0.18
+  },
+  "temperature_sweep": {
+   "0.5": {
+    "accuracy": 0.87,
+    "ece": 0.0541,
+    "brier": 0.1971
+   },
+   "0.7": {
+    "accuracy": 0.87,
+    "ece": 0.0667,
+    "brier": 0.1966
+   },
+   "1.0": {
+    "accuracy": 0.87,
+    "ece": 0.0754,
+    "brier": 0.2069
+   },
+   "1.3": {
+    "accuracy": 0.87,
+    "ece": 0.1191,
+    "brier": 0.2252
+   },
+   "1.6": {
+    "accuracy": 0.87,
+    "ece": 0.1623,
+    "brier": 0.2481
+   },
+   "2.0": {
+    "accuracy": 0.87,
+    "ece": 0.2216,
+    "brier": 0.2822
+   },
+   "2.5": {
+    "accuracy": 0.87,
+    "ece": 0.2866,
+    "brier": 0.3252
+   },
+   "3.0": {
+    "accuracy": 0.87,
+    "ece": 0.3315,
+    "brier": 0.3653
+   },
+   "4.0": {
+    "accuracy": 0.87,
+    "ece": 0.3992,
+    "brier": 0.432
+   }
+  }
+ },
+ "ag_news_choice_reversed_order": {
+  "accuracy": 0.84,
+  "ece": 0.0467
+ },
+ "order_sensitivity_argmax_flip_rate": 0.095
+}

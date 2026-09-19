@@ -1,0 +1,114 @@
+{
+ "model": "Qwen3-0.6B-Base",
+ "data": "data/hf_eval_timing.jsonl",
+ "temps": {
+  "noul": 1.0,
+  "choice": 1.0,
+  "score": 1.0
+ },
+ "fitted": null,
+ "permutations": 1,
+ "debias": false,
+ "timing": {
+  "device": "mps",
+  "items": 120,
+  "passes": 1,
+  "seconds": 7.8,
+  "ms_per_item": 65.3,
+  "input_tokens": 14777,
+  "tokens_per_s": 1886.4,
+  "batch": 8
+ },
+ "metrics": {
+  "all": {
+   "n": 120,
+   "kl_to_ref": 1.1737,
+   "brier": 0.6035,
+   "accuracy": 0.45,
+   "ece": 0.114,
+   "sel_acc_90": 0.4537,
+   "agree_jev": 0.45,
+   "mean_conf": 0.5497
+  },
+  "type:choice": {
+   "n": 48,
+   "kl_to_ref": 1.5517,
+   "brier": 0.6826,
+   "accuracy": 0.4583,
+   "ece": 0.1026,
+   "sel_acc_90": 0.4651,
+   "agree_jev": 0.4583,
+   "mean_conf": 0.4877
+  },
+  "family:ticket_queue (heldout)": {
+   "n": 24,
+   "kl_to_ref": 2.2538,
+   "brier": 0.8696,
+   "accuracy": 0.3333,
+   "ece": 0.16,
+   "sel_acc_90": 0.3636,
+   "agree_jev": 0.3333,
+   "mean_conf": 0.4694
+  },
+  "family:mnli (heldout)": {
+   "n": 24,
+   "kl_to_ref": 0.8496,
+   "brier": 0.4955,
+   "accuracy": 0.5833,
+   "ece": 0.1776,
+   "sel_acc_90": 0.5909,
+   "agree_jev": 0.5833,
+   "mean_conf": 0.5061
+  },
+  "type:noul": {
+   "n": 50,
+   "kl_to_ref": 0.5488,
+   "brier": 0.416,
+   "accuracy": 0.48,
+   "ece": 0.1583,
+   "sel_acc_90": 0.5333,
+   "agree_jev": 0.48,
+   "mean_conf": 0.6204
+  },
+  "family:sms_spam (heldout)": {
+   "n": 22,
+   "kl_to_ref": 0.7274,
+   "brier": 0.5361,
+   "accuracy": 0.4091,
+   "ece": 0.271,
+   "sel_acc_90": 0.45,
+   "agree_jev": 0.4091,
+   "mean_conf": 0.6394
+  },
+  "type:score": {
+   "n": 22,
+   "kl_to_ref": 1.7694,
+   "brier": 0.8573,
+   "accuracy": 0.3636,
+   "ece": 0.3744,
+   "sel_acc_90": 0.35,
+   "agree_jev": 0.3636,
+   "mean_conf": 0.5243
+  },
+  "family:ticket_priority (heldout)": {
+   "n": 22,
+   "kl_to_ref": 1.7694,
+   "brier": 0.8573,
+   "accuracy": 0.3636,
+   "ece": 0.3744,
+   "sel_acc_90": 0.35,
+   "agree_jev": 0.3636,
+   "mean_conf": 0.5243
+  },
+  "family:civil_toxic (heldout)": {
+   "n": 28,
+   "kl_to_ref": 0.4085,
+   "brier": 0.3216,
+   "accuracy": 0.5357,
+   "ece": 0.1397,
+   "sel_acc_90": 0.6,
+   "agree_jev": 0.5357,
+   "mean_conf": 0.6054
+  }
+ }
+}

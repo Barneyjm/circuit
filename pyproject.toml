@@ -1,0 +1,56 @@
+[project]
+name = "s1proto"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "accelerate>=1.15.0",
+    "datasets>=5.0.1",
+    "decision-circuits",
+    "fastapi>=0.141.1",
+    "google-genai>=2.24.0",
+    "httpx>=0.28.1",
+    "librosa>=1.0.0",
+    "numpy>=2.5.3",
+    "peft>=0.21.0",
+    "pillow>=12.3.0",
+    "pydantic>=2.13.5",
+    "python-dotenv>=1.2.3",
+    "safetensors>=0.8.0",
+    "soundfile>=0.14.0",
+    "torch>=2.14.0",
+    "torchvision>=0.29.0",
+    "transformers>=5.17.0",
+    "uvicorn[standard]>=0.53.0",
+    "wandb>=0.30.0",
+]
+
+[dependency-groups]
+dev = [
+    "hypothesis>=6.168.0",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.16.8",
+    "typesafe-sdk>=0.6.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["s1proto"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 160
+target-version = "py312"
+
+[tool.ruff.lint]
+ignore = ["ASYNC230", "S110", "BLE001", "SIM115", "FURB122", "RUF046", "PERF102"]
+
+[tool.uv.sources]
+decision-circuits = { path = "../decision-circuits" }

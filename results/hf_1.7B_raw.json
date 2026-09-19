@@ -1,0 +1,114 @@
+{
+ "model": "Qwen3-1.7B-Base",
+ "data": "data/hf_eval_small.jsonl",
+ "temps": {
+  "noul": 1.0,
+  "choice": 1.0,
+  "score": 1.0
+ },
+ "fitted": null,
+ "permutations": 1,
+ "debias": false,
+ "timing": {
+  "device": "mps",
+  "items": 1000,
+  "passes": 1,
+  "seconds": 161.9,
+  "ms_per_item": 161.9,
+  "input_tokens": 123906,
+  "tokens_per_s": 765.3,
+  "batch": 8
+ },
+ "metrics": {
+  "all": {
+   "n": 1000,
+   "kl_to_ref": 1.0548,
+   "brier": 0.5468,
+   "accuracy": 0.535,
+   "ece": 0.0589,
+   "sel_acc_90": 0.5578,
+   "agree_jev": 0.535,
+   "mean_conf": 0.5621
+  },
+  "type:choice": {
+   "n": 400,
+   "kl_to_ref": 1.5364,
+   "brier": 0.6897,
+   "accuracy": 0.4775,
+   "ece": 0.0877,
+   "sel_acc_90": 0.5083,
+   "agree_jev": 0.4775,
+   "mean_conf": 0.5616
+  },
+  "family:mnli (heldout)": {
+   "n": 200,
+   "kl_to_ref": 0.7801,
+   "brier": 0.4585,
+   "accuracy": 0.66,
+   "ece": 0.0983,
+   "sel_acc_90": 0.6944,
+   "agree_jev": 0.66,
+   "mean_conf": 0.5932
+  },
+  "type:score": {
+   "n": 200,
+   "kl_to_ref": 1.2593,
+   "brier": 0.6918,
+   "accuracy": 0.385,
+   "ece": 0.1036,
+   "sel_acc_90": 0.3889,
+   "agree_jev": 0.385,
+   "mean_conf": 0.4401
+  },
+  "family:ticket_priority (heldout)": {
+   "n": 200,
+   "kl_to_ref": 1.2593,
+   "brier": 0.6918,
+   "accuracy": 0.385,
+   "ece": 0.1036,
+   "sel_acc_90": 0.3889,
+   "agree_jev": 0.385,
+   "mean_conf": 0.4401
+  },
+  "family:ticket_queue (heldout)": {
+   "n": 200,
+   "kl_to_ref": 2.2926,
+   "brier": 0.9208,
+   "accuracy": 0.295,
+   "ece": 0.2374,
+   "sel_acc_90": 0.3,
+   "agree_jev": 0.295,
+   "mean_conf": 0.5299
+  },
+  "type:noul": {
+   "n": 400,
+   "kl_to_ref": 0.4709,
+   "brier": 0.3314,
+   "accuracy": 0.6675,
+   "ece": 0.1189,
+   "sel_acc_90": 0.7167,
+   "agree_jev": 0.6675,
+   "mean_conf": 0.6236
+  },
+  "family:civil_toxic (heldout)": {
+   "n": 200,
+   "kl_to_ref": 0.402,
+   "brier": 0.3052,
+   "accuracy": 0.63,
+   "ece": 0.0775,
+   "sel_acc_90": 0.6722,
+   "agree_jev": 0.63,
+   "mean_conf": 0.6211
+  },
+  "family:sms_spam (heldout)": {
+   "n": 200,
+   "kl_to_ref": 0.5398,
+   "brier": 0.3575,
+   "accuracy": 0.705,
+   "ece": 0.1738,
+   "sel_acc_90": 0.7611,
+   "agree_jev": 0.705,
+   "mean_conf": 0.6262
+  }
+ }
+}

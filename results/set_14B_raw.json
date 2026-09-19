@@ -1,0 +1,274 @@
+{
+ "model": "Qwen3-14B-Base",
+ "data": "data/eval.jsonl",
+ "temps": {
+  "noul": 1.0,
+  "choice": 1.0,
+  "score": 1.0
+ },
+ "fitted": null,
+ "permutations": 1,
+ "debias": false,
+ "metrics": {
+  "all": {
+   "n": 2199,
+   "kl_to_ref": 0.3656,
+   "brier": 0.2086,
+   "accuracy": 0.7312,
+   "ece": 0.0328,
+   "sel_acc_90": 0.7716,
+   "agree_jev": 0.7499,
+   "mean_conf": 0.7436
+  },
+  "type:choice": {
+   "n": 1000,
+   "kl_to_ref": 0.3924,
+   "brier": 0.1959,
+   "accuracy": 0.778,
+   "ece": 0.052,
+   "sel_acc_90": 0.8156,
+   "agree_jev": 0.806,
+   "mean_conf": 0.7512
+  },
+  "family:support_department": {
+   "n": 100,
+   "kl_to_ref": 0.2108,
+   "brier": 0.1067,
+   "accuracy": 0.79,
+   "ece": 0.0659,
+   "sel_acc_90": 0.8444,
+   "agree_jev": 0.87,
+   "mean_conf": 0.7952
+  },
+  "family:agent_next_action": {
+   "n": 100,
+   "kl_to_ref": 0.5333,
+   "brier": 0.2724,
+   "accuracy": 0.69,
+   "ece": 0.1866,
+   "sel_acc_90": 0.7,
+   "agree_jev": 0.73,
+   "mean_conf": 0.5205
+  },
+  "family:email_folder": {
+   "n": 100,
+   "kl_to_ref": 0.4464,
+   "brier": 0.2463,
+   "accuracy": 0.71,
+   "ece": 0.0718,
+   "sel_acc_90": 0.7444,
+   "agree_jev": 0.74,
+   "mean_conf": 0.7516
+  },
+  "type:noul": {
+   "n": 799,
+   "kl_to_ref": 0.2245,
+   "brier": 0.1668,
+   "accuracy": 0.7797,
+   "ece": 0.0323,
+   "sel_acc_90": 0.815,
+   "agree_jev": 0.786,
+   "mean_conf": 0.7802
+  },
+  "family:review_positive": {
+   "n": 100,
+   "kl_to_ref": 0.0783,
+   "brier": 0.058,
+   "accuracy": 0.87,
+   "ece": 0.0545,
+   "sel_acc_90": 0.9222,
+   "agree_jev": 0.87,
+   "mean_conf": 0.8602
+  },
+  "type:score": {
+   "n": 400,
+   "kl_to_ref": 0.5802,
+   "brier": 0.3241,
+   "accuracy": 0.5175,
+   "ece": 0.1387,
+   "sel_acc_90": 0.55,
+   "agree_jev": 0.5375,
+   "mean_conf": 0.6514
+  },
+  "family:frustration_level": {
+   "n": 100,
+   "kl_to_ref": 0.5586,
+   "brier": 0.3199,
+   "accuracy": 0.56,
+   "ece": 0.1342,
+   "sel_acc_90": 0.6111,
+   "agree_jev": 0.58,
+   "mean_conf": 0.6717
+  },
+  "family:ticket_urgency": {
+   "n": 100,
+   "kl_to_ref": 0.4035,
+   "brier": 0.1994,
+   "accuracy": 0.68,
+   "ece": 0.1401,
+   "sel_acc_90": 0.7222,
+   "agree_jev": 0.69,
+   "mean_conf": 0.6007
+  },
+  "family:message_urgent": {
+   "n": 100,
+   "kl_to_ref": 0.1701,
+   "brier": 0.1059,
+   "accuracy": 0.86,
+   "ece": 0.0895,
+   "sel_acc_90": 0.9,
+   "agree_jev": 0.92,
+   "mean_conf": 0.846
+  },
+  "family:pii_present": {
+   "n": 100,
+   "kl_to_ref": 0.1217,
+   "brier": 0.0742,
+   "accuracy": 0.94,
+   "ece": 0.1275,
+   "sel_acc_90": 0.9556,
+   "agree_jev": 0.97,
+   "mean_conf": 0.8234
+  },
+  "family:content_policy": {
+   "n": 100,
+   "kl_to_ref": 0.3313,
+   "brier": 0.167,
+   "accuracy": 0.76,
+   "ece": 0.1533,
+   "sel_acc_90": 0.8333,
+   "agree_jev": 0.73,
+   "mean_conf": 0.7061
+  },
+  "family:refund_eligible": {
+   "n": 100,
+   "kl_to_ref": 0.2662,
+   "brier": 0.2034,
+   "accuracy": 0.77,
+   "ece": 0.0421,
+   "sel_acc_90": 0.8,
+   "agree_jev": 0.75,
+   "mean_conf": 0.7297
+  },
+  "family:pick_total": {
+   "n": 100,
+   "kl_to_ref": 0.4167,
+   "brier": 0.1719,
+   "accuracy": 0.86,
+   "ece": 0.1606,
+   "sel_acc_90": 0.8889,
+   "agree_jev": 0.88,
+   "mean_conf": 0.7079
+  },
+  "family:pick_meeting_time": {
+   "n": 100,
+   "kl_to_ref": 0.263,
+   "brier": 0.0958,
+   "accuracy": 0.92,
+   "ece": 0.1362,
+   "sel_acc_90": 0.9667,
+   "agree_jev": 0.93,
+   "mean_conf": 0.8008
+  },
+  "family:code_has_bug": {
+   "n": 100,
+   "kl_to_ref": 0.2629,
+   "brier": 0.2228,
+   "accuracy": 0.57,
+   "ece": 0.185,
+   "sel_acc_90": 0.6,
+   "agree_jev": 0.47,
+   "mean_conf": 0.6195
+  },
+  "family:pr_risk": {
+   "n": 100,
+   "kl_to_ref": 0.6603,
+   "brier": 0.4082,
+   "accuracy": 0.45,
+   "ece": 0.2765,
+   "sel_acc_90": 0.4778,
+   "agree_jev": 0.36,
+   "mean_conf": 0.6886
+  },
+  "family:entailment": {
+   "n": 100,
+   "kl_to_ref": 0.5016,
+   "brier": 0.2774,
+   "accuracy": 0.7,
+   "ece": 0.1456,
+   "sel_acc_90": 0.7444,
+   "agree_jev": 0.77,
+   "mean_conf": 0.7877
+  },
+  "family:fact_or_opinion": {
+   "n": 100,
+   "kl_to_ref": 0.3391,
+   "brier": 0.192,
+   "accuracy": 0.79,
+   "ece": 0.1016,
+   "sel_acc_90": 0.8667,
+   "agree_jev": 0.81,
+   "mean_conf": 0.8145
+  },
+  "family:same_place": {
+   "n": 100,
+   "kl_to_ref": 0.1342,
+   "brier": 0.099,
+   "accuracy": 0.87,
+   "ece": 0.151,
+   "sel_acc_90": 0.8778,
+   "agree_jev": 0.85,
+   "mean_conf": 0.755
+  },
+  "family:expense_category (heldout)": {
+   "n": 100,
+   "kl_to_ref": 0.595,
+   "brier": 0.2956,
+   "accuracy": 0.73,
+   "ece": 0.1376,
+   "sel_acc_90": 0.7778,
+   "agree_jev": 0.74,
+   "mean_conf": 0.853
+  },
+  "family:deadline_realistic (heldout)": {
+   "n": 100,
+   "kl_to_ref": 0.6983,
+   "brier": 0.3688,
+   "accuracy": 0.38,
+   "ece": 0.2648,
+   "sel_acc_90": 0.4111,
+   "agree_jev": 0.52,
+   "mean_conf": 0.6448
+  },
+  "family:claim_supported (heldout)": {
+   "n": 99,
+   "kl_to_ref": 0.2337,
+   "brier": 0.162,
+   "accuracy": 0.8485,
+   "ece": 0.0529,
+   "sel_acc_90": 0.8989,
+   "agree_jev": 0.8586,
+   "mean_conf": 0.8497
+  },
+  "family:log_severity (heldout)": {
+   "n": 100,
+   "kl_to_ref": 0.2872,
+   "brier": 0.1338,
+   "accuracy": 0.83,
+   "ece": 0.0875,
+   "sel_acc_90": 0.8667,
+   "agree_jev": 0.86,
+   "mean_conf": 0.7742
+  },
+  "family:scheduling_conflict (heldout)": {
+   "n": 100,
+   "kl_to_ref": 0.5287,
+   "brier": 0.4088,
+   "accuracy": 0.51,
+   "ece": 0.2575,
+   "sel_acc_90": 0.5111,
+   "agree_jev": 0.6,
+   "mean_conf": 0.7587
+  }
+ }
+}

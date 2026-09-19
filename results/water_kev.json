@@ -1,0 +1,46 @@
+{
+ "model": "kev-latest",
+ "data": "data/water_calls.jsonl",
+ "timing": {
+  "items": 100,
+  "errors": 0,
+  "concurrency": 2,
+  "wall_seconds": 18.7,
+  "ms_per_item_p50": 355.5,
+  "ms_per_item_p90": 519.0,
+  "ms_per_item_mean": 371.6,
+  "note": "client-side round trip to http://localhost:8009/v1/systemone"
+ },
+ "metrics": {
+  "all": {
+   "n": 100,
+   "kl_to_ref": 0.5699,
+   "brier": 0.2664,
+   "accuracy": 0.8,
+   "ece": 0.1274,
+   "sel_acc_90": 0.8778,
+   "agree_jev": 0.8,
+   "mean_conf": 0.7397
+  },
+  "type:choice": {
+   "n": 100,
+   "kl_to_ref": 0.5699,
+   "brier": 0.2664,
+   "accuracy": 0.8,
+   "ece": 0.1274,
+   "sel_acc_90": 0.8778,
+   "agree_jev": 0.8,
+   "mean_conf": 0.7397
+  },
+  "family:water_calls (heldout)": {
+   "n": 100,
+   "kl_to_ref": 0.5699,
+   "brier": 0.2664,
+   "accuracy": 0.8,
+   "ece": 0.1274,
+   "sel_acc_90": 0.8778,
+   "agree_jev": 0.8,
+   "mean_conf": 0.7397
+  }
+ }
+}

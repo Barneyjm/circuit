@@ -1,0 +1,198 @@
+{"id": "support_department-26625320aa", "kind": "choice", "family": "support_department", "logits": [[35.25, 37.75, 36.25, 35.75, 37.5]]}
+{"id": "support_department-6f7e4ade3c", "kind": "choice", "family": "support_department", "logits": [[34.25, 37.25, 34.0, 34.0, 36.75]]}
+{"id": "support_department-7ceb92d99f", "kind": "choice", "family": "support_department", "logits": [[34.0, 31.625, 32.75, 34.0, 33.25]]}
+{"id": "support_department-b6a12d064d", "kind": "choice", "family": "support_department", "logits": [[33.75, 38.25, 34.5, 35.0, 37.0]]}
+{"id": "support_department-dfa8f2b4ab", "kind": "choice", "family": "support_department", "logits": [[32.0, 31.125, 36.25, 32.25, 32.25]]}
+{"id": "support_department-4d8b624b68", "kind": "choice", "family": "support_department", "logits": [[32.5, 35.0, 35.0, 33.25, 34.25]]}
+{"id": "support_department-5dbc92f57c", "kind": "choice", "family": "support_department", "logits": [[32.25, 37.25, 35.25, 32.75, 34.0]]}
+{"id": "support_department-e75357ea67", "kind": "choice", "family": "support_department", "logits": [[34.75, 36.5, 34.75, 34.75, 36.75]]}
+{"id": "support_department-44fca215af", "kind": "choice", "family": "support_department", "logits": [[33.75, 32.75, 32.5, 35.25, 34.75]]}
+{"id": "agent_next_action-da40de8797", "kind": "choice", "family": "agent_next_action", "logits": [[37.75, 36.5, 34.5, 34.5, 36.75]]}
+{"id": "agent_next_action-47d55ade14", "kind": "choice", "family": "agent_next_action", "logits": [[37.5, 37.75, 34.5, 34.5, 35.5]]}
+{"id": "agent_next_action-b33945dbc3", "kind": "choice", "family": "agent_next_action", "logits": [[38.0, 37.5, 36.0, 36.5, 37.25]]}
+{"id": "agent_next_action-89d342524f", "kind": "choice", "family": "agent_next_action", "logits": [[37.5, 36.75, 35.75, 34.75, 36.75]]}
+{"id": "agent_next_action-87950772a5", "kind": "choice", "family": "agent_next_action", "logits": [[37.25, 36.0, 34.75, 34.0, 35.5]]}
+{"id": "agent_next_action-315b20014a", "kind": "choice", "family": "agent_next_action", "logits": [[36.5, 36.5, 34.75, 34.0, 35.5]]}
+{"id": "agent_next_action-c8f089bb88", "kind": "choice", "family": "agent_next_action", "logits": [[37.5, 37.5, 34.0, 34.0, 35.0]]}
+{"id": "agent_next_action-ec3a31c6b8", "kind": "choice", "family": "agent_next_action", "logits": [[37.75, 36.25, 34.25, 34.5, 36.25]]}
+{"id": "agent_next_action-908a2bb4a2", "kind": "choice", "family": "agent_next_action", "logits": [[37.75, 37.0, 36.25, 36.25, 37.0]]}
+{"id": "email_folder-26722fc6b7", "kind": "choice", "family": "email_folder", "logits": [[34.75, 35.5, 32.75, 33.25, 37.0]]}
+{"id": "email_folder-6b6e5381dc", "kind": "choice", "family": "email_folder", "logits": [[33.75, 34.25, 32.25, 32.25, 32.25]]}
+{"id": "email_folder-e00fff9c8e", "kind": "choice", "family": "email_folder", "logits": [[38.25, 37.0, 37.25, 34.5, 34.25]]}
+{"id": "email_folder-c76c9d18b0", "kind": "choice", "family": "email_folder", "logits": [[37.75, 34.75, 32.5, 32.5, 32.25]]}
+{"id": "email_folder-6dcebfa301", "kind": "choice", "family": "email_folder", "logits": [[35.25, 36.75, 32.25, 33.0, 33.25]]}
+{"id": "email_folder-eb82c259db", "kind": "choice", "family": "email_folder", "logits": [[33.75, 34.5, 32.0, 32.5, 32.5]]}
+{"id": "email_folder-04e15763ee", "kind": "choice", "family": "email_folder", "logits": [[34.25, 34.75, 31.5, 31.75, 32.5]]}
+{"id": "email_folder-eb3e210b2f", "kind": "choice", "family": "email_folder", "logits": [[37.0, 34.0, 32.75, 32.75, 34.25]]}
+{"id": "email_folder-ac1a0e048e", "kind": "choice", "family": "email_folder", "logits": [[33.25, 33.25, 31.875, 32.25, 36.5]]}
+{"id": "review_positive-92456f9089", "kind": "noul", "family": "review_positive", "logits": [[35.5, 40.0]]}
+{"id": "review_positive-22b439a95e", "kind": "noul", "family": "review_positive", "logits": [[35.75, 40.5]]}
+{"id": "review_positive-fd5103af11", "kind": "noul", "family": "review_positive", "logits": [[35.75, 40.25]]}
+{"id": "review_positive-f03feed3be", "kind": "noul", "family": "review_positive", "logits": [[36.0, 40.5]]}
+{"id": "review_positive-96cebeccc0", "kind": "noul", "family": "review_positive", "logits": [[39.75, 38.75]]}
+{"id": "review_positive-e2356493fc", "kind": "noul", "family": "review_positive", "logits": [[40.25, 35.5]]}
+{"id": "review_positive-4b6c5d5408", "kind": "noul", "family": "review_positive", "logits": [[39.0, 39.5]]}
+{"id": "review_positive-12625445f3", "kind": "noul", "family": "review_positive", "logits": [[37.25, 39.75]]}
+{"id": "review_positive-4943f10802", "kind": "noul", "family": "review_positive", "logits": [[39.0, 39.5]]}
+{"id": "frustration_level-5c74e42069", "kind": "score", "family": "frustration_level", "logits": [[31.875, 34.0, 38.5, 37.25]]}
+{"id": "frustration_level-896e912ba2", "kind": "score", "family": "frustration_level", "logits": [[33.5, 35.25, 37.5, 36.0]]}
+{"id": "frustration_level-fbfa91665f", "kind": "score", "family": "frustration_level", "logits": [[31.375, 32.5, 36.25, 36.25]]}
+{"id": "frustration_level-667c6df959", "kind": "score", "family": "frustration_level", "logits": [[32.5, 34.25, 36.75, 36.5]]}
+{"id": "frustration_level-11ed5b0d0b", "kind": "score", "family": "frustration_level", "logits": [[34.0, 36.75, 37.75, 34.5]]}
+{"id": "frustration_level-2db2336b78", "kind": "score", "family": "frustration_level", "logits": [[32.25, 34.75, 37.5, 35.75]]}
+{"id": "frustration_level-8457f0076f", "kind": "score", "family": "frustration_level", "logits": [[33.0, 34.5, 36.25, 35.0]]}
+{"id": "frustration_level-0047c189dc", "kind": "score", "family": "frustration_level", "logits": [[31.125, 32.0, 36.0, 34.75]]}
+{"id": "frustration_level-3135b8b3c7", "kind": "score", "family": "frustration_level", "logits": [[34.25, 36.0, 37.5, 35.75]]}
+{"id": "ticket_urgency-da29456d23", "kind": "score", "family": "ticket_urgency", "logits": [[34.25, 36.75, 37.75, 37.0]]}
+{"id": "ticket_urgency-db5a272971", "kind": "score", "family": "ticket_urgency", "logits": [[35.25, 37.5, 38.0, 37.0]]}
+{"id": "ticket_urgency-dc93fac4c1", "kind": "score", "family": "ticket_urgency", "logits": [[35.5, 37.75, 37.5, 36.25]]}
+{"id": "ticket_urgency-68cf0a0d52", "kind": "score", "family": "ticket_urgency", "logits": [[33.25, 36.25, 37.25, 36.25]]}
+{"id": "ticket_urgency-d775654054", "kind": "score", "family": "ticket_urgency", "logits": [[33.0, 36.25, 37.5, 36.5]]}
+{"id": "ticket_urgency-e76c513b31", "kind": "score", "family": "ticket_urgency", "logits": [[34.75, 36.75, 36.75, 36.0]]}
+{"id": "ticket_urgency-586b081fbb", "kind": "score", "family": "ticket_urgency", "logits": [[32.5, 35.25, 37.25, 37.25]]}
+{"id": "ticket_urgency-93a01cdec3", "kind": "score", "family": "ticket_urgency", "logits": [[32.75, 35.75, 38.0, 37.5]]}
+{"id": "ticket_urgency-384be4edc4", "kind": "score", "family": "ticket_urgency", "logits": [[34.0, 37.25, 38.0, 37.0]]}
+{"id": "message_urgent-690a9fcc41", "kind": "noul", "family": "message_urgent", "logits": [[38.25, 37.0]]}
+{"id": "message_urgent-d307a48cf5", "kind": "noul", "family": "message_urgent", "logits": [[36.0, 37.5]]}
+{"id": "message_urgent-5326d8fa9f", "kind": "noul", "family": "message_urgent", "logits": [[39.0, 37.25]]}
+{"id": "message_urgent-fb276f19e5", "kind": "noul", "family": "message_urgent", "logits": [[37.75, 36.5]]}
+{"id": "message_urgent-ed5e02f3aa", "kind": "noul", "family": "message_urgent", "logits": [[38.25, 37.0]]}
+{"id": "message_urgent-4427b1c879", "kind": "noul", "family": "message_urgent", "logits": [[38.5, 38.0]]}
+{"id": "message_urgent-0bb686a40f", "kind": "noul", "family": "message_urgent", "logits": [[36.75, 39.0]]}
+{"id": "message_urgent-bb07ebf519", "kind": "noul", "family": "message_urgent", "logits": [[37.0, 36.5]]}
+{"id": "message_urgent-f2fe45939d", "kind": "noul", "family": "message_urgent", "logits": [[38.25, 37.75]]}
+{"id": "pii_present-8d036af9af", "kind": "noul", "family": "pii_present", "logits": [[38.75, 37.5]]}
+{"id": "pii_present-0c0eb71c00", "kind": "noul", "family": "pii_present", "logits": [[38.25, 39.0]]}
+{"id": "pii_present-7a5aaf2c6f", "kind": "noul", "family": "pii_present", "logits": [[38.5, 37.75]]}
+{"id": "pii_present-f749323f07", "kind": "noul", "family": "pii_present", "logits": [[37.5, 38.5]]}
+{"id": "pii_present-bf2b3812b8", "kind": "noul", "family": "pii_present", "logits": [[38.75, 39.0]]}
+{"id": "pii_present-fae944a44b", "kind": "noul", "family": "pii_present", "logits": [[37.75, 37.25]]}
+{"id": "pii_present-721e4c5bab", "kind": "noul", "family": "pii_present", "logits": [[37.75, 38.75]]}
+{"id": "pii_present-1bf0046c37", "kind": "noul", "family": "pii_present", "logits": [[36.75, 39.25]]}
+{"id": "pii_present-f1018f0343", "kind": "noul", "family": "pii_present", "logits": [[38.0, 37.75]]}
+{"id": "content_policy-84b524410d", "kind": "choice", "family": "content_policy", "logits": [[35.25, 33.25, 37.5, 34.0, 36.5]]}
+{"id": "content_policy-220d1486f6", "kind": "choice", "family": "content_policy", "logits": [[34.75, 33.5, 36.25, 35.5, 36.5]]}
+{"id": "content_policy-3f474aaa8b", "kind": "choice", "family": "content_policy", "logits": [[35.5, 33.5, 37.75, 34.0, 35.5]]}
+{"id": "content_policy-d89593733d", "kind": "choice", "family": "content_policy", "logits": [[36.5, 34.5, 35.0, 34.25, 36.5]]}
+{"id": "content_policy-4615bf48d7", "kind": "choice", "family": "content_policy", "logits": [[34.25, 32.25, 37.0, 33.0, 35.25]]}
+{"id": "content_policy-e38b236c7a", "kind": "choice", "family": "content_policy", "logits": [[35.75, 31.25, 31.5, 32.5, 34.5]]}
+{"id": "content_policy-ab1e91de7d", "kind": "choice", "family": "content_policy", "logits": [[36.5, 38.25, 34.5, 36.25, 35.75]]}
+{"id": "content_policy-e5a32e2429", "kind": "choice", "family": "content_policy", "logits": [[34.5, 32.5, 37.75, 33.5, 35.25]]}
+{"id": "content_policy-30846b6e11", "kind": "choice", "family": "content_policy", "logits": [[35.25, 34.0, 36.25, 33.25, 36.25]]}
+{"id": "refund_eligible-271385d2ba", "kind": "noul", "family": "refund_eligible", "logits": [[37.25, 39.5]]}
+{"id": "refund_eligible-841a3789eb", "kind": "noul", "family": "refund_eligible", "logits": [[39.75, 39.5]]}
+{"id": "refund_eligible-13b95e6419", "kind": "noul", "family": "refund_eligible", "logits": [[39.5, 39.5]]}
+{"id": "refund_eligible-fc8a88976e", "kind": "noul", "family": "refund_eligible", "logits": [[39.5, 39.0]]}
+{"id": "refund_eligible-145f5eee05", "kind": "noul", "family": "refund_eligible", "logits": [[38.25, 39.25]]}
+{"id": "refund_eligible-5c108d3f7a", "kind": "noul", "family": "refund_eligible", "logits": [[37.75, 38.25]]}
+{"id": "refund_eligible-dce3406689", "kind": "noul", "family": "refund_eligible", "logits": [[38.75, 38.75]]}
+{"id": "refund_eligible-f49b916cc5", "kind": "noul", "family": "refund_eligible", "logits": [[39.0, 38.75]]}
+{"id": "refund_eligible-e496656a12", "kind": "noul", "family": "refund_eligible", "logits": [[39.0, 38.25]]}
+{"id": "pick_total-e5e838241f", "kind": "choice", "family": "pick_total", "logits": [[36.0, 35.25, 38.5, 35.75, 35.75, 36.25, 34.25]]}
+{"id": "pick_total-2274dedbb5", "kind": "choice", "family": "pick_total", "logits": [[35.25, 37.75, 35.5, 35.0, 35.5, 34.5, 34.25]]}
+{"id": "pick_total-6445d96bc9", "kind": "choice", "family": "pick_total", "logits": [[37.0, 34.25, 37.25, 36.75, 33.0, 33.25, 33.5]]}
+{"id": "pick_total-cdf2076bb1", "kind": "choice", "family": "pick_total", "logits": [[37.75, 35.25, 36.0, 36.75, 34.5, 34.25, 37.0]]}
+{"id": "pick_total-6df469815c", "kind": "choice", "family": "pick_total", "logits": [[35.25, 34.25, 35.0, 38.0, 33.5, 34.25, 35.25]]}
+{"id": "pick_total-38ae0d990c", "kind": "choice", "family": "pick_total", "logits": [[35.75, 38.0, 35.5, 35.0, 34.75, 34.25, 33.75]]}
+{"id": "pick_total-b63f3f995e", "kind": "choice", "family": "pick_total", "logits": [[34.75, 34.75, 35.25, 38.0, 34.5, 34.75, 32.75]]}
+{"id": "pick_total-1651856f7f", "kind": "choice", "family": "pick_total", "logits": [[36.25, 38.75, 35.25, 34.75, 34.25, 34.5, 33.5]]}
+{"id": "pick_total-a4e93878fc", "kind": "choice", "family": "pick_total", "logits": [[36.25, 36.0, 36.0, 35.75, 36.0, 34.25, 35.0]]}
+{"id": "pick_meeting_time-b327113022", "kind": "choice", "family": "pick_meeting_time", "logits": [[34.5, 35.0, 36.25, 33.75, 34.0, 38.25]]}
+{"id": "pick_meeting_time-17ac9f7184", "kind": "choice", "family": "pick_meeting_time", "logits": [[35.75, 35.25, 36.25, 34.25, 34.75, 38.0]]}
+{"id": "pick_meeting_time-b078b59201", "kind": "choice", "family": "pick_meeting_time", "logits": [[35.5, 36.0, 34.5, 33.75, 34.75, 38.5]]}
+{"id": "pick_meeting_time-ce1d5893e7", "kind": "choice", "family": "pick_meeting_time", "logits": [[37.75, 38.0, 34.75, 34.0, 33.5, 35.5]]}
+{"id": "pick_meeting_time-c3972b0d3a", "kind": "choice", "family": "pick_meeting_time", "logits": [[36.75, 36.25, 37.75, 34.5, 34.25, 36.75]]}
+{"id": "pick_meeting_time-6c84398d1e", "kind": "choice", "family": "pick_meeting_time", "logits": [[38.0, 34.5, 36.25, 34.25, 32.0, 32.75]]}
+{"id": "pick_meeting_time-a2be54a79e", "kind": "choice", "family": "pick_meeting_time", "logits": [[35.0, 38.75, 35.5, 34.25, 34.0, 36.0]]}
+{"id": "pick_meeting_time-c5c9a9a199", "kind": "choice", "family": "pick_meeting_time", "logits": [[35.0, 38.75, 34.75, 33.0, 32.5, 34.25]]}
+{"id": "pick_meeting_time-585593764e", "kind": "choice", "family": "pick_meeting_time", "logits": [[34.25, 33.75, 35.25, 33.0, 33.25, 37.75]]}
+{"id": "code_has_bug-42ef87e24a", "kind": "noul", "family": "code_has_bug", "logits": [[38.5, 37.5]]}
+{"id": "code_has_bug-0b1a3b5197", "kind": "noul", "family": "code_has_bug", "logits": [[38.75, 38.0]]}
+{"id": "code_has_bug-f950820f11", "kind": "noul", "family": "code_has_bug", "logits": [[39.25, 38.5]]}
+{"id": "code_has_bug-394cf28fcc", "kind": "noul", "family": "code_has_bug", "logits": [[38.75, 38.5]]}
+{"id": "code_has_bug-3e82c1d37c", "kind": "noul", "family": "code_has_bug", "logits": [[39.25, 39.0]]}
+{"id": "code_has_bug-54935f9e5d", "kind": "noul", "family": "code_has_bug", "logits": [[38.5, 38.0]]}
+{"id": "code_has_bug-4a9f13003f", "kind": "noul", "family": "code_has_bug", "logits": [[39.0, 38.5]]}
+{"id": "code_has_bug-1fc5a2868d", "kind": "noul", "family": "code_has_bug", "logits": [[38.5, 38.0]]}
+{"id": "code_has_bug-bfc0a563e3", "kind": "noul", "family": "code_has_bug", "logits": [[39.25, 38.5]]}
+{"id": "pr_risk-70c1bcaeb5", "kind": "score", "family": "pr_risk", "logits": [[34.0, 38.5, 37.5, 36.25]]}
+{"id": "pr_risk-5e2fa43103", "kind": "score", "family": "pr_risk", "logits": [[39.0, 36.5, 35.25, 34.25]]}
+{"id": "pr_risk-ba7a616f00", "kind": "score", "family": "pr_risk", "logits": [[33.25, 38.0, 37.25, 35.5]]}
+{"id": "pr_risk-14098b07da", "kind": "score", "family": "pr_risk", "logits": [[33.0, 37.5, 37.5, 36.5]]}
+{"id": "pr_risk-64937a44b7", "kind": "score", "family": "pr_risk", "logits": [[32.5, 37.25, 38.0, 35.5]]}
+{"id": "pr_risk-e1fa5abd6f", "kind": "score", "family": "pr_risk", "logits": [[34.5, 38.5, 35.0, 34.25]]}
+{"id": "pr_risk-fec297567f", "kind": "score", "family": "pr_risk", "logits": [[33.0, 35.25, 38.25, 36.5]]}
+{"id": "pr_risk-510b414192", "kind": "score", "family": "pr_risk", "logits": [[33.25, 35.25, 38.25, 37.25]]}
+{"id": "pr_risk-4e6f560704", "kind": "score", "family": "pr_risk", "logits": [[32.25, 35.75, 38.75, 38.5]]}
+{"id": "entailment-e2c127e57f", "kind": "choice", "family": "entailment", "logits": [[35.0, 39.25, 37.5]]}
+{"id": "entailment-caf0b31443", "kind": "choice", "family": "entailment", "logits": [[39.0, 38.25, 38.0]]}
+{"id": "entailment-78e915b676", "kind": "choice", "family": "entailment", "logits": [[39.0, 38.5, 37.5]]}
+{"id": "entailment-13d9987a2a", "kind": "choice", "family": "entailment", "logits": [[37.75, 37.25, 39.25]]}
+{"id": "entailment-1a088d2e79", "kind": "choice", "family": "entailment", "logits": [[39.5, 37.25, 37.0]]}
+{"id": "entailment-bb95d1e5c4", "kind": "choice", "family": "entailment", "logits": [[39.5, 37.75, 37.5]]}
+{"id": "entailment-544e007908", "kind": "choice", "family": "entailment", "logits": [[39.25, 37.5, 36.5]]}
+{"id": "entailment-e97cf45f06", "kind": "choice", "family": "entailment", "logits": [[36.75, 37.25, 39.0]]}
+{"id": "entailment-2370234c72", "kind": "choice", "family": "entailment", "logits": [[36.75, 38.75, 38.25]]}
+{"id": "fact_or_opinion-00ee2ec279", "kind": "choice", "family": "fact_or_opinion", "logits": [[38.0, 34.75, 34.0, 34.25]]}
+{"id": "fact_or_opinion-6d8797e5b1", "kind": "choice", "family": "fact_or_opinion", "logits": [[34.25, 34.75, 33.75, 34.25]]}
+{"id": "fact_or_opinion-a6521f66ad", "kind": "choice", "family": "fact_or_opinion", "logits": [[37.75, 34.75, 35.25, 35.0]]}
+{"id": "fact_or_opinion-c47bcce65a", "kind": "choice", "family": "fact_or_opinion", "logits": [[37.75, 35.75, 34.5, 35.0]]}
+{"id": "fact_or_opinion-9006cbf081", "kind": "choice", "family": "fact_or_opinion", "logits": [[36.25, 36.5, 33.25, 34.75]]}
+{"id": "fact_or_opinion-a8fc11c78a", "kind": "choice", "family": "fact_or_opinion", "logits": [[38.0, 39.0, 34.0, 34.5]]}
+{"id": "fact_or_opinion-fc0e8b9d81", "kind": "choice", "family": "fact_or_opinion", "logits": [[36.0, 37.75, 33.0, 34.0]]}
+{"id": "fact_or_opinion-de27598da2", "kind": "choice", "family": "fact_or_opinion", "logits": [[36.5, 37.5, 35.0, 38.0]]}
+{"id": "fact_or_opinion-cff24297dd", "kind": "choice", "family": "fact_or_opinion", "logits": [[36.0, 36.0, 33.25, 33.75]]}
+{"id": "same_place-87fb925e9b", "kind": "noul", "family": "same_place", "logits": [[38.5, 38.75]]}
+{"id": "same_place-799dc1bcef", "kind": "noul", "family": "same_place", "logits": [[38.75, 39.0]]}
+{"id": "same_place-cd0102a39e", "kind": "noul", "family": "same_place", "logits": [[39.0, 37.5]]}
+{"id": "same_place-e0a1c2bad2", "kind": "noul", "family": "same_place", "logits": [[39.0, 37.5]]}
+{"id": "same_place-6c3eec84b1", "kind": "noul", "family": "same_place", "logits": [[37.0, 39.5]]}
+{"id": "same_place-673af2ef3c", "kind": "noul", "family": "same_place", "logits": [[38.75, 38.75]]}
+{"id": "same_place-1ae72d3127", "kind": "noul", "family": "same_place", "logits": [[38.25, 39.25]]}
+{"id": "same_place-f2c0eb294f", "kind": "noul", "family": "same_place", "logits": [[38.75, 38.25]]}
+{"id": "same_place-059b4d350d", "kind": "noul", "family": "same_place", "logits": [[38.5, 38.5]]}
+{"id": "expense_category-45931d8bad", "kind": "choice", "family": "expense_category", "logits": [[34.75, 33.75, 36.25, 38.0, 37.25]]}
+{"id": "expense_category-23b99e44ee", "kind": "choice", "family": "expense_category", "logits": [[33.75, 34.75, 34.5, 38.75, 36.5]]}
+{"id": "expense_category-925b5ac249", "kind": "choice", "family": "expense_category", "logits": [[34.75, 34.0, 37.0, 35.0, 37.25]]}
+{"id": "expense_category-a0aa281225", "kind": "choice", "family": "expense_category", "logits": [[33.5, 33.25, 35.5, 38.0, 35.75]]}
+{"id": "expense_category-d1a99d31e1", "kind": "choice", "family": "expense_category", "logits": [[34.75, 34.0, 35.75, 35.5, 37.75]]}
+{"id": "expense_category-ec7879920c", "kind": "choice", "family": "expense_category", "logits": [[34.5, 33.75, 36.25, 35.5, 37.5]]}
+{"id": "expense_category-c340d256f9", "kind": "choice", "family": "expense_category", "logits": [[33.75, 33.0, 38.0, 35.25, 35.75]]}
+{"id": "expense_category-bd5f86d940", "kind": "choice", "family": "expense_category", "logits": [[33.5, 32.5, 38.25, 34.5, 35.5]]}
+{"id": "expense_category-3f37fd9438", "kind": "choice", "family": "expense_category", "logits": [[34.5, 35.0, 35.0, 39.25, 37.5]]}
+{"id": "deadline_realistic-59c2245872", "kind": "score", "family": "deadline_realistic", "logits": [[37.5, 37.25, 35.25, 35.25]]}
+{"id": "deadline_realistic-6d7d169e21", "kind": "score", "family": "deadline_realistic", "logits": [[36.25, 37.5, 35.5, 35.0]]}
+{"id": "deadline_realistic-d0e76d10f4", "kind": "score", "family": "deadline_realistic", "logits": [[37.5, 38.0, 36.0, 35.5]]}
+{"id": "deadline_realistic-f1a146ba25", "kind": "score", "family": "deadline_realistic", "logits": [[35.5, 38.0, 37.25, 36.25]]}
+{"id": "deadline_realistic-971cc613c9", "kind": "score", "family": "deadline_realistic", "logits": [[37.5, 37.0, 34.0, 34.25]]}
+{"id": "deadline_realistic-8c9512c517", "kind": "score", "family": "deadline_realistic", "logits": [[36.5, 38.25, 37.0, 36.0]]}
+{"id": "deadline_realistic-89f7e2ae15", "kind": "score", "family": "deadline_realistic", "logits": [[36.0, 37.0, 34.5, 34.0]]}
+{"id": "deadline_realistic-0bc17e228b", "kind": "score", "family": "deadline_realistic", "logits": [[35.25, 38.0, 37.0, 36.0]]}
+{"id": "deadline_realistic-ba28481f25", "kind": "score", "family": "deadline_realistic", "logits": [[36.25, 38.75, 36.75, 35.75]]}
+{"id": "claim_supported-e3846e1a3e", "kind": "noul", "family": "claim_supported", "logits": [[40.5, 37.75]]}
+{"id": "claim_supported-a627489029", "kind": "noul", "family": "claim_supported", "logits": [[40.5, 38.0]]}
+{"id": "claim_supported-33714b3d25", "kind": "noul", "family": "claim_supported", "logits": [[38.75, 39.75]]}
+{"id": "claim_supported-908762667e", "kind": "noul", "family": "claim_supported", "logits": [[40.0, 37.5]]}
+{"id": "claim_supported-832bab806c", "kind": "noul", "family": "claim_supported", "logits": [[39.75, 38.25]]}
+{"id": "claim_supported-4e64c428d9", "kind": "noul", "family": "claim_supported", "logits": [[38.25, 39.75]]}
+{"id": "claim_supported-2f816c41a5", "kind": "noul", "family": "claim_supported", "logits": [[39.0, 39.5]]}
+{"id": "claim_supported-385f3c10fa", "kind": "noul", "family": "claim_supported", "logits": [[40.25, 38.0]]}
+{"id": "claim_supported-6f0b9dc21f", "kind": "noul", "family": "claim_supported", "logits": [[39.75, 38.0]]}
+{"id": "log_severity-06fd946cca", "kind": "choice", "family": "log_severity", "logits": [[33.25, 35.25, 35.25, 33.0, 32.5]]}
+{"id": "log_severity-10b02d8746", "kind": "choice", "family": "log_severity", "logits": [[31.75, 36.25, 32.75, 32.0, 32.25]]}
+{"id": "log_severity-15bdcfd4f1", "kind": "choice", "family": "log_severity", "logits": [[31.75, 32.75, 36.75, 34.0, 32.25]]}
+{"id": "log_severity-15a61b4349", "kind": "choice", "family": "log_severity", "logits": [[32.0, 35.0, 33.5, 35.75, 33.25]]}
+{"id": "log_severity-c86520b634", "kind": "choice", "family": "log_severity", "logits": [[34.5, 34.5, 34.75, 32.0, 31.625]]}
+{"id": "log_severity-ca065720a6", "kind": "choice", "family": "log_severity", "logits": [[31.25, 33.0, 33.75, 36.25, 33.75]]}
+{"id": "log_severity-1ae3eaad38", "kind": "choice", "family": "log_severity", "logits": [[31.875, 33.5, 35.25, 35.75, 33.75]]}
+{"id": "log_severity-d370f76d12", "kind": "choice", "family": "log_severity", "logits": [[33.5, 35.75, 33.75, 32.25, 32.0]]}
+{"id": "log_severity-55ef076dd6", "kind": "choice", "family": "log_severity", "logits": [[32.0, 33.0, 34.75, 36.5, 34.5]]}
+{"id": "scheduling_conflict-9f6bd5adfd", "kind": "noul", "family": "scheduling_conflict", "logits": [[39.75, 38.25]]}
+{"id": "scheduling_conflict-a39cb495ae", "kind": "noul", "family": "scheduling_conflict", "logits": [[39.5, 38.75]]}
+{"id": "scheduling_conflict-4233f2ef92", "kind": "noul", "family": "scheduling_conflict", "logits": [[39.25, 38.5]]}
+{"id": "scheduling_conflict-19f85dcf63", "kind": "noul", "family": "scheduling_conflict", "logits": [[39.5, 38.75]]}
+{"id": "scheduling_conflict-549c6fe64f", "kind": "noul", "family": "scheduling_conflict", "logits": [[39.25, 38.0]]}
+{"id": "scheduling_conflict-12df094ed6", "kind": "noul", "family": "scheduling_conflict", "logits": [[39.25, 38.25]]}
+{"id": "scheduling_conflict-8d4df47b36", "kind": "noul", "family": "scheduling_conflict", "logits": [[39.25, 38.75]]}
+{"id": "scheduling_conflict-d377154baa", "kind": "noul", "family": "scheduling_conflict", "logits": [[40.0, 38.0]]}
+{"id": "scheduling_conflict-19820f9b83", "kind": "noul", "family": "scheduling_conflict", "logits": [[39.75, 38.5]]}

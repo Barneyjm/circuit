@@ -1,0 +1,27 @@
+[
+ {"audio": "call_billing.wav", "questions": [
+   {"q": "Which water-utility call category is this?", "options": ["BILLING", "AMR (METERING)", "BTR/O (BAD TASTE & ODOR)", "RESTORE", "BPCS (BROKEN PIPE)"], "expect": "BILLING"},
+   {"q": "Is the caller angry or frustrated?", "options": ["Yes", "No"], "expect": "Yes"},
+   {"q": "Does the caller want action today?", "options": ["Yes", "No"], "expect": "Yes"},
+   {"q": "Is the speaker's voice male or female?", "options": ["Male", "Female"], "expect": "Female"},
+   {"q": "Is this speech or a non-speech sound?", "options": ["Speech", "Non-speech sound"], "expect": "Speech"}]},
+ {"audio": "call_meter.wav", "questions": [
+   {"q": "Which water-utility call category is this?", "options": ["BILLING", "AMR (METERING)", "BTR/O (BAD TASTE & ODOR)", "RESTORE", "BPCS (BROKEN PIPE)"], "expect": "AMR (METERING)"},
+   {"q": "Is the caller angry or frustrated?", "options": ["Yes", "No"], "expect": "No"},
+   {"q": "Does the caller want action today?", "options": ["Yes", "No"], "expect": "No"},
+   {"q": "Is the speaker's voice male or female?", "options": ["Male", "Female"], "expect": "Male"}]},
+ {"audio": "call_taste.wav", "questions": [
+   {"q": "Which water-utility call category is this?", "options": ["BILLING", "AMR (METERING)", "BTR/O (BAD TASTE & ODOR)", "RESTORE", "BPCS (BROKEN PIPE)"], "expect": "BTR/O (BAD TASTE & ODOR)"},
+   {"q": "Does the caller mention a child or baby?", "options": ["Yes", "No"], "expect": "Yes"},
+   {"q": "Is the caller asking whether the water is safe?", "options": ["Yes", "No"], "expect": "Yes"},
+   {"q": "How urgent is this call?", "options": ["Low", "Medium", "High"], "expect": ["Medium", "High"]}]},
+ {"audio": "smalltalk.wav", "questions": [
+   {"q": "Is this a customer service call about a water utility?", "options": ["Yes", "No"], "expect": "No"},
+   {"q": "Does this call contain enough information to categorize it into a water-utility call type?", "options": ["Yes", "No"], "expect": "No"},
+   {"q": "Is the speaker's voice male or female?", "options": ["Male", "Female"], "expect": "Male"},
+   {"q": "Is the tone friendly?", "options": ["Yes", "No"], "expect": "Yes"}]},
+ {"audio": "dog.wav", "questions": [
+   {"q": "Is this speech or a non-speech sound?", "options": ["Speech", "Non-speech sound"], "expect": "Non-speech sound"},
+   {"q": "What is making the sound?", "options": ["A dog", "A cat", "A car", "A person", "Music"], "expect": "A dog"},
+   {"q": "Is the caller angry or frustrated?", "options": ["Yes", "No", "There is no caller"], "expect": "There is no caller"}]}
+]

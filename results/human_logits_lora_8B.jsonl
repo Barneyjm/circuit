@@ -1,0 +1,198 @@
+{"id": "support_department-26625320aa", "kind": "choice", "family": "support_department", "logits": [[-0.34764567017555237, 1.4729396104812622, -1.2145209312438965, -1.216316819190979, 2.618380308151245]]}
+{"id": "support_department-6f7e4ade3c", "kind": "choice", "family": "support_department", "logits": [[-0.018169371411204338, 1.3834019899368286, -0.7395240664482117, -1.6185051202774048, 2.3149967193603516]]}
+{"id": "support_department-7ceb92d99f", "kind": "choice", "family": "support_department", "logits": [[0.5200626254081726, -1.718126893043518, -0.7498639225959778, 3.3749606609344482, -0.3421976864337921]]}
+{"id": "support_department-b6a12d064d", "kind": "choice", "family": "support_department", "logits": [[-0.8663907647132874, 3.075575351715088, -1.3239492177963257, -1.4762510061264038, 1.672790288925171]]}
+{"id": "support_department-dfa8f2b4ab", "kind": "choice", "family": "support_department", "logits": [[-1.427439570426941, -0.7348835468292236, 4.161834716796875, -1.1140832901000977, -0.6797037124633789]]}
+{"id": "support_department-4d8b624b68", "kind": "choice", "family": "support_department", "logits": [[-0.45548656582832336, 1.666056752204895, -0.462510883808136, -1.625731110572815, 1.9700202941894531]]}
+{"id": "support_department-5dbc92f57c", "kind": "choice", "family": "support_department", "logits": [[-1.1858484745025635, 4.389179229736328, -0.6281757354736328, -1.496005892753601, -0.9851233959197998]]}
+{"id": "support_department-e75357ea67", "kind": "choice", "family": "support_department", "logits": [[-0.4436992108821869, 1.7623571157455444, -1.1107181310653687, -1.1800411939620972, 2.3583290576934814]]}
+{"id": "support_department-44fca215af", "kind": "choice", "family": "support_department", "logits": [[-0.2987430989742279, -1.6522005796432495, -0.9948602318763733, 2.0281460285186768, 2.997095823287964]]}
+{"id": "agent_next_action-da40de8797", "kind": "choice", "family": "agent_next_action", "logits": [[4.419174671173096, -0.8612380027770996, -1.2533955574035645, -1.6729429960250854, -0.6541284322738647]]}
+{"id": "agent_next_action-47d55ade14", "kind": "choice", "family": "agent_next_action", "logits": [[1.5804485082626343, 2.5439162254333496, -1.157928228378296, -1.7993974685668945, -1.5117995738983154]]}
+{"id": "agent_next_action-b33945dbc3", "kind": "choice", "family": "agent_next_action", "logits": [[2.083340644836426, -0.93988037109375, -0.5220187306404114, 0.6771172285079956, -1.1117581129074097]]}
+{"id": "agent_next_action-89d342524f", "kind": "choice", "family": "agent_next_action", "logits": [[3.635927677154541, -1.0571385622024536, 0.10362432897090912, -1.8968862295150757, -1.0551700592041016]]}
+{"id": "agent_next_action-87950772a5", "kind": "choice", "family": "agent_next_action", "logits": [[4.093391418457031, -0.7536654472351074, -0.695947527885437, -1.7592010498046875, -1.130435824394226]]}
+{"id": "agent_next_action-315b20014a", "kind": "choice", "family": "agent_next_action", "logits": [[1.4644311666488647, 0.7328920364379883, 0.986717164516449, -2.1581919193267822, -1.2685377597808838]]}
+{"id": "agent_next_action-c8f089bb88", "kind": "choice", "family": "agent_next_action", "logits": [[2.39658784866333, 1.9580713510513306, -1.3626350164413452, -1.9314138889312744, -1.5373053550720215]]}
+{"id": "agent_next_action-ec3a31c6b8", "kind": "choice", "family": "agent_next_action", "logits": [[3.467418670654297, -1.104174256324768, -1.1404057741165161, -0.4499961733818054, -0.3506193161010742]]}
+{"id": "agent_next_action-908a2bb4a2", "kind": "choice", "family": "agent_next_action", "logits": [[2.202016592025757, -1.321571707725525, -0.43074724078178406, 0.6047775149345398, -0.6559118032455444]]}
+{"id": "email_folder-26722fc6b7", "kind": "choice", "family": "email_folder", "logits": [[2.0460360050201416, 0.4674091637134552, -1.5061376094818115, -1.6570221185684204, 1.2956793308258057]]}
+{"id": "email_folder-6b6e5381dc", "kind": "choice", "family": "email_folder", "logits": [[3.0988729000091553, 1.412086009979248, -1.5032988786697388, -2.112985134124756, -1.7102298736572266]]}
+{"id": "email_folder-e00fff9c8e", "kind": "choice", "family": "email_folder", "logits": [[1.8945839405059814, -0.03724303096532822, 1.0425323247909546, -2.159468412399292, -1.0744447708129883]]}
+{"id": "email_folder-c76c9d18b0", "kind": "choice", "family": "email_folder", "logits": [[3.768101453781128, 1.0095080137252808, -1.5610584020614624, -1.9805489778518677, -1.7863367795944214]]}
+{"id": "email_folder-6dcebfa301", "kind": "choice", "family": "email_folder", "logits": [[2.6182124614715576, 1.9890369176864624, -1.4924768209457397, -2.168184518814087, -1.747349500656128]]}
+{"id": "email_folder-eb82c259db", "kind": "choice", "family": "email_folder", "logits": [[-0.6085203289985657, 1.197766900062561, -1.071660041809082, 2.051679849624634, -0.8333465456962585]]}
+{"id": "email_folder-04e15763ee", "kind": "choice", "family": "email_folder", "logits": [[3.42189621925354, 0.5821729898452759, -1.4135103225708008, -1.9896435737609863, -0.8889168500900269]]}
+{"id": "email_folder-eb3e210b2f", "kind": "choice", "family": "email_folder", "logits": [[3.8685944080352783, -0.291586697101593, -1.3255597352981567, -1.9545977115631104, -0.2349339723587036]]}
+{"id": "email_folder-ac1a0e048e", "kind": "choice", "family": "email_folder", "logits": [[0.3827688992023468, -0.9140356779098511, -1.5805765390396118, -0.49386247992515564, 4.902714729309082]]}
+{"id": "review_positive-92456f9089", "kind": "noul", "family": "review_positive", "logits": [[-0.8173381686210632, 3.0387659072875977]]}
+{"id": "review_positive-22b439a95e", "kind": "noul", "family": "review_positive", "logits": [[-0.857333242893219, 3.1368026733398438]]}
+{"id": "review_positive-fd5103af11", "kind": "noul", "family": "review_positive", "logits": [[-0.7858560681343079, 3.075594425201416]]}
+{"id": "review_positive-f03feed3be", "kind": "noul", "family": "review_positive", "logits": [[-0.8672400116920471, 3.1176979541778564]]}
+{"id": "review_positive-96cebeccc0", "kind": "noul", "family": "review_positive", "logits": [[1.5549070835113525, 1.1218020915985107]]}
+{"id": "review_positive-e2356493fc", "kind": "noul", "family": "review_positive", "logits": [[3.60310959815979, -0.2710524797439575]]}
+{"id": "review_positive-4b6c5d5408", "kind": "noul", "family": "review_positive", "logits": [[1.547533631324768, 1.231627106666565]]}
+{"id": "review_positive-12625445f3", "kind": "noul", "family": "review_positive", "logits": [[-0.1596388816833496, 1.9004379510879517]]}
+{"id": "review_positive-4943f10802", "kind": "noul", "family": "review_positive", "logits": [[-0.09505278617143631, 1.9054778814315796]]}
+{"id": "frustration_level-5c74e42069", "kind": "score", "family": "frustration_level", "logits": [[-2.0083394050598145, -0.8115124702453613, 2.562617540359497, 1.6100050210952759]]}
+{"id": "frustration_level-896e912ba2", "kind": "score", "family": "frustration_level", "logits": [[0.7339956164360046, 1.411145567893982, 0.7512958645820618, -1.7981072664260864]]}
+{"id": "frustration_level-fbfa91665f", "kind": "score", "family": "frustration_level", "logits": [[-2.0473790168762207, -1.6501151323318481, 2.4876275062561035, 2.6265509128570557]]}
+{"id": "frustration_level-667c6df959", "kind": "score", "family": "frustration_level", "logits": [[-1.7709301710128784, -0.23665311932563782, 2.2920660972595215, 1.0428217649459839]]}
+{"id": "frustration_level-11ed5b0d0b", "kind": "score", "family": "frustration_level", "logits": [[3.5430939197540283, 1.1344355344772339, -1.0804789066314697, -2.2778608798980713]]}
+{"id": "frustration_level-2db2336b78", "kind": "score", "family": "frustration_level", "logits": [[-1.6107078790664673, 0.9521172046661377, 2.3426742553710938, -0.6233068108558655]]}
+{"id": "frustration_level-8457f0076f", "kind": "score", "family": "frustration_level", "logits": [[-0.34102946519851685, 0.1733461320400238, 1.7848602533340454, -0.297451376914978]]}
+{"id": "frustration_level-0047c189dc", "kind": "score", "family": "frustration_level", "logits": [[-2.0702693462371826, -1.6096473932266235, 2.5530714988708496, 2.4864609241485596]]}
+{"id": "frustration_level-3135b8b3c7", "kind": "score", "family": "frustration_level", "logits": [[1.3485915660858154, 1.183397650718689, 0.5131527781486511, -1.9016278982162476]]}
+{"id": "ticket_urgency-da29456d23", "kind": "score", "family": "ticket_urgency", "logits": [[-1.5901905298233032, 0.5489299893379211, 2.1714470386505127, 0.022156015038490295]]}
+{"id": "ticket_urgency-db5a272971", "kind": "score", "family": "ticket_urgency", "logits": [[0.8723930716514587, 1.132597804069519, 0.9867690205574036, -1.8949848413467407]]}
+{"id": "ticket_urgency-dc93fac4c1", "kind": "score", "family": "ticket_urgency", "logits": [[0.8510406017303467, 1.5509837865829468, 1.0684597492218018, -2.3222899436950684]]}
+{"id": "ticket_urgency-68cf0a0d52", "kind": "score", "family": "ticket_urgency", "logits": [[-1.7450491189956665, 0.3265460133552551, 2.8001623153686523, -0.40463194251060486]]}
+{"id": "ticket_urgency-d775654054", "kind": "score", "family": "ticket_urgency", "logits": [[-2.0337588787078857, -0.25513994693756104, 2.7042484283447266, 0.7990636825561523]]}
+{"id": "ticket_urgency-e76c513b31", "kind": "score", "family": "ticket_urgency", "logits": [[2.058342933654785, 1.4232172966003418, -0.05627088248729706, -2.2781622409820557]]}
+{"id": "ticket_urgency-586b081fbb", "kind": "score", "family": "ticket_urgency", "logits": [[-2.0442960262298584, -1.3792593479156494, 1.6611685752868652, 3.276228904724121]]}
+{"id": "ticket_urgency-93a01cdec3", "kind": "score", "family": "ticket_urgency", "logits": [[-2.233621120452881, -1.2799769639968872, 2.651747703552246, 2.2817976474761963]]}
+{"id": "ticket_urgency-384be4edc4", "kind": "score", "family": "ticket_urgency", "logits": [[-0.9953752160072327, 1.543627381324768, 1.4566444158554077, -1.0682203769683838]]}
+{"id": "message_urgent-690a9fcc41", "kind": "noul", "family": "message_urgent", "logits": [[2.796910047531128, 0.1593775451183319]]}
+{"id": "message_urgent-d307a48cf5", "kind": "noul", "family": "message_urgent", "logits": [[0.038938913494348526, 1.7579573392868042]]}
+{"id": "message_urgent-5326d8fa9f", "kind": "noul", "family": "message_urgent", "logits": [[2.5745129585266113, 0.2581855058670044]]}
+{"id": "message_urgent-fb276f19e5", "kind": "noul", "family": "message_urgent", "logits": [[3.3914096355438232, -0.31508108973503113]]}
+{"id": "message_urgent-ed5e02f3aa", "kind": "noul", "family": "message_urgent", "logits": [[3.01485276222229, -0.21592891216278076]]}
+{"id": "message_urgent-4427b1c879", "kind": "noul", "family": "message_urgent", "logits": [[1.714120864868164, 1.1815383434295654]]}
+{"id": "message_urgent-0bb686a40f", "kind": "noul", "family": "message_urgent", "logits": [[-0.04267385974526405, 1.809320092201233]]}
+{"id": "message_urgent-bb07ebf519", "kind": "noul", "family": "message_urgent", "logits": [[2.4077537059783936, 0.5707663893699646]]}
+{"id": "message_urgent-f2fe45939d", "kind": "noul", "family": "message_urgent", "logits": [[2.3929102420806885, 0.41149505972862244]]}
+{"id": "pii_present-8d036af9af", "kind": "noul", "family": "pii_present", "logits": [[3.273261308670044, -0.07442980259656906]]}
+{"id": "pii_present-0c0eb71c00", "kind": "noul", "family": "pii_present", "logits": [[0.4340417683124542, 1.5838228464126587]]}
+{"id": "pii_present-7a5aaf2c6f", "kind": "noul", "family": "pii_present", "logits": [[3.265763998031616, 0.06804125756025314]]}
+{"id": "pii_present-f749323f07", "kind": "noul", "family": "pii_present", "logits": [[1.1120003461837769, 1.4375931024551392]]}
+{"id": "pii_present-bf2b3812b8", "kind": "noul", "family": "pii_present", "logits": [[2.752007484436035, 0.19860588014125824]]}
+{"id": "pii_present-fae944a44b", "kind": "noul", "family": "pii_present", "logits": [[2.6914074420928955, 0.3273482322692871]]}
+{"id": "pii_present-721e4c5bab", "kind": "noul", "family": "pii_present", "logits": [[1.110871434211731, 1.2953928709030151]]}
+{"id": "pii_present-1bf0046c37", "kind": "noul", "family": "pii_present", "logits": [[-0.4716915190219879, 2.415261745452881]]}
+{"id": "pii_present-f1018f0343", "kind": "noul", "family": "pii_present", "logits": [[1.8591293096542358, 1.1080292463302612]]}
+{"id": "content_policy-84b524410d", "kind": "choice", "family": "content_policy", "logits": [[2.4920811653137207, -1.4867932796478271, 0.4935147762298584, -1.3598089218139648, 0.1892358511686325]]}
+{"id": "content_policy-220d1486f6", "kind": "choice", "family": "content_policy", "logits": [[1.6659774780273438, -0.8384755253791809, -1.3163917064666748, 0.6604229807853699, 0.6725375652313232]]}
+{"id": "content_policy-3f474aaa8b", "kind": "choice", "family": "content_policy", "logits": [[1.7403860092163086, -1.3957792520523071, 1.2297513484954834, -1.2160327434539795, -0.18772749602794647]]}
+{"id": "content_policy-d89593733d", "kind": "choice", "family": "content_policy", "logits": [[0.2987474501132965, 1.0766173601150513, -0.9109170436859131, -0.8544667363166809, 1.2461494207382202]]}
+{"id": "content_policy-4615bf48d7", "kind": "choice", "family": "content_policy", "logits": [[2.3237688541412354, -1.5118356943130493, 0.895955502986908, -1.342807650566101, -0.25484326481819153]]}
+{"id": "content_policy-e38b236c7a", "kind": "choice", "family": "content_policy", "logits": [[4.45496129989624, -0.7231924533843994, -1.5242456197738647, -1.315086007118225, -0.9012322425842285]]}
+{"id": "content_policy-ab1e91de7d", "kind": "choice", "family": "content_policy", "logits": [[1.2180153131484985, 1.779152750968933, -1.1694059371948242, -0.8511466383934021, -1.08378005027771]]}
+{"id": "content_policy-e5a32e2429", "kind": "choice", "family": "content_policy", "logits": [[3.5427534580230713, -1.0312834978103638, -0.709518313407898, -1.2573224306106567, -0.3141588270664215]]}
+{"id": "content_policy-30846b6e11", "kind": "choice", "family": "content_policy", "logits": [[1.3209939002990723, -0.33378472924232483, -0.7350273132324219, -1.0864827632904053, 1.8072936534881592]]}
+{"id": "refund_eligible-271385d2ba", "kind": "noul", "family": "refund_eligible", "logits": [[0.8221374154090881, 1.4576998949050903]]}
+{"id": "refund_eligible-841a3789eb", "kind": "noul", "family": "refund_eligible", "logits": [[2.7967278957366943, 0.3179491460323334]]}
+{"id": "refund_eligible-13b95e6419", "kind": "noul", "family": "refund_eligible", "logits": [[1.453717827796936, 1.0922276973724365]]}
+{"id": "refund_eligible-fc8a88976e", "kind": "noul", "family": "refund_eligible", "logits": [[2.859323263168335, 0.22985248267650604]]}
+{"id": "refund_eligible-145f5eee05", "kind": "noul", "family": "refund_eligible", "logits": [[0.15242338180541992, 1.6317867040634155]]}
+{"id": "refund_eligible-5c108d3f7a", "kind": "noul", "family": "refund_eligible", "logits": [[2.297982931137085, 0.609497606754303]]}
+{"id": "refund_eligible-dce3406689", "kind": "noul", "family": "refund_eligible", "logits": [[1.5687708854675293, 1.0978857278823853]]}
+{"id": "refund_eligible-f49b916cc5", "kind": "noul", "family": "refund_eligible", "logits": [[2.5232224464416504, 0.2829170823097229]]}
+{"id": "refund_eligible-e496656a12", "kind": "noul", "family": "refund_eligible", "logits": [[3.310694932937622, -0.0040531400591135025]]}
+{"id": "pick_total-e5e838241f", "kind": "choice", "family": "pick_total", "logits": [[-1.7049363851547241, -2.005295991897583, 4.942409515380859, -0.4515930712223053, -0.5705621838569641, -0.6474483013153076, -0.9116379618644714]]}
+{"id": "pick_total-2274dedbb5", "kind": "choice", "family": "pick_total", "logits": [[-0.48818451166152954, 3.343860387802124, -0.9243389368057251, -1.327223300933838, -0.7445169687271118, -2.351957321166992, -1.273758888244629]]}
+{"id": "pick_total-6445d96bc9", "kind": "choice", "family": "pick_total", "logits": [[5.386756420135498, -0.9538547396659851, -0.8499206900596619, -1.8856793642044067, -1.9060425758361816, -2.80161714553833, -2.308542490005493]]}
+{"id": "pick_total-cdf2076bb1", "kind": "choice", "family": "pick_total", "logits": [[4.437844753265381, -0.922226071357727, -1.44658362865448, -1.7402039766311646, -0.8998757600784302, -2.571951389312744, 0.3945021629333496]]}
+{"id": "pick_total-6df469815c", "kind": "choice", "family": "pick_total", "logits": [[-1.4515832662582397, -1.4046626091003418, 0.1723669171333313, 4.569262981414795, -0.5888863205909729, -2.4042131900787354, -0.10562203079462051]]}
+{"id": "pick_total-38ae0d990c", "kind": "choice", "family": "pick_total", "logits": [[-0.4248269498348236, 3.5995473861694336, -0.5510870814323425, -1.4583890438079834, -1.2383683919906616, -2.6541895866394043, -1.8136287927627563]]}
+{"id": "pick_total-b63f3f995e", "kind": "choice", "family": "pick_total", "logits": [[-1.500909686088562, -1.3083840608596802, -0.12830311059951782, 5.005553722381592, -0.6375353932380676, -2.2483792304992676, -0.4748980402946472]]}
+{"id": "pick_total-1651856f7f", "kind": "choice", "family": "pick_total", "logits": [[0.18110299110412598, 2.6306614875793457, -1.124988317489624, -1.5197781324386597, -1.1367837190628052, -1.9674862623214722, -0.07371316105127335]]}
+{"id": "pick_total-a4e93878fc", "kind": "choice", "family": "pick_total", "logits": [[3.5964725017547607, 0.006522735580801964, -1.3192180395126343, -1.6070340871810913, -1.1133008003234863, -2.7062511444091797, -0.6070175170898438]]}
+{"id": "pick_meeting_time-b327113022", "kind": "choice", "family": "pick_meeting_time", "logits": [[-1.1288596391677856, -1.326379656791687, 2.0964014530181885, -0.9166014194488525, -1.0769083499908447, 5.03718376159668]]}
+{"id": "pick_meeting_time-17ac9f7184", "kind": "choice", "family": "pick_meeting_time", "logits": [[-0.2004198133945465, -0.5143335461616516, -0.8714373111724854, -0.1378617137670517, -1.0480084419250488, 6.127423286437988]]}
+{"id": "pick_meeting_time-b078b59201", "kind": "choice", "family": "pick_meeting_time", "logits": [[0.3398006856441498, -0.24369314312934875, -1.001950979232788, -0.7765463590621948, -0.9453300833702087, 5.566845893859863]]}
+{"id": "pick_meeting_time-ce1d5893e7", "kind": "choice", "family": "pick_meeting_time", "logits": [[5.563319683074951, -0.4180538058280945, -1.5213429927825928, -2.047184944152832, -2.1512768268585205, -2.401782989501953]]}
+{"id": "pick_meeting_time-c3972b0d3a", "kind": "choice", "family": "pick_meeting_time", "logits": [[-0.2605154514312744, -0.7945407629013062, 0.6294368505477905, -0.7304137945175171, -0.9872097969055176, 4.099738597869873]]}
+{"id": "pick_meeting_time-6c84398d1e", "kind": "choice", "family": "pick_meeting_time", "logits": [[5.586832046508789, -0.9773423671722412, -1.2323075532913208, -1.7025960683822632, -1.9516263008117676, -2.5187602043151855]]}
+{"id": "pick_meeting_time-a2be54a79e", "kind": "choice", "family": "pick_meeting_time", "logits": [[-0.2851930260658264, 3.4493114948272705, -0.8350768685340881, -1.4308332204818726, -1.4962382316589355, -1.5786864757537842]]}
+{"id": "pick_meeting_time-c5c9a9a199", "kind": "choice", "family": "pick_meeting_time", "logits": [[-0.7832427620887756, 5.023164749145508, -1.1360808610916138, -1.6328182220458984, -1.8913697004318237, -2.8099701404571533]]}
+{"id": "pick_meeting_time-585593764e", "kind": "choice", "family": "pick_meeting_time", "logits": [[-1.2977856397628784, -1.5491353273391724, 2.7893378734588623, -0.9752011895179749, -1.2125756740570068, 4.319494247436523]]}
+{"id": "code_has_bug-42ef87e24a", "kind": "noul", "family": "code_has_bug", "logits": [[1.6838959455490112, 1.214502215385437]]}
+{"id": "code_has_bug-0b1a3b5197", "kind": "noul", "family": "code_has_bug", "logits": [[1.687957763671875, 1.2151318788528442]]}
+{"id": "code_has_bug-f950820f11", "kind": "noul", "family": "code_has_bug", "logits": [[1.5196613073349, 1.25798499584198]]}
+{"id": "code_has_bug-394cf28fcc", "kind": "noul", "family": "code_has_bug", "logits": [[1.9176826477050781, 1.0748875141143799]]}
+{"id": "code_has_bug-3e82c1d37c", "kind": "noul", "family": "code_has_bug", "logits": [[1.558616280555725, 1.1469615697860718]]}
+{"id": "code_has_bug-54935f9e5d", "kind": "noul", "family": "code_has_bug", "logits": [[2.532661199569702, 0.7164109349250793]]}
+{"id": "code_has_bug-4a9f13003f", "kind": "noul", "family": "code_has_bug", "logits": [[1.8385642766952515, 1.0714025497436523]]}
+{"id": "code_has_bug-1fc5a2868d", "kind": "noul", "family": "code_has_bug", "logits": [[1.6998831033706665, 1.1235098838806152]]}
+{"id": "code_has_bug-bfc0a563e3", "kind": "noul", "family": "code_has_bug", "logits": [[1.9085615873336792, 1.0939892530441284]]}
+{"id": "pr_risk-70c1bcaeb5", "kind": "score", "family": "pr_risk", "logits": [[-0.9718536734580994, 1.3711363077163696, 1.3233692646026611, -0.7080152034759521]]}
+{"id": "pr_risk-5e2fa43103", "kind": "score", "family": "pr_risk", "logits": [[4.357461929321289, -0.08569351583719254, -1.0267661809921265, -1.882780909538269]]}
+{"id": "pr_risk-ba7a616f00", "kind": "score", "family": "pr_risk", "logits": [[-1.4753810167312622, 0.8495751619338989, 2.0353498458862305, -0.49604400992393494]]}
+{"id": "pr_risk-14098b07da", "kind": "score", "family": "pr_risk", "logits": [[-1.7737642526626587, -0.4641621708869934, 0.6269297003746033, 3.142885684967041]]}
+{"id": "pr_risk-64937a44b7", "kind": "score", "family": "pr_risk", "logits": [[-1.582234263420105, 1.051687240600586, 1.8869965076446533, -0.3742900490760803]]}
+{"id": "pr_risk-e1fa5abd6f", "kind": "score", "family": "pr_risk", "logits": [[2.0796663761138916, 2.243044853210449, -1.018462896347046, -2.123455047607422]]}
+{"id": "pr_risk-fec297567f", "kind": "score", "family": "pr_risk", "logits": [[-1.9355212450027466, -1.5318456888198853, 3.0611913204193115, 1.762646198272705]]}
+{"id": "pr_risk-510b414192", "kind": "score", "family": "pr_risk", "logits": [[-2.0760860443115234, -1.6565241813659668, 2.8911800384521484, 2.144047498703003]]}
+{"id": "pr_risk-4e6f560704", "kind": "score", "family": "pr_risk", "logits": [[-2.028174638748169, -1.6735469102859497, 2.159329652786255, 2.7840898036956787]]}
+{"id": "entailment-e2c127e57f", "kind": "choice", "family": "entailment", "logits": [[-0.22895759344100952, 2.783418655395508, -0.5595506429672241]]}
+{"id": "entailment-caf0b31443", "kind": "choice", "family": "entailment", "logits": [[2.509857654571533, -0.5698376297950745, -0.5907076001167297]]}
+{"id": "entailment-78e915b676", "kind": "choice", "family": "entailment", "logits": [[1.6289035081863403, 0.8429961204528809, -0.7475335001945496]]}
+{"id": "entailment-13d9987a2a", "kind": "choice", "family": "entailment", "logits": [[-0.4070264995098114, -1.5805174112319946, 2.517620801925659]]}
+{"id": "entailment-1a088d2e79", "kind": "choice", "family": "entailment", "logits": [[2.0861098766326904, -0.7397973537445068, 0.02559024840593338]]}
+{"id": "entailment-bb95d1e5c4", "kind": "choice", "family": "entailment", "logits": [[2.740147829055786, -0.717269241809845, -0.5430817008018494]]}
+{"id": "entailment-544e007908", "kind": "choice", "family": "entailment", "logits": [[2.5258471965789795, -0.37096166610717773, -0.514240562915802]]}
+{"id": "entailment-e97cf45f06", "kind": "choice", "family": "entailment", "logits": [[-0.7224254012107849, -1.5083141326904297, 2.86806583404541]]}
+{"id": "entailment-2370234c72", "kind": "choice", "family": "entailment", "logits": [[-0.7277517318725586, 1.9685635566711426, 0.44901740550994873]]}
+{"id": "fact_or_opinion-00ee2ec279", "kind": "choice", "family": "fact_or_opinion", "logits": [[4.883343696594238, -0.7085387110710144, -1.4576468467712402, -1.626904845237732]]}
+{"id": "fact_or_opinion-6d8797e5b1", "kind": "choice", "family": "fact_or_opinion", "logits": [[-0.38682565093040466, -0.9576113820075989, -1.0719355344772339, 4.168861389160156]]}
+{"id": "fact_or_opinion-a6521f66ad", "kind": "choice", "family": "fact_or_opinion", "logits": [[4.74019718170166, -0.6671331524848938, -1.3934190273284912, -1.574609398841858]]}
+{"id": "fact_or_opinion-c47bcce65a", "kind": "choice", "family": "fact_or_opinion", "logits": [[4.0170392990112305, -0.2897961437702179, -1.2928990125656128, -1.582953691482544]]}
+{"id": "fact_or_opinion-9006cbf081", "kind": "choice", "family": "fact_or_opinion", "logits": [[2.7157413959503174, 1.6669622659683228, -1.5676844120025635, -1.8436945676803589]]}
+{"id": "fact_or_opinion-a8fc11c78a", "kind": "choice", "family": "fact_or_opinion", "logits": [[1.0622822046279907, 2.992241144180298, -1.4563636779785156, -1.652145504951477]]}
+{"id": "fact_or_opinion-fc0e8b9d81", "kind": "choice", "family": "fact_or_opinion", "logits": [[0.8460472822189331, 2.383842945098877, -1.3882741928100586, -0.9687421917915344]]}
+{"id": "fact_or_opinion-de27598da2", "kind": "choice", "family": "fact_or_opinion", "logits": [[-1.4477895498275757, -0.4583020806312561, -0.02963973954319954, 3.4125614166259766]]}
+{"id": "fact_or_opinion-cff24297dd", "kind": "choice", "family": "fact_or_opinion", "logits": [[2.697566270828247, 1.4584978818893433, -1.4315671920776367, -1.8196531534194946]]}
+{"id": "same_place-87fb925e9b", "kind": "noul", "family": "same_place", "logits": [[1.3058767318725586, 1.1830354928970337]]}
+{"id": "same_place-799dc1bcef", "kind": "noul", "family": "same_place", "logits": [[2.1658475399017334, 0.5706982612609863]]}
+{"id": "same_place-cd0102a39e", "kind": "noul", "family": "same_place", "logits": [[1.760223150253296, 0.8933776021003723]]}
+{"id": "same_place-e0a1c2bad2", "kind": "noul", "family": "same_place", "logits": [[1.6261937618255615, 1.052301287651062]]}
+{"id": "same_place-6c3eec84b1", "kind": "noul", "family": "same_place", "logits": [[-0.4004800319671631, 2.4005608558654785]]}
+{"id": "same_place-673af2ef3c", "kind": "noul", "family": "same_place", "logits": [[0.746482789516449, 1.3633253574371338]]}
+{"id": "same_place-1ae72d3127", "kind": "noul", "family": "same_place", "logits": [[-0.18405213952064514, 2.050192356109619]]}
+{"id": "same_place-f2c0eb294f", "kind": "noul", "family": "same_place", "logits": [[-0.11811590939760208, 2.0305652618408203]]}
+{"id": "same_place-059b4d350d", "kind": "noul", "family": "same_place", "logits": [[1.6112388372421265, 1.0636292695999146]]}
+{"id": "expense_category-45931d8bad", "kind": "choice", "family": "expense_category", "logits": [[-0.8710353374481201, -1.751081943511963, -0.5915166139602661, 2.918571710586548, 2.0356876850128174]]}
+{"id": "expense_category-23b99e44ee", "kind": "choice", "family": "expense_category", "logits": [[-1.0483583211898804, -1.2498313188552856, -0.805385172367096, 3.1025965213775635, 1.524531602859497]]}
+{"id": "expense_category-925b5ac249", "kind": "choice", "family": "expense_category", "logits": [[-0.6195603013038635, -1.7288644313812256, 1.7190804481506348, -0.785804808139801, 2.7093002796173096]]}
+{"id": "expense_category-a0aa281225", "kind": "choice", "family": "expense_category", "logits": [[-1.2879705429077148, -1.9158413410186768, -0.20136983692646027, 4.664547443389893, 0.1680731177330017]]}
+{"id": "expense_category-d1a99d31e1", "kind": "choice", "family": "expense_category", "logits": [[0.3827507495880127, -1.1950706243515015, -0.8076881766319275, -0.5114971399307251, 3.632438898086548]]}
+{"id": "expense_category-ec7879920c", "kind": "choice", "family": "expense_category", "logits": [[0.1370609849691391, -1.253110647201538, -0.4936111569404602, -0.48106443881988525, 3.742215871810913]]}
+{"id": "expense_category-c340d256f9", "kind": "choice", "family": "expense_category", "logits": [[-0.8270382285118103, -1.9989186525344849, 2.5711896419525146, -0.5679245591163635, 1.751665711402893]]}
+{"id": "expense_category-bd5f86d940", "kind": "choice", "family": "expense_category", "logits": [[-1.1633907556533813, -2.095710277557373, 3.0952587127685547, -0.6377764940261841, 1.8675096035003662]]}
+{"id": "expense_category-3f37fd9438", "kind": "choice", "family": "expense_category", "logits": [[-0.8261644244194031, -1.2851284742355347, -0.9731652140617371, 2.496152639389038, 2.281066656112671]]}
+{"id": "deadline_realistic-59c2245872", "kind": "score", "family": "deadline_realistic", "logits": [[2.984503984451294, 0.8122427463531494, -0.8993094563484192, -1.698573350906372]]}
+{"id": "deadline_realistic-6d7d169e21", "kind": "score", "family": "deadline_realistic", "logits": [[3.0911715030670166, 1.038196086883545, -0.9044269919395447, -1.9376763105392456]]}
+{"id": "deadline_realistic-d0e76d10f4", "kind": "score", "family": "deadline_realistic", "logits": [[2.118180274963379, 1.4290169477462769, -0.4311712384223938, -1.9083462953567505]]}
+{"id": "deadline_realistic-f1a146ba25", "kind": "score", "family": "deadline_realistic", "logits": [[-1.2693556547164917, 0.33641162514686584, 1.6767852306365967, 0.4369775950908661]]}
+{"id": "deadline_realistic-971cc613c9", "kind": "score", "family": "deadline_realistic", "logits": [[3.3377578258514404, 0.7635937929153442, -1.0301387310028076, -1.8246346712112427]]}
+{"id": "deadline_realistic-8c9512c517", "kind": "score", "family": "deadline_realistic", "logits": [[0.7956909537315369, 1.3851314783096313, 0.6835127472877502, -1.7452894449234009]]}
+{"id": "deadline_realistic-89f7e2ae15", "kind": "score", "family": "deadline_realistic", "logits": [[2.7340023517608643, 1.3583564758300781, -0.8484640717506409, -2.0392282009124756]]}
+{"id": "deadline_realistic-0bc17e228b", "kind": "score", "family": "deadline_realistic", "logits": [[-0.5015192031860352, 1.3782219886779785, 1.393049716949463, -1.2632471323013306]]}
+{"id": "deadline_realistic-ba28481f25", "kind": "score", "family": "deadline_realistic", "logits": [[2.1036176681518555, 1.6822584867477417, -0.6066048741340637, -2.0150821208953857]]}
+{"id": "claim_supported-e3846e1a3e", "kind": "noul", "family": "claim_supported", "logits": [[2.891524076461792, -0.012935111299157143]]}
+{"id": "claim_supported-a627489029", "kind": "noul", "family": "claim_supported", "logits": [[3.057570219039917, -0.020687172189354897]]}
+{"id": "claim_supported-33714b3d25", "kind": "noul", "family": "claim_supported", "logits": [[1.31731116771698, 1.194510579109192]]}
+{"id": "claim_supported-908762667e", "kind": "noul", "family": "claim_supported", "logits": [[3.2124786376953125, -0.15078294277191162]]}
+{"id": "claim_supported-832bab806c", "kind": "noul", "family": "claim_supported", "logits": [[2.9124834537506104, 0.052722491323947906]]}
+{"id": "claim_supported-4e64c428d9", "kind": "noul", "family": "claim_supported", "logits": [[-0.4063268005847931, 2.2347288131713867]]}
+{"id": "claim_supported-2f816c41a5", "kind": "noul", "family": "claim_supported", "logits": [[0.0004392887931317091, 1.8435920476913452]]}
+{"id": "claim_supported-385f3c10fa", "kind": "noul", "family": "claim_supported", "logits": [[2.486407995223999, 0.3825952708721161]]}
+{"id": "claim_supported-6f0b9dc21f", "kind": "noul", "family": "claim_supported", "logits": [[2.9161951541900635, 0.09985179454088211]]}
+{"id": "log_severity-06fd946cca", "kind": "choice", "family": "log_severity", "logits": [[1.8625320196151733, 1.4611929655075073, -0.04208175092935562, -1.8320748805999756, -1.8821542263031006]]}
+{"id": "log_severity-10b02d8746", "kind": "choice", "family": "log_severity", "logits": [[-0.05814782902598381, 3.108729362487793, -0.32467687129974365, -1.4286223649978638, -1.6015640497207642]]}
+{"id": "log_severity-15bdcfd4f1", "kind": "choice", "family": "log_severity", "logits": [[-1.8806244134902954, -1.227447509765625, 3.485398054122925, 1.2234686613082886, -1.0867854356765747]]}
+{"id": "log_severity-15a61b4349", "kind": "choice", "family": "log_severity", "logits": [[-0.6908480525016785, 1.9499011039733887, -0.08831293135881424, 0.27678337693214417, -1.2176673412322998]]}
+{"id": "log_severity-c86520b634", "kind": "choice", "family": "log_severity", "logits": [[3.175166368484497, 0.21682307124137878, 0.18071933090686798, -2.0564372539520264, -1.9406764507293701]]}
+{"id": "log_severity-ca065720a6", "kind": "choice", "family": "log_severity", "logits": [[-1.494247317314148, -0.025025689974427223, 1.0470552444458008, 2.0235788822174072, -0.8788783550262451]]}
+{"id": "log_severity-1ae3eaad38", "kind": "choice", "family": "log_severity", "logits": [[-1.8309093713760376, -1.3959442377090454, 2.083371639251709, 2.5937793254852295, -0.490978866815567]]}
+{"id": "log_severity-d370f76d12", "kind": "choice", "family": "log_severity", "logits": [[1.908202886581421, 2.3560733795166016, -0.8302856087684631, -1.99721360206604, -1.942764401435852]]}
+{"id": "log_severity-55ef076dd6", "kind": "choice", "family": "log_severity", "logits": [[-1.7154901027679443, -1.5281122922897339, 0.9995061755180359, 3.7927968502044678, -0.3194356858730316]]}
+{"id": "scheduling_conflict-9f6bd5adfd", "kind": "noul", "family": "scheduling_conflict", "logits": [[1.887149691581726, 0.8672134280204773]]}
+{"id": "scheduling_conflict-a39cb495ae", "kind": "noul", "family": "scheduling_conflict", "logits": [[1.7618881464004517, 0.9495729207992554]]}
+{"id": "scheduling_conflict-4233f2ef92", "kind": "noul", "family": "scheduling_conflict", "logits": [[1.4339982271194458, 1.1069318056106567]]}
+{"id": "scheduling_conflict-19f85dcf63", "kind": "noul", "family": "scheduling_conflict", "logits": [[-0.005760465748608112, 1.8082047700881958]]}
+{"id": "scheduling_conflict-549c6fe64f", "kind": "noul", "family": "scheduling_conflict", "logits": [[1.100077509880066, 1.2576788663864136]]}
+{"id": "scheduling_conflict-12df094ed6", "kind": "noul", "family": "scheduling_conflict", "logits": [[1.8201390504837036, 0.941359281539917]]}
+{"id": "scheduling_conflict-8d4df47b36", "kind": "noul", "family": "scheduling_conflict", "logits": [[1.1990574598312378, 1.2134093046188354]]}
+{"id": "scheduling_conflict-d377154baa", "kind": "noul", "family": "scheduling_conflict", "logits": [[2.6538426876068115, 0.48373040556907654]]}
+{"id": "scheduling_conflict-19820f9b83", "kind": "noul", "family": "scheduling_conflict", "logits": [[1.744376301765442, 0.9115087985992432]]}

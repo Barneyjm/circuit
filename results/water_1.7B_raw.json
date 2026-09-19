@@ -1,0 +1,54 @@
+{
+ "model": "Qwen3-1.7B-Base",
+ "data": "data/water_calls.jsonl",
+ "temps": {
+  "noul": 1.0,
+  "choice": 1.0,
+  "score": 1.0
+ },
+ "fitted": null,
+ "permutations": 1,
+ "debias": false,
+ "timing": {
+  "device": "mps",
+  "items": 100,
+  "passes": 1,
+  "seconds": 25.7,
+  "ms_per_item": 257.2,
+  "input_tokens": 31712,
+  "tokens_per_s": 1232.9,
+  "batch": 8
+ },
+ "metrics": {
+  "all": {
+   "n": 100,
+   "kl_to_ref": 0.7326,
+   "brier": 0.2869,
+   "accuracy": 0.79,
+   "ece": 0.1531,
+   "sel_acc_90": 0.8444,
+   "agree_jev": 0.79,
+   "mean_conf": 0.6843
+  },
+  "type:choice": {
+   "n": 100,
+   "kl_to_ref": 0.7326,
+   "brier": 0.2869,
+   "accuracy": 0.79,
+   "ece": 0.1531,
+   "sel_acc_90": 0.8444,
+   "agree_jev": 0.79,
+   "mean_conf": 0.6843
+  },
+  "family:water_calls (heldout)": {
+   "n": 100,
+   "kl_to_ref": 0.7326,
+   "brier": 0.2869,
+   "accuracy": 0.79,
+   "ece": 0.1531,
+   "sel_acc_90": 0.8444,
+   "agree_jev": 0.79,
+   "mean_conf": 0.6843
+  }
+ }
+}

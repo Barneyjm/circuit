@@ -1,0 +1,46 @@
+{
+ "model": "jev-latest",
+ "data": "data/water_calls.jsonl",
+ "timing": {
+  "items": 100,
+  "errors": 0,
+  "concurrency": 8,
+  "wall_seconds": 2.8,
+  "ms_per_item_p50": 189.3,
+  "ms_per_item_p90": 318.2,
+  "ms_per_item_mean": 210.1,
+  "note": "client-side round trip from a laptop to api.typesafe.ai; includes network"
+ },
+ "metrics": {
+  "all": {
+   "n": 100,
+   "kl_to_ref": 0.0554,
+   "brier": 0.0316,
+   "accuracy": 0.98,
+   "ece": 0.0151,
+   "sel_acc_90": 1.0,
+   "agree_jev": 0.98,
+   "mean_conf": 0.9719
+  },
+  "type:choice": {
+   "n": 100,
+   "kl_to_ref": 0.0554,
+   "brier": 0.0316,
+   "accuracy": 0.98,
+   "ece": 0.0151,
+   "sel_acc_90": 1.0,
+   "agree_jev": 0.98,
+   "mean_conf": 0.9719
+  },
+  "family:water_calls (heldout)": {
+   "n": 100,
+   "kl_to_ref": 0.0554,
+   "brier": 0.0316,
+   "accuracy": 0.98,
+   "ece": 0.0151,
+   "sel_acc_90": 1.0,
+   "agree_jev": 0.98,
+   "mean_conf": 0.9719
+  }
+ }
+}

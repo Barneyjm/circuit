@@ -1,0 +1,124 @@
+{
+ "model": "lora:1.7b-grid-holdout",
+ "data": "data/hf_eval.jsonl",
+ "temps": {
+  "noul": 1.0,
+  "choice": 1.0,
+  "score": 1.0
+ },
+ "fitted": null,
+ "permutations": 1,
+ "debias": false,
+ "timing": {
+  "device": "mps",
+  "items": 1200,
+  "passes": 1,
+  "seconds": 641.0,
+  "ms_per_item": 534.1,
+  "input_tokens": 290744,
+  "tokens_per_s": 453.6,
+  "batch": 8
+ },
+ "metrics": {
+  "all": {
+   "n": 1200,
+   "kl_to_ref": 2.716,
+   "brier": 0.9044,
+   "accuracy": 0.4142,
+   "ece": 0.3491,
+   "sel_acc_90": 0.4528,
+   "agree_jev": 0.4142,
+   "mean_conf": 0.7633
+  },
+  "type:choice": {
+   "n": 600,
+   "kl_to_ref": 3.5226,
+   "brier": 0.9823,
+   "accuracy": 0.325,
+   "ece": 0.3431,
+   "sel_acc_90": 0.3593,
+   "agree_jev": 0.325,
+   "mean_conf": 0.6681
+  },
+  "family:mnli (heldout)": {
+   "n": 200,
+   "kl_to_ref": 1.2395,
+   "brier": 0.5493,
+   "accuracy": 0.69,
+   "ece": 0.2634,
+   "sel_acc_90": 0.7056,
+   "agree_jev": 0.69,
+   "mean_conf": 0.934
+  },
+  "type:score": {
+   "n": 200,
+   "kl_to_ref": 3.3586,
+   "brier": 1.1512,
+   "accuracy": 0.315,
+   "ece": 0.5261,
+   "sel_acc_90": 0.3278,
+   "agree_jev": 0.315,
+   "mean_conf": 0.835
+  },
+  "family:ticket_priority (heldout)": {
+   "n": 200,
+   "kl_to_ref": 3.3586,
+   "brier": 1.1512,
+   "accuracy": 0.315,
+   "ece": 0.5261,
+   "sel_acc_90": 0.3278,
+   "agree_jev": 0.315,
+   "mean_conf": 0.835
+  },
+  "family:ticket_queue (heldout)": {
+   "n": 200,
+   "kl_to_ref": 4.2564,
+   "brier": 1.3386,
+   "accuracy": 0.195,
+   "ece": 0.6114,
+   "sel_acc_90": 0.2,
+   "agree_jev": 0.195,
+   "mean_conf": 0.8064
+  },
+  "family:clinc_intent (heldout)": {
+   "n": 200,
+   "kl_to_ref": 5.0718,
+   "brier": 1.059,
+   "accuracy": 0.09,
+   "ece": 0.174,
+   "sel_acc_90": 0.1,
+   "agree_jev": 0.09,
+   "mean_conf": 0.264
+  },
+  "type:noul": {
+   "n": 400,
+   "kl_to_ref": 1.1849,
+   "brier": 0.6641,
+   "accuracy": 0.5975,
+   "ece": 0.2752,
+   "sel_acc_90": 0.6083,
+   "agree_jev": 0.5975,
+   "mean_conf": 0.8703
+  },
+  "family:civil_toxic (heldout)": {
+   "n": 200,
+   "kl_to_ref": 1.1341,
+   "brier": 0.6005,
+   "accuracy": 0.655,
+   "ece": 0.239,
+   "sel_acc_90": 0.6667,
+   "agree_jev": 0.655,
+   "mean_conf": 0.8906
+  },
+  "family:sms_spam (heldout)": {
+   "n": 200,
+   "kl_to_ref": 1.2357,
+   "brier": 0.7277,
+   "accuracy": 0.54,
+   "ece": 0.3224,
+   "sel_acc_90": 0.55,
+   "agree_jev": 0.54,
+   "mean_conf": 0.8499
+  }
+ }
+}

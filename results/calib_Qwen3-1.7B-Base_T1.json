@@ -1,0 +1,43 @@
+{
+ "model": "Qwen3-1.7B-Base",
+ "temperature": 1.0,
+ "sst2_noul": {
+  "n": 200,
+  "accuracy": 0.69,
+  "ece": 0.1544,
+  "brier": 0.3843,
+  "mean_confidence": 0.8444,
+  "yes_rate_pred": 0.81,
+  "yes_rate_true": 0.51
+ },
+ "ag_news_choice": {
+  "n": 200,
+  "accuracy": 0.83,
+  "ece": 0.0584,
+  "brier": 0.2448,
+  "mean_confidence": 0.878,
+  "position_winner_rate": {
+   "pos0": 0.33,
+   "pos1": 0.255,
+   "pos2": 0.305,
+   "pos3": 0.11
+  },
+  "pred_label_rate": {
+   "world": 0.33,
+   "sports": 0.255,
+   "business": 0.305,
+   "sci_tech": 0.11
+  },
+  "true_label_rate": {
+   "world": 0.27,
+   "sports": 0.225,
+   "business": 0.26,
+   "sci_tech": 0.245
+  }
+ },
+ "ag_news_choice_reversed_order": {
+  "accuracy": 0.8,
+  "ece": 0.0722
+ },
+ "order_sensitivity_argmax_flip_rate": 0.045
+}

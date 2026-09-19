@@ -1,0 +1,40 @@
+[
+ {"image": "curry.jpg", "questions": [
+   {"q": "What is the main dish on the plate?", "options": ["Fish cakes", "Chicken nuggets", "Falafel", "Pancakes", "Cannot tell"], "expect": "Fish cakes"},
+   {"q": "Is a dipping sauce visible?", "options": ["Yes", "No"], "expect": "Yes"},
+   {"q": "Is the food shown spicy?", "options": ["Yes", "No"], "expect": null},
+   {"q": "Is this a beverage?", "options": ["Yes", "No"], "expect": "No"}]},
+ {"image": "milk.jpg", "questions": [
+   {"q": "Is there milk in this picture?", "options": ["Yes", "No"], "expect": "No"},
+   {"q": "How many objects are standing on the surface?", "options": ["1", "2", "3", "4", "5 or more"], "expect": "3"},
+   {"q": "What color is the pitcher on the right?", "options": ["White", "Blue", "Green", "Red"], "expect": "Blue"},
+   {"q": "Is this a beverage?", "options": ["Yes", "No"], "expect": "No"}]},
+ {"image": "chart.png", "questions": [
+   {"q": "Which console sold the most units?", "options": ["3DO", "Atari Jaguar", "Sega Saturn", "PlayStation", "Nintendo 64"], "expect": "PlayStation"},
+   {"q": "Which console sold the fewest units?", "options": ["3DO", "Atari Jaguar", "Sega Saturn", "PlayStation", "Nintendo 64"], "expect": "Atari Jaguar"},
+   {"q": "Did the Nintendo 64 sell more units than the Sega Saturn?", "options": ["Yes", "No"], "expect": "Yes"},
+   {"q": "Is this a pie chart?", "options": ["Yes", "No"], "expect": "No"}]},
+ {"image": "sinkhole.jpg", "questions": [
+   {"q": "Which water-utility call category fits this scene?", "options": ["BPCS (BROKEN PIPE)", "C/I - DEP (CAVE IN/DEPRESSION)", "CHOKED DRAIN", "CEMENT", "RESTORE"], "expect": "C/I - DEP (CAVE IN/DEPRESSION)"},
+   {"q": "Is the road closed to traffic?", "options": ["Yes", "No"], "expect": "Yes"},
+   {"q": "Are any people visible?", "options": ["Yes", "No"], "expect": "No"},
+   {"q": "How severe is this?", "options": ["Cosmetic", "Minor", "Major", "Emergency"], "expect": ["Major", "Emergency"]}]},
+ {"image": "mug.jpg", "questions": [
+   {"q": "Is the mug cracked or chipped?", "options": ["Yes", "No"], "expect": "Yes"},
+   {"q": "Is the mug empty?", "options": ["Yes", "No"], "expect": "Yes"},
+   {"q": "What text is printed on the mug?", "options": ["N.Z.R.", "U.S.A.", "B.B.C.", "No text"], "expect": "N.Z.R."},
+   {"q": "Is this a beverage?", "options": ["Yes", "No"], "expect": "No"}]},
+ {"image": "receipt.jpg", "questions": [
+   {"q": "What is the total amount on the receipt?", "options": ["22.41", "20.37", "2.04", "5.99", "Cannot tell"], "expect": "22.41"},
+   {"q": "Which currency is the receipt in?", "options": ["EUR", "USD", "GBP", "CHF"], "expect": "EUR"},
+   {"q": "Was it paid by card?", "options": ["Yes", "No"], "expect": "Yes"},
+   {"q": "How many items were bought?", "options": ["Fewer than 5", "5 to 9", "10 or more"], "expect": "5 to 9"},
+   {"q": "Which store issued this receipt?", "options": ["Hofer", "Spar", "Billa", "Lidl"], "expect": "Hofer"},
+   {"q": "Does the receipt show a full, unmasked card number?", "options": ["Yes", "No"], "expect": "No"}]},
+ {"image": "stop.jpg", "questions": [
+   {"q": "Is this a STOP traffic sign?", "options": ["Yes", "No"], "expect": "No"},
+   {"q": "Is there snow on the sign?", "options": ["Yes", "No"], "expect": "Yes"},
+   {"q": "Does bus route 60 stop here?", "options": ["Yes", "No"], "expect": "Yes"},
+   {"q": "Does bus route 99 stop here?", "options": ["Yes", "No"], "expect": "No"},
+   {"q": "Is the text on the sign fully legible?", "options": ["Yes", "No"], "expect": null}]}
+]
