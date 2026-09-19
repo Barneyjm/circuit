@@ -187,3 +187,20 @@ best validation ECE 0.016 at step 500). 300 held-out grid items:
 Weak cells: count/table 93%, negation/scene 97%. On the blurred ambiguous
 compare items mean confidence is 0.93 (raw: 1.0); still overconfident.
 Results: `results/vgrid_circuit-vl-4b.json`, `results/vgrid_qwen3vl4b_raw_gpu.json`.
+
+## circuit-audio-7b (added 2026-09-19)
+
+LoRA on the language model of Qwen2-Audio-7B-Instruct plus the pointer
+head (timestamp tokens as delimiters), trained on the audio grid (1,000
+synthesized clips, 1 epoch, 35 minutes on an Apple laptop GPU; best
+validation ECE 0.082 at step 400). 300 held-out clips:
+
+| model | decidable (279) acc / ECE | all 300 acc / ECE | ambiguous mean conf (21) |
+|---|---|---|---|
+| Qwen2-Audio-7B-Instruct raw, letter logits | 72.0% / 0.188 | 68.7% / 0.214 | 0.67 |
+| circuit-audio-7b | 93.5% / 0.072 | 90.0% / 0.109 | 0.63 |
+
+Biggest gains: count/sounds 15% -> 67%, count/list 63% -> 89%, negation/list
+55% -> 100%, compare/numbers 46% -> 89%. Weakest cell after training:
+count/sounds. Results: `results/agrid_circuit-audio-7b.json`,
+`results/agrid_qwen2audio_raw.json`.

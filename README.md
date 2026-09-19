@@ -13,7 +13,7 @@ them with a URL change.
 | [circuit-1.7b](https://huggingface.co/jbarney/circuit-1.7b) | Qwen3-1.7B-Base | released |
 | [circuit-8b](https://huggingface.co/jbarney/circuit-8b) | Qwen3-8B-Base | released |
 | [circuit-vl-4b](https://huggingface.co/jbarney/circuit-vl-4b) | Qwen3-VL-4B-Instruct | released (images, video frames) |
-| circuit-audio | Qwen2-Audio-7B | planned |
+| [circuit-audio-7b](https://huggingface.co/jbarney/circuit-audio-7b) | Qwen2-Audio-7B-Instruct | released (speech, sound) |
 
 How they're built: LoRA on the language model plus a **pointer readout
 head**. Each option is wrapped in delimiter tokens and the sequence ends
@@ -45,6 +45,11 @@ computed by code) in [docs/cold-eval.md](docs/cold-eval.md) and
 Vision: on the rendered vision grid (receipts, charts, tables, forms,
 scenes; 300 held-out items) circuit-vl-4b scores 98.3% / ECE 0.018 against
 the raw base's 96.0% / 0.041 by letter logits. Seven minutes of training.
+
+Audio: on the synthesized audio grid (support calls, spoken lists and
+numbers, beeps and noise; 279 decidable held-out clips) circuit-audio-7b
+scores 93.5% / ECE 0.072 against the raw base's 72.0% / 0.188. Trained on
+a laptop in 35 minutes.
 
 ## Run a model
 
@@ -96,7 +101,8 @@ uv run python scripts/grid_report.py results/grid_*.json
 ```
 
 `--modality vision` trains the same head on a Qwen3-VL base with the
-vision grid (`python -m s1proto.data.vision_grid`). `--load-4bit` for
+vision grid (`python -m s1proto.data.vision_grid`); `--modality audio` on
+Qwen2-Audio with the audio grid (`python -m s1proto.data.audio_grid`, macOS). `--load-4bit` for
 QLoRA on small cards. `scripts/remote_setup.sh`, `remote_watch.sh`, and
 `remote_events.sh` run all of this on a rented GPU and pull the weights
 back.

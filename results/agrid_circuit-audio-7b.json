@@ -1,0 +1,203 @@
+{
+ "model": "lora:circuit-audio-7b",
+ "data": "data/audio/grid/eval.jsonl",
+ "timing": {
+  "device": "mps",
+  "items": 300,
+  "ms_per_item": 1144.6,
+  "batch": 1,
+  "note": "pointer head"
+ },
+ "metrics": {
+  "all": {
+   "n": 300,
+   "kl_to_ref": 0.2436,
+   "brier": 0.1171,
+   "accuracy": 0.9,
+   "ece": 0.0754,
+   "sel_acc_90": 0.9407,
+   "agree_jev": 0.9,
+   "mean_conf": 0.874
+  },
+  "type:choice": {
+   "n": 180,
+   "kl_to_ref": 0.2308,
+   "brier": 0.1179,
+   "accuracy": 0.8944,
+   "ece": 0.0564,
+   "sel_acc_90": 0.9444,
+   "agree_jev": 0.8944,
+   "mean_conf": 0.8574
+  },
+  "family:classify/sounds (heldout)": {
+   "n": 29,
+   "kl_to_ref": 0.0013,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0013,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 0.9987
+  },
+  "family:extract/call (heldout)": {
+   "n": 28,
+   "kl_to_ref": 0.0,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 1.0
+  },
+  "family:ambiguous/count (heldout)": {
+   "n": 6,
+   "kl_to_ref": 0.0261,
+   "brier": 0.0111,
+   "accuracy": 0.8333,
+   "ece": 0.5655,
+   "sel_acc_90": 0.8,
+   "agree_jev": 0.8333,
+   "mean_conf": 0.2678
+  },
+  "type:noul": {
+   "n": 120,
+   "kl_to_ref": 0.2629,
+   "brier": 0.1159,
+   "accuracy": 0.9083,
+   "ece": 0.1041,
+   "sel_acc_90": 0.9352,
+   "agree_jev": 0.9083,
+   "mean_conf": 0.8989
+  },
+  "family:compare/numbers (heldout)": {
+   "n": 28,
+   "kl_to_ref": 0.4949,
+   "brier": 0.3108,
+   "accuracy": 0.8929,
+   "ece": 0.2679,
+   "sel_acc_90": 0.92,
+   "agree_jev": 0.8929,
+   "mean_conf": 0.6249
+  },
+  "family:count/sounds (heldout)": {
+   "n": 27,
+   "kl_to_ref": 0.9089,
+   "brier": 0.454,
+   "accuracy": 0.6667,
+   "ece": 0.2107,
+   "sel_acc_90": 0.75,
+   "agree_jev": 0.6667,
+   "mean_conf": 0.4971
+  },
+  "family:ambiguous/compare (heldout)": {
+   "n": 2,
+   "kl_to_ref": 0.0185,
+   "brier": 0.0179,
+   "accuracy": 0.0,
+   "ece": 0.5867,
+   "sel_acc_90": 0.0,
+   "agree_jev": 0.0,
+   "mean_conf": 0.5867
+  },
+  "family:extract/numbers (heldout)": {
+   "n": 30,
+   "kl_to_ref": 0.0315,
+   "brier": 0.0143,
+   "accuracy": 1.0,
+   "ece": 0.0256,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 0.9744
+  },
+  "family:negation/list (heldout)": {
+   "n": 29,
+   "kl_to_ref": 0.0045,
+   "brier": 0.0001,
+   "accuracy": 1.0,
+   "ece": 0.0045,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 0.9955
+  },
+  "family:consistency/call (heldout)": {
+   "n": 25,
+   "kl_to_ref": 0.2874,
+   "brier": 0.0799,
+   "accuracy": 0.96,
+   "ece": 0.0399,
+   "sel_acc_90": 1.0,
+   "agree_jev": 0.96,
+   "mean_conf": 0.9999
+  },
+  "family:classify/call (heldout)": {
+   "n": 28,
+   "kl_to_ref": 0.1463,
+   "brier": 0.0881,
+   "accuracy": 0.9286,
+   "ece": 0.0346,
+   "sel_acc_90": 1.0,
+   "agree_jev": 0.9286,
+   "mean_conf": 0.9617
+  },
+  "family:ambiguous/classify (heldout)": {
+   "n": 3,
+   "kl_to_ref": 1.0201,
+   "brier": 0.2796,
+   "accuracy": 0.0,
+   "ece": 0.7014,
+   "sel_acc_90": 0.0,
+   "agree_jev": 0.0,
+   "mean_conf": 0.7014
+  },
+  "family:negation/call (heldout)": {
+   "n": 28,
+   "kl_to_ref": 0.0006,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0006,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 0.9994
+  },
+  "family:count/list (heldout)": {
+   "n": 27,
+   "kl_to_ref": 0.2995,
+   "brier": 0.1798,
+   "accuracy": 0.8889,
+   "ece": 0.1433,
+   "sel_acc_90": 0.9167,
+   "agree_jev": 0.8889,
+   "mean_conf": 0.8535
+  },
+  "family:ambiguous/negation (heldout)": {
+   "n": 3,
+   "kl_to_ref": 1.6066,
+   "brier": 0.3308,
+   "accuracy": 1.0,
+   "ece": 0.1617,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 0.8383
+  },
+  "family:ambiguous/extract (heldout)": {
+   "n": 2,
+   "kl_to_ref": 0.3084,
+   "brier": 0.1539,
+   "accuracy": 0.5,
+   "ece": 0.3221,
+   "sel_acc_90": 0.5,
+   "agree_jev": 0.5,
+   "mean_conf": 0.5192
+  },
+  "family:ambiguous/consistency (heldout)": {
+   "n": 5,
+   "kl_to_ref": 1.1003,
+   "brier": 0.4345,
+   "accuracy": 0.0,
+   "ece": 0.9658,
+   "sel_acc_90": 0.0,
+   "agree_jev": 0.0,
+   "mean_conf": 0.9658
+  }
+ }
+}
