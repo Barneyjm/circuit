@@ -21,7 +21,7 @@ collect () {
 
 while true; do
   # grep exits 1 on "no match"; only the ssh connection itself decides reachability, so end the remote command with `true`.
-  status=$(ssh -i "$KEY" -p "$PORT" -o ConnectTimeout=20 -o StrictHostKeyChecking=accept-new "root@$HOST" "grep -aoE 'PIPELINE21 DONE|SELF-DESTRUCT' $LOG 2>/dev/null | head -1; grep -acE 'Traceback' $LOG 2>/dev/null; true" </dev/null 2>/dev/null)
+  status=$(ssh -i "$KEY" -p "$PORT" -o ConnectTimeout=20 -o StrictHostKeyChecking=accept-new "root@$HOST" "grep -aoE 'PIPELINE[0-9]* DONE|SELF-DESTRUCT' $LOG 2>/dev/null | head -1; grep -acE 'Traceback' $LOG 2>/dev/null; true" </dev/null 2>/dev/null)
   rc=$?
   echo "$(date '+%H:%M:%S') status: $(echo "$status" | tr '\n' ' ') (ssh rc=$rc)"
   if [ $rc -ne 0 ]; then
@@ -29,7 +29,7 @@ while true; do
   else
     fails=0
     collect
-    if echo "$status" | grep -qE "PIPELINE21 DONE|SELF-DESTRUCT"; then
+    if echo "$status" | grep -qE "PIPELINE[0-9]* DONE|SELF-DESTRUCT"; then
       echo "pipeline finished; final collect"; collect; terminate; echo "=== WATCH DONE"; exit 0
     fi
   fi
