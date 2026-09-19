@@ -46,7 +46,42 @@ NOUL_OPTIONS = ("yes", "no")
 OPT_START = "<|box_start|>"
 OPT_END = "<|box_end|>"
 DECIDE = "<|fim_middle|>"
-RESERVED = (OPT_START, OPT_END, DECIDE, "<|fim_prefix|>", "<|fim_suffix|>", "<|object_ref_start|>", "<|object_ref_end|>", "<|quad_start|>", "<|quad_end|>", "<|vision_start|>", "<|vision_end|>")
+# Alternatives for tokenizers without the box tokens. Qwen2-Audio's vocabulary
+# drops them but carries Whisper-style timestamp tokens that the processor
+# never emits for an input, so three of those serve as delimiters.
+POINTER_TOKEN_SETS: dict[str, tuple[str, str, str]] = {
+    "qwen": ("<|box_start|>", "<|box_end|>", "<|fim_middle|>"),
+    "qwen2-audio": ("<|29.98|>", "<|29.99|>", "<|30.00|>"),
+}
+_RESERVED_EXTRA = (
+    "<|fim_prefix|>",
+    "<|fim_suffix|>",
+    "<|object_ref_start|>",
+    "<|object_ref_end|>",
+    "<|quad_start|>",
+    "<|quad_end|>",
+    "<|vision_start|>",
+    "<|vision_end|>",
+)
+RESERVED = (OPT_START, OPT_END, DECIDE, *_RESERVED_EXTRA)
+
+
+def pointer_tokens_for(tokenizer) -> tuple[str, str, str]:
+    """The first delimiter set whose three tokens are single ids in this tokenizer."""
+    for name, toks in POINTER_TOKEN_SETS.items():
+        if all(len(tokenizer.encode(t, add_special_tokens=False)) == 1 for t in toks):
+            return toks
+    raise ValueError("no pointer delimiter set is a single token in this tokenizer; add one to POINTER_TOKEN_SETS")
+
+
+def use_pointer_tokens(start: str, end: str, decide: str) -> None:
+    """Switch the pointer layout's delimiters process-wide (trainer and
+    scorer call this with the set recorded in a run's config.json)."""
+    global OPT_START, OPT_END, DECIDE, RESERVED
+    OPT_START, OPT_END, DECIDE = start, end, decide
+    RESERVED = (OPT_START, OPT_END, DECIDE, *_RESERVED_EXTRA)
+
+
 LAYOUTS = ("letters", "pointer")
 
 

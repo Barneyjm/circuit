@@ -25,3 +25,6 @@ data/human_subset.jsonl
 data/human_sample.json
 wandb/
 .DS_Store
+# synthesized audio-grid clips are regenerated from the seed (macOS say)
+data/audio/grid/train/
+data/audio/grid/eval/

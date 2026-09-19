@@ -26,7 +26,8 @@ import time
 from dataclasses import dataclass, field
 from typing import Protocol
 
-from s1proto.template import LETTER_LABELS, OPT_END, Prompt
+from s1proto import template as T
+from s1proto.template import LETTER_LABELS, Prompt
 
 
 @dataclass
@@ -252,7 +253,9 @@ class LoRAScorer:
             self.k.to(self.device).eval()
             self.scale = dim**-0.5
             self.max_options = 255  # the API cap; the head itself has none
-            self.opt_end_id = self.tokenizer.convert_tokens_to_ids(OPT_END)
+            if cfg.get("pointer_tokens"):
+                T.use_pointer_tokens(*cfg["pointer_tokens"])
+            self.opt_end_id = self.tokenizer.convert_tokens_to_ids(T.OPT_END)
         else:
             self.head = torch.nn.Linear(cfg["hidden"], cfg["head_size"])
             self.head.load_state_dict({k.replace("proj.", ""): v for k, v in state.items()})
