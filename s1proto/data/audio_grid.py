@@ -133,14 +133,14 @@ def beeps(n: int, rng: random.Random) -> np.ndarray:
     return np.concatenate(parts)
 
 
-def noise(seconds: float, rng: random.Random, amp: float = 0.3) -> np.ndarray:
+def noise(seconds: float, rng: random.Random, amp: float = 0.3, samples: int | None = None) -> np.ndarray:
     g = np.random.default_rng(rng.getrandbits(32))
-    return (amp * g.standard_normal(int(seconds * SR))).astype(np.float32)
+    return (amp * g.standard_normal(samples if samples is not None else int(seconds * SR))).astype(np.float32)
 
 
 def drown(audio: np.ndarray, rng: random.Random) -> np.ndarray:
     """Bury the speech under noise at about -8 dB SNR: audible as a voice, unintelligible."""
-    n = noise(len(audio) / SR, rng, amp=1.0)
+    n = noise(0, rng, amp=1.0, samples=len(audio))
     return np.clip(0.25 * audio + 0.6 * n, -1, 1).astype(np.float32)
 
 
@@ -286,7 +286,7 @@ def cell_sounds_count(rng: random.Random) -> AItem:
     audio = beeps(n, rng)
     amb = rng.random() < 0.08
     if amb:
-        audio = np.clip(audio + noise(len(audio) / SR, rng, amp=0.9), -1, 1).astype(np.float32)
+        audio = np.clip(audio + noise(0, rng, amp=0.9, samples=len(audio)), -1, 1).astype(np.float32)
     keys = ["1", "2", "3", "4", "5"]
     q = {"type": "choice", "instructions": "How many beeps are in the clip?", "criteria": {k: None for k in keys}}
     return AItem("count/sounds", "choice", audio, None, q, uniform(keys) if amb else onehot(keys, str(n)), amb)
@@ -305,7 +305,7 @@ def cell_sounds_classify(rng: random.Random) -> AItem:
         audio = silence(rng.uniform(2, 4))
     amb = kind == "speech" and rng.random() < 0.2
     if amb:  # speech buried so deep it could pass for noise
-        audio = np.clip(0.08 * audio + 0.7 * noise(len(audio) / SR, rng, amp=1.0), -1, 1).astype(np.float32)
+        audio = np.clip(0.08 * audio + 0.7 * noise(0, rng, amp=1.0, samples=len(audio)), -1, 1).astype(np.float32)
     q = {
         "type": "choice",
         "instructions": "What is in the clip?",
