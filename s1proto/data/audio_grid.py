@@ -589,8 +589,8 @@ def cell_speech_order(rng: random.Random) -> AItem:
     if len(words) < 3:
         return cell_speech_order(rng)
     a, b = rng.sample(words, 2)
-    toks = row["text"].split()
-    first = min(i for i, t in enumerate(toks) if a in t) < min(i for i, t in enumerate(toks) if b in t)
+    toks = ["".join(ch for ch in t.replace("'", "") if ch.isalpha()) for t in row["text"].split()]
+    first = toks.index(a) < toks.index(b)  # content_words strips tokens the same way, so both are present
     audio = load_clip(SOURCES / "librispeech" / row["file"])
     amb = rng.random() < 0.08
     if amb:
