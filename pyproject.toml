@@ -27,6 +27,9 @@ dependencies = [
 ]
 
 [dependency-groups]
+deploy = [
+    "modal>=1.5.5",
+]
 dev = [
     "hypothesis>=6.168.0",
     "pytest>=9.1.1",

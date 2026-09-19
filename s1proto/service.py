@@ -67,9 +67,7 @@ def build_answers(req: SystemOneRequest, scorer: ScorerProtocol, temps: dict[str
             dist = {str(i): pr for i, pr in enumerate(probs)}
             expected = sum(i * pr for i, pr in enumerate(probs))
             legend = {str(i): level for i, level in enumerate(q.criteria)}
-            answers[qid] = ScoreAnswer(
-                score=expected, legend=legend, probabilities=dist, confidence=confidence_from_probabilities(probs)
-            )
+            answers[qid] = ScoreAnswer(score=expected, legend=legend, probabilities=dist, confidence=confidence_from_probabilities(probs))
     return answers, total_tokens
 
 
@@ -91,10 +89,13 @@ def create_app(scorer: ScorerProtocol | None = None, temperatures: dict[str, flo
 
     @app.post("/v1/systemone")
     def systemone(req: SystemOneRequest, request: Request, authorization: str | None = Header(default=None)) -> Any:
-        # TypeSafe requires a bearer key; we accept any non-empty one so
-        # the SDK's auth path is exercised but nothing is enforced.
+        # TypeSafe requires a bearer key. With S1_API_KEY set the token must
+        # match it; without it any non-empty token is accepted (local runs).
         if not authorization or not authorization.lower().startswith("bearer "):
             raise HTTPException(status_code=401, detail="missing bearer token")
+        expected = os.environ.get("S1_API_KEY")
+        if expected and authorization[7:].strip() != expected:
+            raise HTTPException(status_code=401, detail="invalid api key")
         cap = getattr(app.state.scorer, "max_options", 255)
         for qid, q in req.questions.items():
             n = 2 if isinstance(q, NoulQuestion) else len(q.criteria)
