@@ -12,7 +12,7 @@ them with a URL change.
 |---|---|---|
 | [circuit-1.7b](https://huggingface.co/jbarney/circuit-1.7b) | Qwen3-1.7B-Base | released |
 | [circuit-8b](https://huggingface.co/jbarney/circuit-8b) | Qwen3-8B-Base | released |
-| circuit-vl-4b | Qwen3-VL-4B | training (images, video frames) |
+| [circuit-vl-4b](https://huggingface.co/jbarney/circuit-vl-4b) | Qwen3-VL-4B-Instruct | released (images, video frames) |
 | circuit-audio | Qwen2-Audio-7B | planned |
 
 How they're built: LoRA on the language model plus a **pointer readout
@@ -41,6 +41,10 @@ Jev 98%, Nimble 93%, circuit-8b 93%, circuit-1.7b 92%, kev 80%. Full tables and 
 generalization grid (9 judgment operations x 6 state formats, labels
 computed by code) in [docs/cold-eval.md](docs/cold-eval.md) and
 [docs/grid.md](docs/grid.md).
+
+Vision: on the rendered vision grid (receipts, charts, tables, forms,
+scenes; 300 held-out items) circuit-vl-4b scores 98.3% / ECE 0.018 against
+the raw base's 96.0% / 0.041 by letter logits. Seven minutes of training.
 
 ## Run a model
 

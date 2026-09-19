@@ -1,0 +1,203 @@
+{
+ "model": "Qwen/Qwen3-VL-4B-Instruct",
+ "data": "data/vision/grid/eval.jsonl",
+ "timing": {
+  "device": "cuda",
+  "items": 300,
+  "ms_per_item": 60.9,
+  "batch": 1,
+  "note": "letter logits on a raw vision-language model"
+ },
+ "metrics": {
+  "all": {
+   "n": 300,
+   "kl_to_ref": 0.3752,
+   "brier": 0.0737,
+   "accuracy": 0.96,
+   "ece": 0.0366,
+   "sel_acc_90": 0.9778,
+   "agree_jev": 0.96,
+   "mean_conf": 0.9861
+  },
+  "type:noul": {
+   "n": 130,
+   "kl_to_ref": 0.019,
+   "brier": 0.012,
+   "accuracy": 0.9923,
+   "ece": 0.0141,
+   "sel_acc_90": 1.0,
+   "agree_jev": 0.9923,
+   "mean_conf": 0.9877
+  },
+  "family:negation/scene (heldout)": {
+   "n": 30,
+   "kl_to_ref": 0.0469,
+   "brier": 0.0327,
+   "accuracy": 0.9667,
+   "ece": 0.033,
+   "sel_acc_90": 1.0,
+   "agree_jev": 0.9667,
+   "mean_conf": 0.9752
+  },
+  "family:negation/form (heldout)": {
+   "n": 30,
+   "kl_to_ref": 0.0097,
+   "brier": 0.0024,
+   "accuracy": 1.0,
+   "ece": 0.009,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 0.991
+  },
+  "type:score": {
+   "n": 60,
+   "kl_to_ref": 1.6537,
+   "brier": 0.2928,
+   "accuracy": 0.8333,
+   "ece": 0.1482,
+   "sel_acc_90": 0.8519,
+   "agree_jev": 0.8333,
+   "mean_conf": 0.9572
+  },
+  "family:count/table (heldout)": {
+   "n": 30,
+   "kl_to_ref": 1.828,
+   "brier": 0.376,
+   "accuracy": 0.7667,
+   "ece": 0.2015,
+   "sel_acc_90": 0.8148,
+   "agree_jev": 0.7667,
+   "mean_conf": 0.9282
+  },
+  "family:consistency/form (heldout)": {
+   "n": 30,
+   "kl_to_ref": 0.0258,
+   "brier": 0.0169,
+   "accuracy": 1.0,
+   "ece": 0.0193,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 0.9807
+  },
+  "type:choice": {
+   "n": 110,
+   "kl_to_ref": 0.0988,
+   "brier": 0.0271,
+   "accuracy": 0.9909,
+   "ece": 0.009,
+   "sel_acc_90": 1.0,
+   "agree_jev": 0.9909,
+   "mean_conf": 0.9999
+  },
+  "family:compare/chart (heldout)": {
+   "n": 28,
+   "kl_to_ref": 0.2055,
+   "brier": 0.071,
+   "accuracy": 0.9643,
+   "ece": 0.0356,
+   "sel_acc_90": 1.0,
+   "agree_jev": 0.9643,
+   "mean_conf": 0.9999
+  },
+  "family:classify/form (heldout)": {
+   "n": 10,
+   "kl_to_ref": 0.0,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 1.0
+  },
+  "family:consistency/receipt (heldout)": {
+   "n": 30,
+   "kl_to_ref": 0.0,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 1.0
+  },
+  "family:count/scene (heldout)": {
+   "n": 30,
+   "kl_to_ref": 1.4793,
+   "brier": 0.2096,
+   "accuracy": 0.9,
+   "ece": 0.1113,
+   "sel_acc_90": 0.9259,
+   "agree_jev": 0.9,
+   "mean_conf": 0.9861
+  },
+  "family:extract/receipt (heldout)": {
+   "n": 30,
+   "kl_to_ref": 0.0,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 1.0
+  },
+  "family:classify/receipt (heldout)": {
+   "n": 9,
+   "kl_to_ref": 0.0,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 1.0
+  },
+  "family:ambiguous/compare (heldout)": {
+   "n": 2,
+   "kl_to_ref": 2.5588,
+   "brier": 0.4964,
+   "accuracy": 1.0,
+   "ece": 0.0019,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 0.9981
+  },
+  "family:classify/table (heldout)": {
+   "n": 6,
+   "kl_to_ref": 0.0,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 1.0
+  },
+  "family:read/form (heldout)": {
+   "n": 25,
+   "kl_to_ref": 0.0,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 1.0
+  },
+  "family:ambiguous/read (heldout)": {
+   "n": 5,
+   "kl_to_ref": 0.0,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 1.0
+  },
+  "family:classify/chart (heldout)": {
+   "n": 5,
+   "kl_to_ref": 0.0,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 1.0
+  }
+ }
+}

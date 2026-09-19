@@ -172,3 +172,18 @@ an RTX A6000; best validation ECE 0.014 at step 2,800. Accuracy / ECE.
 
 Throughput on the A6000, batch 8: 72 ms per grid item, 178 ms per cold-eval
 item, 198 ms per typesafe-bench item. Results: `results/*_circuit-8b.json`.
+
+## circuit-vl-4b (added 2026-09-19)
+
+LoRA on the language model of Qwen3-VL-4B-Instruct plus the pointer head,
+trained on the vision grid (1,083 items, 2 epochs, 7 minutes on an A6000;
+best validation ECE 0.016 at step 500). 300 held-out grid items:
+
+| model | accuracy | ECE | ms/item (A6000) |
+|---|---|---|---|
+| Qwen3-VL-4B-Instruct raw, letter logits | 96.0% | 0.041 | 61 |
+| circuit-vl-4b | 98.3% | 0.018 | 90 |
+
+Weak cells: count/table 93%, negation/scene 97%. On the blurred ambiguous
+compare items mean confidence is 0.93 (raw: 1.0); still overconfident.
+Results: `results/vgrid_circuit-vl-4b.json`, `results/vgrid_qwen3vl4b_raw_gpu.json`.
