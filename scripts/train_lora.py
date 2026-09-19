@@ -34,11 +34,20 @@ import torch.nn.functional as F
 
 from s1proto import template as T
 from s1proto.data.teachers import option_keys
+from s1proto.media import (
+    CAPTION,
+    HEAD_DIM,
+    HEAD_SIZE,
+    PointerHead,
+    SlotHead,
+    chat_text,
+    encode,
+    head_logits,
+    hidden_states,
+    load_media,
+)
 from s1proto.schema import ChoiceQuestion, NoulQuestion, ScoreQuestion
 from s1proto.template import render
-
-HEAD_SIZE = 256  # slot head: fixed number of option slots
-HEAD_DIM = 256  # pointer head: query/key width
 
 
 def parse_question(q: dict):
@@ -55,37 +64,6 @@ def shuffled(item: dict, rng: random.Random) -> tuple[dict, list[float]]:
         q = {**q, "criteria": {k: q["criteria"][k] for k in order}}
         keys = order
     return q, [item["ref"][k] for k in keys]
-
-
-class SlotHead(torch.nn.Module):
-    def __init__(self, hidden: int, n_out: int = HEAD_SIZE):
-        super().__init__()
-        self.proj = torch.nn.Linear(hidden, n_out)
-
-    def forward(self, h: torch.Tensor, n_options: torch.Tensor) -> torch.Tensor:
-        logits = self.proj(h)  # [B, 256]
-        mask = torch.arange(logits.shape[-1], device=logits.device).unsqueeze(0) >= n_options.unsqueeze(1)
-        return logits.masked_fill(mask, float("-inf"))
-
-
-class PointerHead(torch.nn.Module):
-    """Kev-style readout: a query from the decide token's hidden state,
-    a key from each option's closing-delimiter hidden state, scaled dot
-    product, softmax over the options. Order-invariant, no option cap,
-    and options interact only through the softmax."""
-
-    def __init__(self, hidden: int, dim: int = HEAD_DIM):
-        super().__init__()
-        self.q = torch.nn.Linear(hidden, dim, bias=False)
-        self.k = torch.nn.Linear(hidden, dim, bias=False)
-        self.scale = dim**-0.5
-
-    def forward(self, h_decide: torch.Tensor, h_opts: torch.Tensor, n_options: torch.Tensor) -> torch.Tensor:
-        q = self.q(h_decide).unsqueeze(1)  # [B, 1, d]
-        k = self.k(h_opts)  # [B, maxn, d]
-        logits = (q * k).sum(-1) * self.scale  # [B, maxn]
-        mask = torch.arange(logits.shape[-1], device=logits.device).unsqueeze(0) >= n_options.unsqueeze(1)
-        return logits.masked_fill(mask, float("-inf"))
 
 
 def ece15(confs, correct, bins=15):
@@ -109,26 +87,17 @@ def build_batch(tok, items, rng, device, max_length: int, train: bool, layout: s
     texts, refs, nopts, media = [], [], [], []
     for it in items:
         q, ref = shuffled(it, rng) if train else (it["question"], [it["ref"][k] for k in option_keys(it["question"])])
-        if modality == "vision":  # the image is the state; any text rides along as a caption
-            from PIL import Image
-
-            p = render(it["state"].get("text") or "See the image.", parse_question(q), layout=layout)
-            messages = [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": p.text}]}]
-            texts.append(proc.apply_chat_template(messages, add_generation_prompt=False, tokenize=False))
-            media.append(Image.open(Path(image_root) / it["state"]["image"]).convert("RGB"))
-        elif modality == "audio":  # the clip is the state
-            p = render(it["state"].get("text") or "Listen to the audio.", parse_question(q), layout=layout)
-            messages = [{"role": "user", "content": [{"type": "audio", "audio_url": "clip.wav"}, {"type": "text", "text": p.text}]}]
-            texts.append(proc.apply_chat_template(messages, add_generation_prompt=False, tokenize=False))
-            media.append(read_audio(Path(image_root) / it["state"]["audio"]))
+        if modality in ("vision", "audio"):  # the image or clip is the state; any text rides along as a caption
+            key = "image" if modality == "vision" else "audio"
+            p = render(it["state"].get("text") or CAPTION[modality], parse_question(q), layout=layout)
+            texts.append(chat_text(proc, p.text, modality))
+            media.append(load_media(modality, it["state"][key], root=Path(image_root)))
         else:
             texts.append(render(it["state"], parse_question(q), layout=layout).text)
         refs.append(ref)
         nopts.append(len(ref))
-    if modality == "vision":
-        enc = proc(text=texts, images=media, return_tensors="pt", padding=True)
-    elif modality == "audio":
-        enc = proc(text=texts, audio=media, sampling_rate=16000, return_tensors="pt", padding=True)
+    if modality in ("vision", "audio"):
+        enc = encode(proc, texts, media, modality)
     else:
         enc = tok(texts, return_tensors="pt", padding=True, truncation=True, max_length=max_length)
     ids = enc["input_ids"]
@@ -151,48 +120,6 @@ def build_batch(tok, items, rng, device, max_length: int, train: bool, layout: s
             dec_pos[i] = dpos[-1]
     enc = {k: v.to(device) for k, v in enc.items() if hasattr(v, "to")}
     return enc, ref_t.to(device), torch.tensor(nopts, device=device), opt_pos.to(device), dec_pos.to(device)
-
-
-def read_audio(path: Path, sr: int = 16000):
-    """Mono float32 at 16 kHz, which is what the audio processors expect."""
-    import soundfile as sf
-
-    data, rate = sf.read(path, dtype="float32")
-    if data.ndim > 1:
-        data = data.mean(axis=1)
-    if rate != sr:
-        import librosa
-
-        data = librosa.resample(data, orig_sr=rate, target_sr=sr)
-    return data
-
-
-def hidden_states(model, enc, modality="text"):
-    """Hidden states [B, L, H] without lm_head, which would otherwise
-    materialize B x L x vocab logits (the single largest activation, and
-    unused: the answer head reads the hidden state). For vision the body
-    is the multimodal model (vision tower + language model)."""
-    body = model.get_base_model().model  # Qwen3Model / Qwen3VLModel (LoRA layers are injected in place)
-    if modality == "vision":
-        return body(
-            **{k: v for k, v in enc.items() if k in ("input_ids", "attention_mask", "pixel_values", "image_grid_thw", "mm_token_type_ids")}, use_cache=False
-        ).last_hidden_state
-    if modality == "audio":  # Qwen2AudioModel: audio tower + projector + language model
-        return body(
-            **{k: v for k, v in enc.items() if k in ("input_ids", "attention_mask", "input_features", "feature_attention_mask")}, use_cache=False
-        ).last_hidden_state
-    return body(input_ids=enc["input_ids"], attention_mask=enc["attention_mask"], use_cache=False).last_hidden_state
-
-
-def head_logits(head, hs, nopts, opt_pos, dec_pos):
-    """Apply either head at the decide position. Slot: linear over 256
-    slots. Pointer: decide token against each option's closing delimiter."""
-    h_dec = hs[torch.arange(hs.shape[0], device=hs.device), dec_pos].float()
-    if isinstance(head, PointerHead):
-        idx = opt_pos.unsqueeze(-1).expand(-1, -1, hs.shape[-1])
-        h_opts = torch.gather(hs, 1, idx).float()
-        return head(h_dec, h_opts, nopts)
-    return head(h_dec, nopts)
 
 
 def soft_ce(logits: torch.Tensor, ref: torch.Tensor, nopts: torch.Tensor) -> torch.Tensor:

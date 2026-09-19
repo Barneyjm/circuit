@@ -24,7 +24,7 @@ import math
 import os
 import time
 from dataclasses import dataclass, field
-from typing import Protocol
+from typing import Any, Protocol
 
 from s1proto import template as T
 from s1proto.template import LETTER_LABELS, Prompt
@@ -298,6 +298,90 @@ class LoRAScorer:
         return results
 
 
+@dataclass
+class MultimodalScorer:
+    """A vision or audio run (config.json `modality`): the base's encoder
+    plus LoRA language model plus the pointer head. `score` takes the
+    loaded media for each prompt (the same image or clip for every
+    question in a request)."""
+
+    run_dir: str
+    device: str | None = None
+    max_length: int = 4096
+    name: str = field(init=False)
+    max_options: int = field(init=False)
+    layout: str = field(init=False)
+    modality: str = field(init=False)
+
+    def __post_init__(self) -> None:
+        import json
+
+        import torch
+        from peft import PeftModel
+
+        from s1proto.media import HEAD_SIZE, PointerHead, SlotHead, load_base
+
+        cfg = json.load(open(os.path.join(self.run_dir, "config.json")))
+        self.modality = cfg["modality"]
+        if self.modality not in ("vision", "audio"):
+            raise ValueError(f"{self.run_dir} is a {self.modality} run; use LoRAScorer")
+        if cfg.get("pointer_tokens"):
+            T.use_pointer_tokens(*cfg["pointer_tokens"])
+        if self.device is None:
+            self.device = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
+        t0 = time.perf_counter()
+        base, self.proc = load_base(cfg["base"], self.modality)
+        self.tokenizer = self.proc.tokenizer
+        self.tokenizer.padding_side = "left"
+        self.model = PeftModel.from_pretrained(base, os.path.join(self.run_dir, "adapter")).to(self.device).eval()
+        self.head_kind = cfg.get("head", "pointer")
+        self.layout = cfg.get("layout", "pointer")
+        self.head = PointerHead(cfg["hidden"], cfg.get("head_dim", 256)) if self.head_kind == "pointer" else SlotHead(cfg["hidden"])
+        self.head.load_state_dict(torch.load(os.path.join(self.run_dir, "head.pt"), map_location="cpu"))
+        self.head.to(self.device).eval()
+        self.max_options = 255 if self.head_kind == "pointer" else HEAD_SIZE
+        self.opt_end_id = self.tokenizer.convert_tokens_to_ids(T.OPT_END)
+        self.dec_id = self.tokenizer.convert_tokens_to_ids(T.DECIDE)
+        self.name = f"lora:{os.path.basename(self.run_dir.rstrip('/'))}"
+        self.load_seconds = time.perf_counter() - t0
+
+    def score(self, prompts: list[Prompt], temperatures: list[float] | None = None, media: list[Any] | None = None) -> list[ScoreResult]:
+        import torch
+
+        from s1proto.media import chat_text, encode, head_logits, hidden_states
+
+        if not prompts:
+            return []
+        if media is None or len(media) != len(prompts):
+            raise ValueError(f"{self.name} needs one loaded {self.modality} item per prompt")
+        temps = temperatures or [1.0] * len(prompts)
+        texts = [chat_text(self.proc, p.text, self.modality) for p in prompts]
+        enc = encode(self.proc, texts, media, self.modality)
+        enc = {k: v.to(self.device) for k, v in enc.items() if hasattr(v, "to")}
+        ids = enc["input_ids"]
+        maxn = max(p.n_options for p in prompts)
+        opt_pos = torch.zeros((len(prompts), maxn), dtype=torch.long)
+        dec_pos = torch.full((len(prompts),), ids.shape[1] - 1, dtype=torch.long)
+        for i, p in enumerate(prompts):
+            if self.head_kind == "pointer":
+                pos = (ids[i] == self.opt_end_id).nonzero(as_tuple=True)[0]
+                if len(pos) != p.n_options:
+                    raise ValueError(f"found {len(pos)} option delimiters for {p.n_options} options; render with layout='pointer'")
+                opt_pos[i, : p.n_options] = pos
+                dpos = (ids[i] == self.dec_id).nonzero(as_tuple=True)[0]
+                dec_pos[i] = dpos[-1]
+        nopts = torch.tensor([p.n_options for p in prompts], device=self.device)
+        with torch.inference_mode():
+            logits = head_logits(self.head, hidden_states(self.model, enc, self.modality), nopts, opt_pos.to(self.device), dec_pos.to(self.device)).cpu()
+        lengths = enc["attention_mask"].sum(dim=1).tolist()
+        results = []
+        for i, p in enumerate(prompts):
+            raw = logits[i][: p.n_options].tolist()
+            probs = softmax([x / temps[i] for x in raw])
+            results.append(ScoreResult(probabilities=probs, logits=raw, input_tokens=int(lengths[i])))
+        return results
+
+
 def load_scorer(spec: str | None) -> ScorerProtocol:
     """`fake` -> FakeScorer; `lora:<run_dir>` -> LoRAScorer; anything
     else -> HF model id / path."""
@@ -305,5 +389,12 @@ def load_scorer(spec: str | None) -> ScorerProtocol:
     if spec == "fake":
         return FakeScorer()
     if spec.startswith("lora:"):
-        return LoRAScorer(run_dir=spec[len("lora:") :])
+        import json
+
+        run_dir = spec[len("lora:") :]
+        cfg_path = os.path.join(run_dir, "config.json")
+        modality = json.load(open(cfg_path)).get("modality", "text") if os.path.exists(cfg_path) else "text"
+        if modality in ("vision", "audio"):
+            return MultimodalScorer(run_dir=run_dir)
+        return LoRAScorer(run_dir=run_dir)
     return HFScorer(model_id=spec)

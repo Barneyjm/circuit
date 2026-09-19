@@ -13,6 +13,7 @@ from fastapi.responses import JSONResponse
 
 from s1proto import __version__
 from s1proto.circuits import Gate, evaluate_gates
+from s1proto.media import load_media, split_media_state
 from s1proto.schema import (
     ChoiceAnswer,
     ChoiceQuestion,
@@ -48,9 +49,23 @@ def parse_temperatures(spec: str | None) -> dict[str, float]:
 
 def build_answers(req: SystemOneRequest, scorer: ScorerProtocol, temps: dict[str, float]) -> tuple[dict[str, Any], int]:
     ids = list(req.questions.keys())
-    prompts = [render(req.state, req.questions[i], layout=getattr(scorer, "layout", "letters")) for i in ids]
+    split = split_media_state(req.state)  # {"image"|"audio": spec, "text"?: ...} or a plain text/JSON state
+    text_state = split[0] if split else req.state
+    prompts = [render(text_state, req.questions[i], layout=getattr(scorer, "layout", "letters")) for i in ids]
     temperatures = [temps[req.questions[i].type] for i in ids]
-    results = scorer.score(prompts, temperatures)
+    if split:
+        _, modality, spec = split
+        if getattr(scorer, "modality", "text") != modality:
+            raise HTTPException(status_code=422, detail=f"model {scorer.name} takes {getattr(scorer, 'modality', 'text')} states, not {modality}")
+        try:
+            item = load_media(modality, spec)  # data URI or URL; the server never reads local paths
+        except (ValueError, TypeError, OSError) as e:
+            raise HTTPException(status_code=422, detail=f"state.{'image' if modality == 'vision' else 'audio'}: {e}") from e
+        results = scorer.score(prompts, temperatures, media=[item] * len(prompts))
+    elif getattr(scorer, "modality", "text") != "text":
+        raise HTTPException(status_code=422, detail=f"model {scorer.name} needs a state with an {'image' if scorer.modality == 'vision' else 'audio'} field")
+    else:
+        results = scorer.score(prompts, temperatures)
 
     answers: dict[str, Any] = {}
     total_tokens = 0
