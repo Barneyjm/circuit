@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import threading
 import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -96,11 +97,44 @@ def create_app(scorer: ScorerProtocol | None = None, temperatures: dict[str, flo
     app = FastAPI(title="s1proto", version=__version__, lifespan=lifespan)
     app.state.scorer = scorer
     app.state.temperatures = temperatures or parse_temperatures(os.environ.get("S1_TEMPERATURES"))
+    # One device, one forward pass at a time. Two concurrent passes on Apple GPUs
+    # do not run twice as fast; they hang, holding both requests forever. So
+    # scoring is serialized and the queue is short and explicit:
+    #
+    #   S1_CONCURRENCY    passes running at once (1, unless the device can take more)
+    #   S1_MAX_INFLIGHT   running + waiting before this box declines with a 503
+    #   S1_QUEUE_WAIT_S   how long a request waits for its turn before it declines too
+    #
+    # A 503 with x-s1-busy is not an error, it is this box saying "send it somewhere
+    # with more room" — which is exactly what the API gateway in front of it does.
+    app.state.max_inflight = int(os.environ.get("S1_MAX_INFLIGHT", "0"))
+    app.state.queue_wait_s = float(os.environ.get("S1_QUEUE_WAIT_S", "10"))
+    app.state.device_slots = threading.Semaphore(int(os.environ.get("S1_CONCURRENCY", "1")))
+    app.state.inflight = 0
+    app.state.inflight_lock = threading.Lock()
+
+    def take_slot() -> bool:
+        with app.state.inflight_lock:
+            if app.state.max_inflight and app.state.inflight >= app.state.max_inflight:
+                return False
+            app.state.inflight += 1
+            return True
+
+    def release_slot() -> None:
+        with app.state.inflight_lock:
+            app.state.inflight -= 1
 
     @app.get("/healthz")
     def healthz() -> dict[str, Any]:
         s = app.state.scorer
-        return {"ok": s is not None, "model": getattr(s, "name", None), "max_options": getattr(s, "max_options", None)}
+        return {
+            "ok": s is not None,
+            "model": getattr(s, "name", None),
+            "max_options": getattr(s, "max_options", None),
+            "inflight": app.state.inflight,
+            "max_inflight": app.state.max_inflight,
+            "concurrency": app.state.device_slots._value,
+        }
 
     @app.post("/v1/systemone")
     def systemone(req: SystemOneRequest, request: Request, authorization: str | None = Header(default=None)) -> Any:
@@ -111,6 +145,27 @@ def create_app(scorer: ScorerProtocol | None = None, temperatures: dict[str, flo
         expected = os.environ.get("S1_API_KEY")
         if expected and authorization[7:].strip() != expected:
             raise HTTPException(status_code=401, detail="invalid api key")
+        if not take_slot():
+            raise HTTPException(
+                status_code=503,
+                detail=f"at capacity: {app.state.max_inflight} questions already in flight",
+                headers={"x-s1-busy": "1", "retry-after": "1"},
+            )
+        try:
+            if not app.state.device_slots.acquire(timeout=app.state.queue_wait_s):
+                raise HTTPException(
+                    status_code=503,
+                    detail=f"waited {app.state.queue_wait_s:g}s for the device and it is still busy",
+                    headers={"x-s1-busy": "1", "retry-after": "1"},
+                )
+            try:
+                return answer(req)
+            finally:
+                app.state.device_slots.release()
+        finally:
+            release_slot()
+
+    def answer(req: SystemOneRequest) -> Any:
         cap = getattr(app.state.scorer, "max_options", 255)
         for qid, q in req.questions.items():
             n = 2 if isinstance(q, NoulQuestion) else len(q.criteria)
