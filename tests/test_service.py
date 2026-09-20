@@ -128,3 +128,61 @@ def test_fuzz_schema_valid_requests_yield_schema_valid_responses(req):
         elif q["type"] == "score":
             assert len(ans.probabilities) == len(q["criteria"])
             assert 0.0 <= ans.score <= len(q["criteria"]) - 1
+
+
+def test_explain_returns_one_segment_per_sentence():
+    """Ablation attribution: each sentence removed once, deltas against the
+    answer the model actually gave."""
+    client = TestClient(create_app(FakeScorer()))
+    state = "The pipe burst on Elm. Water is in the street. The meter reads zero."
+    r = client.post(
+        "/v1/systemone",
+        headers={"authorization": "Bearer x"},
+        json={
+            "model": "fake",
+            "state": state,
+            "questions": {"urgent": {"type": "noul", "instructions": "Does this need someone today?"}},
+            "explain": {"method": "ablation", "unit": "sentence"},
+        },
+    )
+    assert r.status_code == 200, r.text
+    ex = r.json()["explanations"]["urgent"]
+    assert ex["option"] in ("yes", "no")
+    assert [s["text"] for s in ex["segments"]] == [
+        "The pipe burst on Elm.",
+        "Water is in the street.",
+        "The meter reads zero.",
+    ]
+    for seg in ex["segments"]:
+        assert abs(seg["delta"] - (ex["p"] - seg["p_without"])) < 1e-9
+
+
+def test_explain_is_absent_unless_asked_for():
+    client = TestClient(create_app(FakeScorer()))
+    r = client.post(
+        "/v1/systemone",
+        headers={"authorization": "Bearer x"},
+        json={
+            "model": "fake",
+            "state": "One sentence. And another.",
+            "questions": {"q": {"type": "noul", "instructions": "Well?"}},
+        },
+    )
+    assert r.status_code == 200
+    assert "explanations" not in r.json()
+
+
+def test_explain_needs_a_text_state():
+    client = TestClient(create_app(FakeScorer()))
+    r = client.post(
+        "/v1/systemone",
+        headers={"authorization": "Bearer x"},
+        json={
+            "model": "fake",
+            "state": {"rows": [1, 2]},
+            "questions": {"q": {"type": "noul", "instructions": "Well?"}},
+            "explain": {"method": "ablation"},
+        },
+    )
+    assert r.status_code == 422
+    assert "segmented" in r.json()["detail"]

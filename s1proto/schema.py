@@ -57,6 +57,37 @@ class ScoreQuestion(BaseModel):
 Question = Annotated[NoulQuestion | ChoiceQuestion | ScoreQuestion, Field(discriminator="type")]
 
 
+class Explain(BaseModel):
+    """Ask what in the state moved the answer.
+
+    The state is cut into segments and the same question is asked again with
+    each one removed; the drop in probability is that segment's contribution.
+    It is a counterfactual on the input, so the caller can re-run any line of
+    it against this same endpoint and get the same number — no access to the
+    weights and no trust in an explanation the model wrote about itself.
+
+    One forward pass per segment, and no text is generated for any of them."""
+
+    method: Literal["ablation"] = "ablation"
+    unit: Literal["sentence", "line"] = "sentence"
+    max_segments: int = Field(default=12, ge=1, le=40)
+    questions: list[str] | None = None  # default: every question in the request
+
+
+class Segment(BaseModel):
+    text: str
+    p_without: float
+    delta: float  # p(as given) - p(without this segment); positive means it argued for the answer
+
+
+class Explanation(BaseModel):
+    method: Literal["ablation"] = "ablation"
+    unit: str
+    option: str  # which option the deltas are measured against
+    p: float  # that option's probability with the whole state
+    segments: list[Segment]
+
+
 class SystemOneRequest(BaseModel):
     state: JSONValue
     model: str
@@ -65,6 +96,9 @@ class SystemOneRequest(BaseModel):
     # server-side from the answers (see circuits.py). Optional; absent
     # in the response unless supplied.
     gates: dict[str, Any] | None = None
+    # Extension: per-segment attribution by ablation. Optional; absent in
+    # the response unless supplied. Costs one forward pass per segment.
+    explain: Explain | None = None
 
     @model_validator(mode="after")
     def _state_present(self) -> SystemOneRequest:

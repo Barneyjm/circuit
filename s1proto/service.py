@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 import threading
 import time
 from collections.abc import AsyncIterator
@@ -18,17 +19,20 @@ from s1proto.media import load_media, split_media_state
 from s1proto.schema import (
     ChoiceAnswer,
     ChoiceQuestion,
+    Explanation,
     NoulAnswer,
     NoulQuestion,
+    Question,
     ScoreAnswer,
     ScoreQuestion,
+    Segment,
     SystemOneRequest,
     SystemOneResponse,
     Usage,
     confidence_from_probabilities,
 )
 from s1proto.scorer import ScorerProtocol, load_scorer
-from s1proto.template import render
+from s1proto.template import Prompt, render
 
 # Per-question-type temperature. 1.0 = raw logits (Phase 1). Phase 2
 # fits these on a validation split and writes them to S1_TEMPERATURES
@@ -46,6 +50,12 @@ def parse_temperatures(spec: str | None) -> dict[str, float]:
         if k in temps:
             temps[k] = float(v)
     return temps
+
+
+def text_state_of(req: SystemOneRequest) -> Any:
+    """The text part of a state, whether or not it also carries media."""
+    split = split_media_state(req.state)
+    return split[0] if split else req.state
 
 
 def build_answers(req: SystemOneRequest, scorer: ScorerProtocol, temps: dict[str, float]) -> tuple[dict[str, Any], int]:
@@ -85,6 +95,71 @@ def build_answers(req: SystemOneRequest, scorer: ScorerProtocol, temps: dict[str
             legend = {str(i): level for i, level in enumerate(q.criteria)}
             answers[qid] = ScoreAnswer(score=expected, legend=legend, probabilities=dist, confidence=confidence_from_probabilities(probs))
     return answers, total_tokens
+
+
+_SENTENCE = re.compile(r"(?<=[.!?])\s+")
+
+
+def segment_state(text: str, unit: str, limit: int) -> list[str]:
+    parts = text.splitlines() if unit == "line" else _SENTENCE.split(text)
+    parts = [p.strip() for p in parts if p.strip()]
+    return parts[:limit]
+
+
+def build_explanations(
+    req: SystemOneRequest, scorer: ScorerProtocol, temps: dict[str, float], answers: dict[str, Any], text_state: Any
+) -> tuple[dict[str, Any], int]:
+    """Ablation attribution: the same question with one segment of the state
+    removed at a time. Every variant of every question goes through the scorer
+    in one batch, so the cost is forward passes, not round trips."""
+    spec = req.explain
+    if not isinstance(text_state, str):
+        raise HTTPException(status_code=422, detail="explain: only a text state can be segmented")
+    qids = spec.questions or list(req.questions.keys())
+    unknown = [q for q in qids if q not in req.questions]
+    if unknown:
+        raise HTTPException(status_code=422, detail=f"explain: no such question {unknown[0]!r}")
+    segments = segment_state(text_state, spec.unit, spec.max_segments)
+    if len(segments) < 2:
+        return {}, 0
+
+    layout = getattr(scorer, "layout", "letters")
+    jobs, prompts, temperatures = [], [], []
+    for qid in qids:
+        q = req.questions[qid]
+        for i in range(len(segments)):
+            without = " ".join(segments[:i] + segments[i + 1 :])
+            jobs.append((qid, i))
+            prompts.append(render(without, q, layout=layout))
+            temperatures.append(temps[q.type])
+    results = scorer.score(prompts, temperatures)
+
+    tokens = sum(r.input_tokens for r in results)
+    out: dict[str, Any] = {}
+    for qid in qids:
+        q = req.questions[qid]
+        full = render(text_state, q, layout=layout)
+        option, p_full = explained_option(q, full, answers[qid])
+        idx = list(full.option_keys).index(option)
+        rows = []
+        for (job_qid, i), r in zip(jobs, results, strict=True):
+            if job_qid != qid:
+                continue
+            p_without = r.probabilities[idx]
+            rows.append(Segment(text=segments[i], p_without=p_without, delta=p_full - p_without))
+        out[qid] = Explanation(unit=spec.unit, option=option, p=p_full, segments=rows)
+    return {k: v.model_dump() for k, v in out.items()}, tokens
+
+
+def explained_option(q: Question, prompt: Prompt, answer: Any) -> tuple[str, float]:
+    """Which option the deltas are measured against: the one the model picked."""
+    if isinstance(q, NoulQuestion):
+        p = answer.noul
+        return ("yes", p) if p >= 0.5 else ("no", 1.0 - p)
+    if isinstance(q, ChoiceQuestion):
+        return answer.choice, answer.probabilities[answer.choice]
+    best = max(answer.probabilities, key=answer.probabilities.__getitem__)
+    return best, answer.probabilities[best]
 
 
 def create_app(scorer: ScorerProtocol | None = None, temperatures: dict[str, float] | None = None) -> FastAPI:
@@ -184,6 +259,11 @@ def create_app(scorer: ScorerProtocol | None = None, temperatures: dict[str, flo
             except (KeyError, ValueError) as e:
                 raise HTTPException(status_code=422, detail=f"gates: {e}") from e
             body["gates"] = {k: v.model_dump() for k, v in gate_results.items()}
+        if req.explain:
+            explanations, extra = build_explanations(req, app.state.scorer, app.state.temperatures, answers, text_state_of(req))
+            if explanations:
+                body["explanations"] = explanations
+                body["usage"]["input_tokens"] += extra
         headers = {"x-s1-latency-ms": f"{(time.perf_counter() - t0) * 1000:.1f}"}
         return JSONResponse(content=body, headers=headers)
 
