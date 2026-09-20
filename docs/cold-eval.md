@@ -260,3 +260,62 @@ Photo cells: classify 97% (raw 79%), present 86% (raw 76%), negation 86%
 (raw 89%). Open Images' verified labels are not exhaustive, which caps the
 presence cells. Results: `results/vgrid2_circuit-vl-4b-v2.json`,
 `results/vgrid2_qwen3vl4b_raw.json`.
+
+## router-0.6b (trained 2026-09-20, not published)
+
+LiteLLM ships an auto-router that asks a System One model which tier of LLM
+should answer a prompt, and published a benchmark of it against Jev with the
+evidence archive attached: 80 authored cases, the rubric, and the recorded
+wire requests. Replaying their exact request bodies against our models, only
+the model name changed:
+
+| system | tier match | cost per classification |
+|---|---|---|
+| Jev (their figure) | 228/240 = 95.00% | $0.0000321, their price |
+| circuit-8b | 223/244 = 91.39% | $0.0000425, our GPU cost |
+| circuit-1.7b | 201/244 = 82.38% | $0.0000201 |
+| Claude Haiku 4.5 (their baseline) | 177/240 = 73.75% | $0.000827 |
+
+circuit-8b lands 3.6 points behind Jev zero-shot, having never seen a routing
+example. It is also more expensive per call than Jev's retail price, because
+94% of a routing prompt is a rubric that never changes (376 characters of
+instructions and 609 of tier criteria against 61 characters of actual
+message), and our layout puts the state first, so that fixed text cannot be
+prefix-cached.
+
+The obvious answer was a small model trained for the task. That is
+`s1proto/data/router_grid.py`: 2,874 items, tiers balanced, labels from two
+places — prompts lifted from public benchmarks whose task fixes the tier
+(GSM8K and LogiQA are REASONING, BoolQ and TriviaQA SIMPLE, MBPP MEDIUM), and
+constructed items for the shapes no benchmark supplies (follow-ups, tool
+output, long-but-easy padding, boundary items with soft labels). Tier names
+and descriptions vary per item so the model has to read the rubric it is
+given rather than memorise four names.
+
+Qwen3-0.6B-Base, LoRA rank 16 plus the pointer head, 2 epochs, batch 8, 512
+tokens, 18 minutes on an Apple laptop GPU. It reached **99.3% on our own eval
+split and 47.5% on LiteLLM's 80 cases**, and every error is downward:
+
+|  | SIMPLE | MEDIUM | COMPLEX | REASONING |
+|---|---|---|---|---|
+| SIMPLE | 61 | 0 | 0 | 0 |
+| MEDIUM | 18 | 43 | 0 | 0 |
+| COMPLEX | 48 | 10 | 3 | 0 |
+| REASONING | 43 | 0 | 9 | 9 |
+
+43 REASONING cases routed to SIMPLE, 48 COMPLEX to SIMPLE, and not one
+request over-routed. Training loss reached 0.0000 halfway through the second
+epoch, which is the whole story: the model learned to recognise the
+generators, not to read criteria. circuit-8b's confusion on the same 244
+requests is nearly diagonal.
+
+Reading a supplied rubric *is* the task, and it is the capability a 0.6B does
+not have and an 8B already does without being taught. A smaller model trained
+on synthetic routing data cannot serve operator-defined tiers, which was the
+design constraint that made the idea worth trying. Not published. The
+generator stays, because the negative result depends on it being reproducible
+and the next attempt should start from real prompt distributions rather than
+templates.
+
+Results: `scratchpad/replay_circuit-8b.json`, `replay_router-0.6b.json`;
+their archive is `jev-live-evidence-20260918.tar.gz` from docs.litellm.ai.
