@@ -13,3 +13,27 @@ jobs:
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run pytest -q tests
+
+  # The service that answers /v1/systemone runs on Modal. Without this, a merged
+  # fix sits in the repo until someone remembers to deploy it from a laptop —
+  # which is how a 422 on perfectly good JSON stayed live after it was fixed.
+  # Needs MODAL_TOKEN_ID and MODAL_TOKEN_SECRET; skipped entirely when they are
+  # absent, so a fork or an unconfigured repo just runs the tests.
+  deploy:
+    needs: lint-and-test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Deploy the model service
+        if: env.MODAL_TOKEN_ID != ''
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: uv run --group deploy modal deploy deploy/modal_app.py
+      - name: Say why it was skipped
+        if: env.MODAL_TOKEN_ID == ''
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+        run: echo "No MODAL_TOKEN_ID secret, so nothing was deployed. Set it and MODAL_TOKEN_SECRET in repo settings." >> $GITHUB_STEP_SUMMARY
