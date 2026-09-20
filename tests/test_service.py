@@ -198,3 +198,32 @@ def test_every_answer_carries_a_request_id():
     assert r1.status_code == 200
     assert r1.json()["request_id"] == r1.headers["x-request-id"]
     assert r1.json()["request_id"] != r2.json()["request_id"]
+
+
+def test_an_unknown_top_level_field_is_refused():
+    """A misspelled extension is a request that silently does nothing; say so."""
+    client = TestClient(create_app(FakeScorer()))
+    r = client.post(
+        "/v1/systemone",
+        headers={"authorization": "Bearer x"},
+        json={
+            "model": "fake",
+            "state": "x",
+            "questions": {"q": {"type": "noul", "instructions": "Well?"}},
+            "explains": {"method": "ablation"},  # the real field is "explain"
+        },
+    )
+    assert r.status_code == 422
+    assert "explains" in r.text
+
+
+def test_an_unknown_per_question_field_is_ignored():
+    """TypeSafe accepts and ignores these (measured), so a client written against
+    their raw-dict form keeps working here."""
+    client = TestClient(create_app(FakeScorer()))
+    r = client.post(
+        "/v1/systemone",
+        headers={"authorization": "Bearer x"},
+        json={"model": "fake", "state": "x", "questions": {"q": {"type": "noul", "instructions": "Well?", "weight": 2}}},
+    )
+    assert r.status_code == 200

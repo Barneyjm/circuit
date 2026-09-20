@@ -10,7 +10,7 @@ import math
 import uuid
 from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 JSONValue = str | int | float | bool | None | list[Any] | dict[str, Any]
 
@@ -90,6 +90,13 @@ class Explanation(BaseModel):
 
 
 class SystemOneRequest(BaseModel):
+    # Unknown top-level fields are refused, as TypeSafe's API refuses them (measured:
+    # any extra key there answers 400). A misspelled "explains" or "gate" is a
+    # request that quietly does nothing otherwise, which is worse than an error.
+    # Per-question fields stay permissive, also matching them: a question carrying
+    # "weight" is accepted and ignored by both.
+    model_config = ConfigDict(extra="forbid")
+
     state: JSONValue
     model: str
     questions: dict[str, Question] = Field(min_length=1)
