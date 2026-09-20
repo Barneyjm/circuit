@@ -264,7 +264,7 @@ def create_app(scorer: ScorerProtocol | None = None, temperatures: dict[str, flo
             if explanations:
                 body["explanations"] = explanations
                 body["usage"]["input_tokens"] += extra
-        headers = {"x-s1-latency-ms": f"{(time.perf_counter() - t0) * 1000:.1f}"}
+        headers = {"x-s1-latency-ms": f"{(time.perf_counter() - t0) * 1000:.1f}", "x-request-id": body["request_id"]}
         return JSONResponse(content=body, headers=headers)
 
     return app

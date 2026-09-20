@@ -7,6 +7,7 @@ Kept byte-compatible with https://docs.typesafe.ai/api so the official
 from __future__ import annotations
 
 import math
+import uuid
 from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -139,6 +140,11 @@ class SystemOneResponse(BaseModel):
     model: str
     answers: dict[str, Answer]
     usage: Usage
+    # An id for this answer, returned in the body and as x-request-id. TypeSafe's
+    # SDK reads one off every result and error; it is also the handle to quote when
+    # an answer has to be accounted for later, since nothing about the request is
+    # stored server-side.
+    request_id: str = Field(default_factory=lambda: uuid.uuid4().hex)
 
 
 def confidence_from_probabilities(probs: list[float]) -> float:

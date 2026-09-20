@@ -186,3 +186,15 @@ def test_explain_needs_a_text_state():
     )
     assert r.status_code == 422
     assert "segmented" in r.json()["detail"]
+
+
+def test_every_answer_carries_a_request_id():
+    """In the body and on the header, so an answer can be quoted later — nothing
+    about the request itself is kept server-side."""
+    client = TestClient(create_app(FakeScorer()))
+    body = {"model": "fake", "state": "x", "questions": {"q": {"type": "noul", "instructions": "Well?"}}}
+    r1 = client.post("/v1/systemone", headers={"authorization": "Bearer x"}, json=body)
+    r2 = client.post("/v1/systemone", headers={"authorization": "Bearer x"}, json=body)
+    assert r1.status_code == 200
+    assert r1.json()["request_id"] == r1.headers["x-request-id"]
+    assert r1.json()["request_id"] != r2.json()["request_id"]
