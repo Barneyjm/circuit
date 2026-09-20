@@ -62,19 +62,52 @@ class PointerHead(torch.nn.Module):
 # --- media ---------------------------------------------------------------------
 
 
+MEDIA_SUFFIXES = (".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tif", ".tiff", ".wav", ".mp3", ".flac", ".ogg", ".m4a", ".aac")
+
+
+def is_media_spec(spec: Any) -> bool:
+    """The forms a media state actually carries on the wire: raw bytes, a data URI,
+    or an http(s) URL. Unambiguous — no ordinary data record holds one of these."""
+    if isinstance(spec, bytes):
+        return True
+    if not isinstance(spec, str):
+        return False
+    return bool(_DATA_URI.match(spec)) or spec.startswith(("http://", "https://"))
+
+
+def looks_like_media(spec: Any) -> bool:
+    """A spec, or a bare filename. A filename is meant as media even though the
+    server will refuse to read a local path, so the caller gets that error rather
+    than silence — but only when nothing else in the state contradicts it."""
+    return is_media_spec(spec) or (isinstance(spec, str) and spec.lower().endswith(MEDIA_SUFFIXES))
+
+
 def split_media_state(state: Any) -> tuple[Any, str, Any] | None:
-    """(text_state, modality, media_spec) when `state` is a media state, else None."""
+    """(text_state, modality, media_spec) when `state` is a media state, else None.
+
+    A media state is {"image"|"audio": <spec>} with an optional "text". Ordinary
+    data is not: {"image": "cover.jpg", "id": 7} is a row about an image, not an
+    image, and is scored as the JSON it is. The two are told apart by the other
+    keys, and where that is ambiguous, by whether the value is a spec at all."""
     if not isinstance(state, dict):
         return None
     keys = [k for k in MEDIA_KEYS if k in state]
     if not keys:
         return None
     if len(keys) > 1:
-        raise ValueError("a state carries one of image or audio, not both")
+        if all(looks_like_media(state[k]) for k in keys):
+            raise ValueError("a state carries one of image or audio, not both")
+        return None
     k = keys[0]
-    extra = {x: v for x, v in state.items() if x not in (k, "text")}
+    if not looks_like_media(state[k]):
+        return None
+    extra = sorted(x for x in state if x not in (k, "text"))
     if extra:
-        raise ValueError(f"a media state holds {k!r} and an optional 'text'; unexpected keys {sorted(extra)}")
+        # A data URI or URL beside other fields is a malformed media state, worth
+        # saying so. A filename beside other fields is a row in a catalogue.
+        if is_media_spec(state[k]):
+            raise ValueError(f"a media state holds {k!r} and an optional 'text'; unexpected keys {extra}")
+        return None
     return state.get("text") or CAPTION[MEDIA_KEYS[k]], MEDIA_KEYS[k], state[k]
 
 
