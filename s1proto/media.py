@@ -25,6 +25,7 @@ MODALITIES = ("text", "vision", "audio")
 MEDIA_KEYS = {"image": "vision", "audio": "audio"}
 CAPTION = {"vision": "See the image.", "audio": "Listen to the audio."}
 MAX_MEDIA_BYTES = 25 * 1024 * 1024
+USER_AGENT = "s1proto-media/1.0 (+https://decisioncircuits.com)"
 
 
 class SlotHead(torch.nn.Module):
@@ -96,7 +97,10 @@ def media_bytes(spec: Any, root: Path | None = None, allow_paths: bool = False) 
     if spec.startswith(("http://", "https://")):
         import urllib.request
 
-        with urllib.request.urlopen(spec, timeout=30) as r:
+        # A named User-Agent: bare urllib gets a 403 from anything behind a bot check,
+        # our own CDN included, which made a hosted clip unfetchable by its own URL.
+        req = urllib.request.Request(spec, headers={"User-Agent": USER_AGENT})
+        with urllib.request.urlopen(req, timeout=30) as r:
             data = r.read(MAX_MEDIA_BYTES + 1)
         if len(data) > MAX_MEDIA_BYTES:
             raise ValueError("media larger than 25 MB")
