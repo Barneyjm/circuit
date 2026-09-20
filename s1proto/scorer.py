@@ -261,7 +261,9 @@ class LoRAScorer:
             self.head.load_state_dict({k.replace("proj.", ""): v for k, v in state.items()})
             self.head.to(self.device).eval()
             self.max_options = cfg["head_size"]
-        self.prefix_cache = False
+        # On: a request asking several questions about one state reads it once.
+        # Falls back to scoring each prompt in full when the prefixes differ.
+        self.prefix_cache = True
         self.load_seconds = time.perf_counter() - t0
 
     def _head_logits(self, hs, h_last, ids, prompts, offset: int = 0):
