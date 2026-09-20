@@ -1,7 +1,17 @@
 #!/usr/bin/env bash
-# Refuse a commit that would fail lint: ruff format and ruff check on the staged Python files.
+# Refuse a commit that CI would reject.
+#
+# This runs exactly what the workflow runs, over the WHOLE repo, not over the staged
+# Python files. Checking only staged .py let five broken pushes through in a row: ruff
+# also formats Python inside Markdown code blocks, so a hand-aligned example in a .md
+# failed CI while this hook reported everything fine. If CI's commands change, change
+# these to match.
 set -e
-files=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.py$' || true)
-[ -z "$files" ] && exit 0
-uv run ruff format --check $files || { echo "pre-commit: run 'uv run ruff format .' and re-stage"; exit 1; }
-uv run ruff check $files || { echo "pre-commit: fix the ruff findings (uv run ruff check --fix .) and re-stage"; exit 1; }
+uv run ruff format --check . || {
+  echo "pre-commit: 'uv run ruff format .' then re-stage (ruff formats Python in .md too)"
+  exit 1
+}
+uv run ruff check . || {
+  echo "pre-commit: fix the findings ('uv run ruff check --fix .') then re-stage"
+  exit 1
+}
