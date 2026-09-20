@@ -319,3 +319,52 @@ templates.
 
 Results: `scratchpad/replay_circuit-8b.json`, `replay_router-0.6b.json`;
 their archive is `jev-live-evidence-20260918.tar.gz` from docs.litellm.ai.
+
+## Reproducibility as a measurable property (2026-09-20)
+
+Batching concurrent requests into one forward pass is worth about 3x on
+routing-shaped traffic: 3.3 answers a second at concurrency 16 becomes 10.1,
+and median latency falls from 4.3 s to 1.6 s because the queue drains faster.
+It is off by default anyway, and the reason is what it does to the answer.
+
+A bf16 matmul reduces in a different order at a different batch size, so the
+same prompt scored in a batch does not give the same number as scored alone.
+Measured on circuit-1.7b with four **identical** prompts, no padding involved:
+
+| | p(yes) |
+|---|---|
+| alone | 0.5050005437563114 |
+| batched with four identical prompts | 0.4954083064618685 |
+| batched with one short prompt | 0.4923591602016146 |
+| batched with one long prompt | 0.4946115911018874 |
+
+About 0.01, and that example crosses 0.5, which flips a noul. With batching on,
+an answer depends on what other callers sent in the same instant. For an API
+that offers a number someone may have to account for later, that is the wrong
+trade; for a screening run over thousands of items on one machine, it is the
+right one. `S1_BATCH_MAX=8` turns it on.
+
+**The same effect is visible in Jev.** LiteLLM's benchmark archive records three
+repeats of 80 identical inputs with the per-tier probabilities attached
+(`attempts.jsonl`). Of the 80 cases, **46 varied between repeats** and 34 were
+identical; where it varies the median spread is **0.0100** (mean 0.0207, max
+0.0800). The chosen tier never changed, so it never showed up in their accuracy
+figure. Independently, the ainergiz systematic-review write-up reports "we ran
+the same input twice, scores moved by 0.009 on average" on a completely
+different workload.
+
+Our batched drift is 0.0096 and their median is 0.0100. That is the same
+phenomenon at the same size, and it reframes the cost comparison:
+
+| | cost per classification | same input, twice |
+|---|---|---|
+| Jev | $0.0000321, their price | moves ~0.010 |
+| circuit-8b, batching off | $0.0000425, our GPU cost | identical |
+| circuit-8b, batching on | ~$0.0000137 | moves ~0.010 |
+
+Batched we would be under half their price at the same reproducibility, and
+unbatched we are dearer than them and exactly repeatable. The gap was never
+really a cost gap; it is a choice about whether an answer has to come back the
+same way twice, and it is worth stating as a property rather than leaving it
+implicit. Where it matters most is a threshold: a probability within 0.01 of
+the line can fall either side of it depending on who else was being served.

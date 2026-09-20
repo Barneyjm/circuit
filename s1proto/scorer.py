@@ -342,7 +342,12 @@ class LoRAScorer:
         mask = enc["attention_mask"].to(self.device)
         with torch.inference_mode():
             decoder = self.model.get_base_model().model  # skip lm_head; the answer head reads the hidden state
-            hs = decoder(input_ids=ids, attention_mask=mask, use_cache=False).last_hidden_state
+            # Count positions from each row's first real token. Without this the model
+            # derives them from the padded length, so a short prompt batched next to a
+            # long one is read at the wrong rotary positions and answers differently
+            # depending on what shared its batch.
+            position_ids = (mask.cumsum(dim=-1) - 1).clamp(min=0)
+            hs = decoder(input_ids=ids, attention_mask=mask, position_ids=position_ids, use_cache=False).last_hidden_state
             h_last = hs[:, -1, :].float()
             if self.head_kind == "pointer":
                 q = self.q(h_last)  # [B, d]

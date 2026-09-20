@@ -14,6 +14,7 @@ from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from s1proto import __version__
+from s1proto.batching import Batcher
 from s1proto.circuits import Gate, evaluate_gates
 from s1proto.media import load_media, split_media_state
 from s1proto.schema import (
@@ -167,6 +168,11 @@ def create_app(scorer: ScorerProtocol | None = None, temperatures: dict[str, flo
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         if app.state.scorer is None:
             app.state.scorer = load_scorer(os.environ.get("S1_MODEL"))
+        # Opt-in: batching trades a reproducible answer for throughput, because a
+        # bf16 batched pass reduces differently than a single-row one (~0.01 on a
+        # probability). See s1proto/batching.py.
+        if int(os.environ.get("S1_BATCH_MAX", "1")) > 1:
+            app.state.scorer = Batcher(app.state.scorer)
         yield
 
     app = FastAPI(title="s1proto", version=__version__, lifespan=lifespan)
@@ -182,9 +188,13 @@ def create_app(scorer: ScorerProtocol | None = None, temperatures: dict[str, flo
     #
     # A 503 with x-s1-busy is not an error, it is this box saying "send it somewhere
     # with more room" — which is exactly what the API gateway in front of it does.
-    app.state.max_inflight = int(os.environ.get("S1_MAX_INFLIGHT", "0"))
+    app.state.max_inflight = int(os.environ.get("S1_MAX_INFLIGHT", "0"))  # running + waiting; raise it when batching so batches can fill
     app.state.queue_wait_s = float(os.environ.get("S1_QUEUE_WAIT_S", "10"))
-    app.state.device_slots = threading.Semaphore(int(os.environ.get("S1_CONCURRENCY", "1")))
+    # With batching on, the batcher owns the device and callers must be allowed to
+    # reach it concurrently — a semaphore of 1 in front would mean every batch holds
+    # exactly one request. Without it, one pass at a time is the safe default.
+    _batch_max = int(os.environ.get("S1_BATCH_MAX", "1"))
+    app.state.device_slots = threading.Semaphore(int(os.environ.get("S1_CONCURRENCY", str(max(1, _batch_max)) if _batch_max > 1 else "1")))
     app.state.inflight = 0
     app.state.inflight_lock = threading.Lock()
 
@@ -209,6 +219,7 @@ def create_app(scorer: ScorerProtocol | None = None, temperatures: dict[str, flo
             "inflight": app.state.inflight,
             "max_inflight": app.state.max_inflight,
             "concurrency": app.state.device_slots._value,
+            "batching": getattr(app.state.scorer, "stats", None),
         }
 
     @app.post("/v1/systemone")
