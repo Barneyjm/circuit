@@ -42,3 +42,36 @@ def test_prefix_plus_tail_tokenizes_like_full_text(tok, state):
         full = tok.encode(p.text, add_special_tokens=False)
         joined = tok.encode(p.prefix, add_special_tokens=False) + tok.encode(p.tail, add_special_tokens=False)
         assert full == joined
+
+
+def test_shared_prefix_matches_scoring_each_question_alone():
+    """The cached path must agree with the plain one. It agrees exactly — and
+    better than the left-padded batch does, which drifts by up to 0.02 depending
+    on what else shared the request."""
+    pytest.importorskip("torch")
+    from pathlib import Path
+
+    from s1proto.scorer import LoRAScorer
+
+    run = Path("runs/circuit-1.7b")
+    if not run.exists():
+        pytest.skip("no local weights")
+    from s1proto.schema import ChoiceQuestion, NoulQuestion
+
+    sc = LoRAScorer(run_dir=str(run))
+    state = "Eligibility: randomised trials in adults with COPD. " + "Background: a multicentre trial of 1,204 adults over 52 weeks. " * 4
+    qs = [
+        NoulQuestion(type="noul", instructions="Is the population adults with COPD?"),
+        NoulQuestion(type="noul", instructions="Does it report exacerbation rates?"),
+        ChoiceQuestion(type="choice", instructions="What design is this?", criteria={"trial": None, "cohort": None, "other": None}),
+    ]
+    prompts = [render(state, q, layout="pointer") for q in qs]
+
+    sc.prefix_cache = False
+    alone = [sc.score([p])[0].probabilities for p in prompts]
+    sc.prefix_cache = True
+    cached = [r.probabilities for r in sc.score(prompts)]
+
+    for a, c in zip(alone, cached, strict=True):
+        for x, y in zip(a, c, strict=True):
+            assert abs(x - y) < 1e-6, (a, c)

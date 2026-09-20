@@ -264,11 +264,76 @@ class LoRAScorer:
         self.prefix_cache = False
         self.load_seconds = time.perf_counter() - t0
 
-    def score(self, prompts: list[Prompt], temperatures: list[float] | None = None) -> list[ScoreResult]:
+    def _head_logits(self, hs, h_last, ids, prompts, offset: int = 0):
+        """Pointer: the decide token against each option's closing delimiter.
+        Slot: a linear map at the decide position. `offset` shifts delimiter
+        positions when `ids` holds only the tail of the sequence."""
+        if self.head_kind != "pointer":
+            return self.head(h_last).cpu()
+        q = self.q(h_last)
+        rows = []
+        for i, p in enumerate(prompts):
+            pos = (ids[i] == self.opt_end_id).nonzero(as_tuple=True)[0]
+            if len(pos) != p.n_options:
+                raise ValueError(f"found {len(pos)} option delimiters for {p.n_options} options; render with layout='pointer' and check truncation")
+            k = self.k(hs[i, pos + offset, :].float())
+            rows.append(((q[i] * k).sum(-1) * self.scale).cpu())
+        return rows
+
+    def _score_shared_prefix(self, prompts: list[Prompt], temperatures: list[float] | None) -> list[ScoreResult]:
+        """One pass over the state, then one short pass per question against the
+        cached state. Same numbers as scoring each question's full text, up to
+        bf16 noise; cost is O(state + sum of tails) rather than O(questions x state)."""
         import torch
 
+        temps = temperatures or [1.0] * len(prompts)
+        n = len(prompts)
+        prefix_ids = self.tokenizer.encode(prompts[0].prefix, add_special_tokens=False)
+        tails = [self.tokenizer.encode(p.tail, add_special_tokens=False) for p in prompts]
+        max_tail = max(len(t) for t in tails)
+        pad_id = self.tokenizer.pad_token_id
+        if len(prefix_ids) + max_tail > self.max_length:  # truncation would land mid-state; take the plain path
+            return self._score_independent(prompts, temperatures)
+
+        with torch.inference_mode():
+            decoder = self.model.get_base_model().model  # no lm_head: the answer head reads hidden states
+            pre = torch.tensor([prefix_ids], device=self.device)
+            past = decoder(input_ids=pre, use_cache=True).past_key_values
+            past.batch_repeat_interleave(n)  # one row per question, same cached state
+
+            # Tails are right-padded; each row's decide token sits at len(tail) - 1.
+            tail_ids = torch.full((n, max_tail), pad_id, device=self.device)
+            tail_mask = torch.zeros((n, max_tail), dtype=torch.long, device=self.device)
+            for i, t in enumerate(tails):
+                tail_ids[i, : len(t)] = torch.tensor(t, device=self.device)
+                tail_mask[i, : len(t)] = 1
+            attn = torch.cat([torch.ones((n, len(prefix_ids)), dtype=torch.long, device=self.device), tail_mask], dim=1)
+            pos = torch.arange(len(prefix_ids), len(prefix_ids) + max_tail, device=self.device).unsqueeze(0).expand(n, -1)
+            hs = decoder(input_ids=tail_ids, attention_mask=attn, position_ids=pos, past_key_values=past, use_cache=True).last_hidden_state
+            last_idx = torch.tensor([len(t) - 1 for t in tails], device=self.device)
+            h_last = hs[torch.arange(n, device=self.device), last_idx, :].float()
+            logits = self._head_logits(hs, h_last, tail_ids, prompts)
+
+        results = []
+        for i, p in enumerate(prompts):
+            raw = logits[i][: p.n_options].tolist()
+            probs = softmax([x / temps[i] for x in raw])
+            results.append(ScoreResult(probabilities=probs, logits=raw, input_tokens=len(prefix_ids) + len(tails[i])))
+        return results
+
+    def score(self, prompts: list[Prompt], temperatures: list[float] | None = None, media: list[Any] | None = None) -> list[ScoreResult]:
         if not prompts:
             return []
+        # Several questions about one state is the common request, and the state is
+        # usually the long part. Encode it once and run the question tails against
+        # the cached keys and values instead of re-reading it per question.
+        if self.prefix_cache and len(prompts) > 1 and prompts[0].prefix and all(p.prefix == prompts[0].prefix for p in prompts):
+            return self._score_shared_prefix(prompts, temperatures)
+        return self._score_independent(prompts, temperatures)
+
+    def _score_independent(self, prompts: list[Prompt], temperatures: list[float] | None) -> list[ScoreResult]:
+        import torch
+
         temps = temperatures or [1.0] * len(prompts)
         enc = self.tokenizer([p.text for p in prompts], return_tensors="pt", padding=True, truncation=True, max_length=self.max_length)
         ids = enc["input_ids"].to(self.device)

@@ -41,7 +41,11 @@ image = (
 # Deploy-time environment becomes the container's: set S1_API_KEY to require it on every call.
 secret = modal.Secret.from_dict({k: v for k in ("S1_API_KEY",) if (v := os.environ.get(k))})
 
-# max_containers=1 on every class is the spend ceiling: one warm container per model, extra requests queue behind it.
+# The spend ceiling, in containers. One GPU answers about 4 questions a second on a
+# 300-token state, so a screening run that reads thousands of items wants several.
+# Idle containers stop after scaledown_window and cost nothing; this caps the worst
+# case, not the usual one. S1_MAX_CONTAINERS at deploy time overrides it.
+MAX_CONTAINERS = int(os.environ.get("S1_MAX_CONTAINERS", "6"))
 MODELS = {
     "circuit-1.7b": {"repo": "jbarney/circuit-1.7b", "gpu": "L4"},
     "circuit-8b": {"repo": "jbarney/circuit-8b", "gpu": "L40S"},
@@ -65,7 +69,15 @@ def build(name: str):
     return create_app(scorer)
 
 
-@app.cls(image=image, gpu=MODELS["circuit-1.7b"]["gpu"], volumes={"/vol": weights}, secrets=[secret], scaledown_window=120, max_containers=1, timeout=600)
+@app.cls(
+    image=image,
+    gpu=MODELS["circuit-1.7b"]["gpu"],
+    volumes={"/vol": weights},
+    secrets=[secret],
+    scaledown_window=120,
+    max_containers=MAX_CONTAINERS,
+    timeout=600,
+)
 @modal.concurrent(max_inputs=8)
 class Circuit17B:
     @modal.enter()
@@ -77,7 +89,9 @@ class Circuit17B:
         return self.web
 
 
-@app.cls(image=image, gpu=MODELS["circuit-8b"]["gpu"], volumes={"/vol": weights}, secrets=[secret], scaledown_window=120, max_containers=1, timeout=900)
+@app.cls(
+    image=image, gpu=MODELS["circuit-8b"]["gpu"], volumes={"/vol": weights}, secrets=[secret], scaledown_window=120, max_containers=MAX_CONTAINERS, timeout=900
+)
 @modal.concurrent(max_inputs=8)
 class Circuit8B:
     @modal.enter()
@@ -89,7 +103,15 @@ class Circuit8B:
         return self.web
 
 
-@app.cls(image=image, gpu=MODELS["circuit-vl-4b"]["gpu"], volumes={"/vol": weights}, secrets=[secret], scaledown_window=120, max_containers=1, timeout=600)
+@app.cls(
+    image=image,
+    gpu=MODELS["circuit-vl-4b"]["gpu"],
+    volumes={"/vol": weights},
+    secrets=[secret],
+    scaledown_window=120,
+    max_containers=MAX_CONTAINERS,
+    timeout=600,
+)
 @modal.concurrent(max_inputs=4)
 class CircuitVL4B:
     @modal.enter()
@@ -101,7 +123,15 @@ class CircuitVL4B:
         return self.web
 
 
-@app.cls(image=image, gpu=MODELS["circuit-audio-7b"]["gpu"], volumes={"/vol": weights}, secrets=[secret], scaledown_window=120, max_containers=1, timeout=900)
+@app.cls(
+    image=image,
+    gpu=MODELS["circuit-audio-7b"]["gpu"],
+    volumes={"/vol": weights},
+    secrets=[secret],
+    scaledown_window=120,
+    max_containers=MAX_CONTAINERS,
+    timeout=900,
+)
 @modal.concurrent(max_inputs=4)
 class CircuitAudio7B:
     @modal.enter()
