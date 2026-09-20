@@ -261,7 +261,7 @@ Photo cells: classify 97% (raw 79%), present 86% (raw 76%), negation 86%
 presence cells. Results: `results/vgrid2_circuit-vl-4b-v2.json`,
 `results/vgrid2_qwen3vl4b_raw.json`.
 
-## router-0.6b (trained 2026-09-20, not published)
+## router-0.6b and router-1.7b (trained 2026-09-20, not published)
 
 LiteLLM ships an auto-router that asks a System One model which tier of LLM
 should answer a prompt, and published a benchmark of it against Jev with the
@@ -309,6 +309,14 @@ epoch, which is the whole story: the model learned to recognise the
 generators, not to read criteria. circuit-8b's confusion on the same 244
 requests is nearly diagonal.
 
+The obvious next question was whether 0.6B was simply too small, so the same
+data trained Qwen3-1.7B-Base under the same settings: 37 minutes, 98.95% on our
+eval split, **and the identical 116/244 = 47.54% on theirs**. Not similar —
+identical. The two models return the same tier on all 244 requests, and their
+confusion matrices match cell for cell. Tripling the parameters changed
+nothing, which is as clean a statement as this kind of experiment ever gives:
+the data is the binding constraint, not capacity.
+
 Reading a supplied rubric *is* the task, and it is the capability a 0.6B does
 not have and an 8B already does without being taught. A smaller model trained
 on synthetic routing data cannot serve operator-defined tiers, which was the
@@ -317,7 +325,8 @@ generator stays, because the negative result depends on it being reproducible
 and the next attempt should start from real prompt distributions rather than
 templates.
 
-Results: `scratchpad/replay_circuit-8b.json`, `replay_router-0.6b.json`;
+Results: `scratchpad/replay_circuit-8b.json`, `replay_router-0.6b.json`,
+`replay_router-1.7b.json`;
 their archive is `jev-live-evidence-20260918.tar.gz` from docs.litellm.ai.
 
 ## Reproducibility as a measurable property (2026-09-20)
