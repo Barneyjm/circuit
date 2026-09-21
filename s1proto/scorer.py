@@ -264,6 +264,9 @@ class LoRAScorer:
         # On: a request asking several questions about one state reads it once.
         # Falls back to scoring each prompt in full when the prefixes differ.
         self.prefix_cache = True
+        # Prompts scored in one pass. Sized for a 22 GB card at 1,300 tokens a prompt;
+        # S1_SCORE_CHUNK raises it on bigger hardware or lowers it on smaller.
+        self.chunk = int(os.environ.get("S1_SCORE_CHUNK", "16"))
         self.load_seconds = time.perf_counter() - t0
 
     def _head_logits(self, hs, h_last, ids, prompts, offset: int = 0):
@@ -326,6 +329,16 @@ class LoRAScorer:
     def score(self, prompts: list[Prompt], temperatures: list[float] | None = None, media: list[Any] | None = None) -> list[ScoreResult]:
         if not prompts:
             return []
+        # A request may carry many questions — eighty over one state is a real shape,
+        # and every question is its own prompt. Activations for that many at once
+        # exhaust a 22 GB card, so the work is chunked and the chunk size is what
+        # bounds memory, not the caller's question count.
+        if self.chunk and len(prompts) > self.chunk:
+            out: list[ScoreResult] = []
+            temps = temperatures or [1.0] * len(prompts)
+            for i in range(0, len(prompts), self.chunk):
+                out.extend(self.score(prompts[i : i + self.chunk], temps[i : i + self.chunk]))
+            return out
         # Several questions about one state is the common request, and the state is
         # usually the long part. Encode it once and run the question tails against
         # the cached keys and values instead of re-reading it per question.
