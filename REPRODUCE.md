@@ -32,7 +32,6 @@ better for the last two. Run on 2026-09-21.
 | Bespoke-Nimble-9B | **.827 / .060 / 0.37** | .840 / .085 / 0.37 | .563 / .315 / 0.87 | does not run |
 | circuit-8b | .807 / .107 / 0.59 | .720 / .143 / 0.60 | .560 / .314 / 0.96 | .777 / .140 / 1.12 |
 | circuit-1.7b | .580 / .228 / 0.76 | .730 / .052 / 0.53 | .523 / .242 / 0.98 | .723 / .107 / **1.01** |
-| Laya | .617 / .142 / 0.72 | .667 / .178 / 0.75 | **.620** / .250 / **0.71** | .477 / .445 / 7.95 |
 
 The open models are deterministic on fixed hardware; expect the third decimal to move
 between a Mac and a CUDA card. Jev is a hosted model that can change under its alias.
@@ -59,7 +58,6 @@ files are not committed, because ChaosNLI is non-commercial; the script rebuilds
 | build the test set | `uv run python scripts/build_unseen_eval.py --n 300` |
 | score an open circuit | `uv run python scripts/eval_set.py lora:runs/hub/circuit-8b data/unseen_eval.jsonl --out out.json` |
 | score Jev | `uv run python scripts/eval_jev.py data/unseen_eval.jsonl --out out.json` |
-| score Laya | `uv run --with laya python scripts/eval_laya.py data/unseen_eval.jsonl --out out.json` |
 | score Nimble | `uv run python scripts/eval_nimble.py data/unseen_eval.jsonl --nimble <dir> --out out.json` |
 
 Our own result files are in `results/unseen_*.json`, and the write-up, including where

@@ -16,7 +16,6 @@ for m in $MODELS; do
   [ -f "runs/hub/$m/head.pt" ] || uv run hf download "jbarney/$m" --local-dir "runs/hub/$m" >/dev/null
   uv run python scripts/eval_set.py "lora:runs/hub/$m" data/unseen_eval.jsonl --batch 4 --out "$OUT/unseen_$m.json" >/dev/null
 done
-uv run --with laya python scripts/eval_laya.py data/unseen_eval.jsonl --out "$OUT/unseen_laya.json" >/dev/null
 if [ -n "${TYPESAFE_API_KEY:-}" ]; then
   uv run python scripts/eval_jev.py data/unseen_eval.jsonl --out "$OUT/unseen_jev.json" --concurrency 4 >/dev/null
 fi
