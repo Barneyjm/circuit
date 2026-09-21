@@ -377,3 +377,43 @@ really a cost gap; it is a choice about whether an answer has to come back the
 same way twice, and it is worth stating as a property rather than leaving it
 implicit. Where it matters most is a threshold: a probability within 0.01 of
 the line can fall either side of it depending on who else was being served.
+
+## The column race (2026-09-20, third-party benchmark, we lose)
+
+`goodrahstar/jev-column-race` labels 1,000 real Google Play reviews with four
+typed columns — sentiment (score), topic (choice), bug (noul), churn (score) —
+and publishes Jev against Gemini 3.8 Flash. Twenty reviews go in one shared
+state and each gets four questions, so a request carries eighty questions: the
+exact shape our prefix caching exists for. Star ratings are kept out of the
+state and used afterwards as the independent check on sentiment, which is the
+part of this benchmark worth respecting — the ground truth is what the reviewer
+themselves chose, not anyone's label.
+
+Their request builder replayed against our endpoints, 200 of the 1,000 reviews:
+
+| | sentiment vs the writer's own stars (Spearman) | cost per 1,000 | wall per 1,000 |
+|---|---|---|---|
+| Gemini 3.8 Flash (their figure) | 0.82 | $0.158 | 18.8 s |
+| Jev (their figure) | 0.80 | $0.023 | 4.6 s |
+| circuit-8b | 0.71 | $0.078 | ~144 s |
+| circuit-1.7b | 0.57 | $0.038 | ~174 s |
+
+We lose on quality and lose badly on speed — roughly 30x slower per review than
+Jev, and dearer than them too. Unlike the routing benchmark, where circuit-8b
+sits 3.6 points behind zero-shot, there is no reading of this where we are
+close. Eighty questions over a shared state is a serving problem as much as a
+model one: we run each question as its own prompt against a cached state, and
+whatever Jev does, it is not that.
+
+The run paid for itself anyway. The first attempt returned 500s: eighty
+questions is eighty prompts of about 1,300 tokens, and scoring them in one pass
+exhausts a 22 GB L4 with a CUDA out-of-memory. Any caller using the API the way
+both published benchmarks use it would have hit it. Scoring is now chunked
+(`S1_SCORE_CHUNK`, 16), so memory is bounded by the chunk rather than by how
+many questions a caller asks.
+
+Caveats on our numbers: 200 reviews rather than 1,000, and Spearman against
+stars measures the sentiment column only. Topic, bug and churn have no ground
+truth in this corpus, so agreement there would only be agreement with Jev.
+
+Results: `scratchpad/race_circuit-8b.json`, `race_circuit-1.7b.json`.
