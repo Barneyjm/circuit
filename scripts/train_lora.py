@@ -23,6 +23,7 @@ import argparse
 import json
 import math
 import random
+import shutil
 import sys
 import time
 from pathlib import Path
@@ -129,6 +130,19 @@ def soft_ce(logits: torch.Tensor, ref: torch.Tensor, nopts: torch.Tensor) -> tor
     return -(ref * logp).sum(dim=-1).mean()
 
 
+def pick_checkpoint(history: list[dict], acc_floor: float) -> dict:
+    """The best-calibrated checkpoint among those that are also accurate.
+
+    Lowest ECE alone is the right instinct for a model sold on calibration, and it has
+    one failure: early in training a model can be well calibrated about knowing nothing
+    (a router run kept a 26%-accurate step this way). So only checkpoints within
+    `acc_floor` of the best validation accuracy seen are eligible. Past that floor more
+    steps buy accuracy where the training data lives and spend calibration everywhere
+    else, which is why this does not simply take the last one."""
+    top = max(h["accuracy"] for h in history)
+    return min((h for h in history if h["accuracy"] >= top - acc_floor), key=lambda h: h["ece"])
+
+
 @torch.no_grad()
 def evaluate(model, head, tok, items, device, batch, max_length, layout="letters", proc=None, image_root=None, modality="text"):
     model.eval()
@@ -169,6 +183,12 @@ def main() -> None:
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--dtype", default="bfloat16")
+    ap.add_argument(
+        "--acc-floor",
+        type=float,
+        default=0.01,
+        help="keep the lowest-ECE checkpoint among those within this much of the best validation accuracy; 1.0 is lowest ECE outright",
+    )
     ap.add_argument(
         "--micro",
         type=int,
@@ -337,7 +357,8 @@ def main() -> None:
         rng.shuffle(batches)
         return batches
 
-    best = {"ece": float("inf")}
+    best: dict = {}
+    history: list[dict] = []
     step = 0
     t0 = time.time()
     skip = start_step
@@ -397,28 +418,38 @@ def main() -> None:
                 model.save_pretrained(out / "latest" / "adapter")
                 torch.save(head.state_dict(), out / "latest" / "head.pt")
                 json.dump({"step": step, "epoch": epoch}, open(out / "latest" / "state.json", "w"))
-                if m["ece"] < best["ece"]:
-                    best = {**m, "step": step}
-                    model.save_pretrained(out / "adapter")
-                    torch.save(head.state_dict(), out / "head.pt")
-                    json.dump(
-                        {
-                            "base": args.model,
-                            "hidden": hidden,
-                            "head": args.head,
-                            "head_size": HEAD_SIZE,
-                            "head_dim": HEAD_DIM,
-                            "layout": layout,
-                            "load_4bit": args.load_4bit,
-                            "modality": args.modality,
-                            "pointer_tokens": pointer_tokens,
-                            "best": best,
-                            "args": vars(args),
-                        },
-                        open(out / "config.json", "w"),
-                        indent=1,
-                    )
-                    print(f"  saved (best ece {best['ece']:.4f} @ step {step})", flush=True)
+                # every evaluated step is kept, because which one is best is only known later
+                here = out / "steps" / str(step)
+                here.mkdir(parents=True, exist_ok=True)
+                model.save_pretrained(here / "adapter")
+                torch.save(head.state_dict(), here / "head.pt")
+                history.append({**m, "step": step})
+                chosen = pick_checkpoint(history, args.acc_floor)
+                if chosen["step"] != best.get("step"):
+                    best = chosen
+                    src = out / "steps" / str(best["step"])
+                    shutil.rmtree(out / "adapter", ignore_errors=True)
+                    shutil.copytree(src / "adapter", out / "adapter")
+                    shutil.copy(src / "head.pt", out / "head.pt")
+                    print(f"  kept step {best['step']} (ece {best['ece']:.4f}, acc {best['accuracy']:.4f})", flush=True)
+                json.dump(
+                    {
+                        "base": args.model,
+                        "hidden": hidden,
+                        "head": args.head,
+                        "head_size": HEAD_SIZE,
+                        "head_dim": HEAD_DIM,
+                        "layout": layout,
+                        "load_4bit": args.load_4bit,
+                        "modality": args.modality,
+                        "pointer_tokens": pointer_tokens,
+                        "best": best,
+                        "history": history,
+                        "args": vars(args),
+                    },
+                    open(out / "config.json", "w"),
+                    indent=1,
+                )
     print(f"done in {(time.time() - t0) / 60:.1f} min; best {best}")
     if wb:
         wb.summary["best"] = best
