@@ -60,9 +60,21 @@ while true; do
   if [ $(( now - START )) -gt $(( MAX_HOURS * 3600 )) ]; then echo "!!! over $MAX_HOURS h; collecting what exists and terminating"; break; fi
 done
 
-# the kept checkpoint and the results; the per-step checkpoints stay behind
-R="rsync -rltz --no-owner --no-group -e"
-$R "ssh -i $KEY -p $P" --include='/*/' --include='/*/adapter/***' --include='/*/head.pt' --include='/*/config.json' --exclude='*' "root@$H:/workspace/s1-proto/runs/" runs/
-$R "ssh -i $KEY -p $P" --include='*.json' --exclude='*' "root@$H:/workspace/s1-proto/results/" results/
+# The kept checkpoint and the results come home before anything is terminated. tar over ssh, because
+# a fresh pod has no rsync; the per-step checkpoints stay behind. A pod whose weights could not be
+# fetched is left running, loudly: an hour of an A40 costs less than the run that produced them.
+collect () {
+  $S "cd /workspace/s1-proto && tar -cf - runs/$RUN/adapter runs/$RUN/head.pt runs/$RUN/config.json results/*.json" | tar -xf - -C "$SRC"
+  [ -s "runs/$RUN/head.pt" ] && [ -s "runs/$RUN/adapter/adapter_model.safetensors" ] && [ -s "runs/$RUN/config.json" ]
+}
+if [ "${collected:-0}" = 0 ]; then
+  for attempt in 1 2 3; do collect && { collected=1; break; }; echo "collect attempt $attempt failed"; sleep 20; done
+fi
+if [ "${collected:-0}" != 1 ] && $S "test -s /workspace/s1-proto/runs/$RUN/head.pt" 2>/dev/null; then
+  trap - EXIT
+  echo "!!! WEIGHTS EXIST ON THE POD BUT COULD NOT BE FETCHED. POD $POD LEFT RUNNING at \$$COST/hr."
+  echo "!!! fetch by hand: ssh -i $KEY -p $P root@$H   then terminate it."
+  exit 4
+fi
 ls -la "runs/$RUN/head.pt" "runs/$RUN/adapter/adapter_model.safetensors" 2>&1 | awk '{print $5, $9}'
 echo "cost: about \$$(python3 -c "print(round(($(date +%s) - $START) / 3600 * $COST, 2))")"
