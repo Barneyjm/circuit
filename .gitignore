@@ -36,3 +36,6 @@ data/audio/grid/eval/
 data/audio/sources/
 # downloaded photo sources (Open Images, per-image attribution in index.json)
 data/vision/sources/
+
+# output of scripts/reproduce_unseen.sh
+results/repro/
