@@ -528,6 +528,16 @@ Weights: `runs/circuit35-2b`, `runs/circuit35-9b`. About 3.3 H100-hours.
 
 ## Datasets nobody prepared for (2026-09-21)
 
+> **Correction, same day.** The KL columns in this section and the two after it must not be
+> read across to Jev. Its API rounds probabilities to two decimals, a reported 0.00 meets
+> our `eps = 1e-9`, and one such item against a 20% human vote adds 3.8 to the mean. Jev's
+> "KL 2.00" on ChaosNLI is that, not miscalibration. Brier is bounded and tells the real
+> story: ChaosNLI Jev .269, SemIf .254, Nimble .331, circuit-8b v1.0 .357, circuit-1.7b
+> v1.0 .322, circuit-8b v1.1 **.177**, circuit-1.7b v1.1 .292. So "every open model is
+> closer to the human vote than Jev" is false; only circuit-8b v1.1 is. KL between the
+> open models, which report full precision, stands. Found via Haixun Wang's "What's Inside
+> Jev?", which points out the reporting floor.
+
 `hf_eval.jsonl` is held-out rows of datasets that also supply training rows.
 `scripts/build_unseen_eval.py` builds the harder thing: 300 items each from four
 datasets no circuit has seen in any split, plus 300 POPE image questions.

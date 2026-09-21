@@ -28,21 +28,31 @@ TYPESAFE_API_KEY=... scripts/reproduce_unseen.sh
 
 ## What you should see
 
-Accuracy / expected calibration error / KL divergence to the human reference. Lower is
-better for the last two. Run on 2026-09-21.
+Accuracy / expected calibration error / Brier score. Lower is better for the last two.
+Run on 2026-09-21.
 
 | | tool relevance (BFCL) | groundedness (HaluEval QA) | human disagreement (ChaosNLI) | 64 intents (HWU64) |
 |---|---|---|---|---|
-| Jev (`jev-latest`) | .813 / .069 / 0.40 | **.910 / .029 / 0.24** | .600 / .254 / 2.00 | **.800 / .087** / 1.29 |
-| Bespoke-Nimble-9B | **.827 / .060 / 0.37** | .840 / .085 / 0.37 | .563 / .315 / 0.87 | does not run |
-| circuit-8b | .807 / .107 / 0.59 | .720 / .143 / 0.60 | .560 / .314 / 0.96 | .777 / .140 / 1.12 |
-| circuit-1.7b | .580 / .228 / 0.76 | .730 / .052 / 0.53 | .523 / .242 / 0.98 | .723 / .107 / **1.01** |
+| Jev (`jev-latest`) | .813 / .069 / .259 | **.910 / .029 / .140** | **.600 / .254 / .269** | **.800 / .087 / .276** |
+| Bespoke-Nimble-9B | **.827 / .060 / .238** | .840 / .085 / .236 | .563 / .315 / .331 | does not run (26-option cap) |
+| circuit-8b `v1.0` | .807 / .107 / .314 | .720 / .143 / .384 | .560 / .314 / .357 | .777 / .140 / .355 |
+| circuit-1.7b `v1.0` | .580 / .228 / .539 | .730 / .052 / .352 | .523 / .242 / .322 | .723 / .107 / .381 |
+
+Jev is the strongest model here. Nimble edges it on tool relevance; nothing open is close
+on groundedness. Its weakest set is ChaosNLI, where it agrees with the majority of 100
+annotators 60% of the time and its calibration error is three to nine times what it is
+elsewhere, but it is still the best of these four there too.
+
+**A correction.** An earlier version of this page reported KL divergence and said Jev was
+twice as far from the annotators' votes as any open model. That was an artifact. Jev's
+API reports probabilities to two decimals, so an option it gives 0.4% comes back as 0.00,
+and KL against a human vote of 20% on that option is then enormous. Brier score is
+bounded and does not have the problem; on it Jev leads. The script still prints KL for
+the open models, where it is meaningful, and should not be read across to Jev.
 
 The open models are deterministic on fixed hardware; expect the third decimal to move
 between a Mac and a CUDA card. Jev is a hosted model that can change under its alias.
-With 300 items a set, a gap of two or three points of accuracy is noise. The ChaosNLI
-KL column is not: its reference is how 100 people actually voted on each item, and the
-hosted model is about twice as far from that as any open one.
+With 300 items a set, a gap of two or three points of accuracy is noise.
 
 ## What each set asks
 

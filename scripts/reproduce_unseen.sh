@@ -24,9 +24,9 @@ fi
 uv run python - "$OUT" <<'PY'
 import glob, json, sys
 fams = ["bfcl_relevance", "halueval_qa", "chaosnli", "hwu64"]
-print(f"\n{'model':16s}" + "".join(f"{f:>26s}" for f in fams) + "\n" + " " * 16 + "".join(f"{'acc / ece / kl':>26s}" for _ in fams))
+print(f"\n{'model':16s}" + "".join(f"{f:>26s}" for f in fams) + "\n" + " " * 16 + "".join(f"{'acc / ece / brier':>26s}" for _ in fams))
 for path in sorted(glob.glob(f"{sys.argv[1]}/unseen_*.json")):
     m = json.load(open(path))["metrics"]
     cells = [m.get(f"family:{f} (heldout)") for f in fams]
-    print(f"{path.split('unseen_')[1][:-5]:16s}" + "".join(f"{(f'{c['accuracy']:.3f} / {c['ece']:.3f} / {c['kl_to_ref']:.2f}' if c else '-'):>26s}" for c in cells))
+    print(f"{path.split('unseen_')[1][:-5]:16s}" + "".join(f"{(f'{c['accuracy']:.3f} / {c['ece']:.3f} / {c['brier']:.3f}' if c else '-'):>26s}" for c in cells))
 PY
