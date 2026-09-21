@@ -525,3 +525,37 @@ by the host rather than the GPU, so treat the ratio as indicative.
 Not worth switching the small model. The 9B's DIY result is worth a second look if
 out-of-distribution accuracy becomes the thing to buy and the latency is affordable.
 Weights: `runs/circuit35-2b`, `runs/circuit35-9b`. About 3.3 H100-hours.
+
+## Datasets nobody prepared for (2026-09-21)
+
+`hf_eval.jsonl` is held-out rows of datasets that also supply training rows.
+`scripts/build_unseen_eval.py` builds the harder thing: 300 items each from four
+datasets no circuit has seen in any split, plus 300 POPE image questions.
+Accuracy / ECE / KL to the human reference:
+
+| set | Jev | Nimble | circuit-1.7b | circuit-8b |
+|---|---|---|---|---|
+| BFCL: can any listed tool do this? | .813 / .069 / 0.40 | **.827 / .060 / 0.37** | .580 / .228 / 0.76 | .807 / .107 / 0.59 |
+| HaluEval QA: does the passage support the answer? | **.910 / .029 / 0.24** | .840 / .085 / 0.37 | .730 / .052 / 0.53 | .720 / .143 / 0.60 |
+| ChaosNLI: 100 annotators per item | **.600** / .254 / 2.00 | .563 / .315 / **0.87** | .523 / .242 / 0.98 | .560 / .314 / 0.96 |
+| HWU64: 64 intents | **.800 / .087** / 1.29 | cannot (option cap) | .723 / .107 / **1.01** | .777 / .140 / 1.12 |
+
+This is a loss, and a more honest picture than the held-out rows gave. Jev leads on
+accuracy everywhere it competes; circuit-8b is level with it on tool relevance and
+close on intents, and 19 points behind on groundedness, where the 1.7B and 8B score
+the same, so it is the data and not the size. circuit-1.7b on tool relevance is
+barely above a coin. Calibration also degrades off-distribution: ECE of .11 to .31
+here against .01 to .05 on the grid.
+
+Two things go the other way. On ChaosNLI every open model is about twice as close to
+the distribution of human answers as Jev is (KL 0.87 to 0.98 against 2.00): Jev picks
+the plurality label more often and is confident on items people split on. And the
+pointer head takes 64 options where Nimble, the other open model, takes none of them.
+
+POPE, object presence in COCO photos: circuit-vl-4b-v2 .923 / ECE .049 against the
+untuned Qwen3-VL-4B at .913 / .072. Tuning on rendered documents and charts did not
+cost anything on photographs, and did not buy much either.
+
+What to train next is written in the table: groundedness and tool-call judgments,
+neither of which has a family in the mix. Results: `results/unseen_*.json`,
+`results/pope_*.json`.

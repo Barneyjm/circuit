@@ -1,0 +1,86 @@
+{
+ "model": "jev-latest",
+ "data": "data/unseen_eval.jsonl",
+ "timing": {
+  "items": 1200,
+  "errors": 0,
+  "concurrency": 4,
+  "wall_seconds": 51.3,
+  "ms_per_item_p50": 161.1,
+  "ms_per_item_p90": 225.8,
+  "ms_per_item_mean": 170.7,
+  "note": "client-side round trip to api.typesafe.ai; includes network"
+ },
+ "metrics": {
+  "all": {
+   "n": 1200,
+   "kl_to_ref": 0.9812,
+   "brier": 0.2359,
+   "accuracy": 0.7808,
+   "ece": 0.0922,
+   "sel_acc_90": 0.8157,
+   "agree_jev": 0.7808,
+   "mean_conf": 0.8731
+  },
+  "type:noul": {
+   "n": 600,
+   "kl_to_ref": 0.3178,
+   "brier": 0.1995,
+   "accuracy": 0.8617,
+   "ece": 0.0379,
+   "sel_acc_90": 0.8981,
+   "agree_jev": 0.8617,
+   "mean_conf": 0.8952
+  },
+  "family:bfcl_relevance (heldout)": {
+   "n": 300,
+   "kl_to_ref": 0.3989,
+   "brier": 0.2586,
+   "accuracy": 0.8133,
+   "ece": 0.0685,
+   "sel_acc_90": 0.8519,
+   "agree_jev": 0.8133,
+   "mean_conf": 0.8816
+  },
+  "family:halueval_qa (heldout)": {
+   "n": 300,
+   "kl_to_ref": 0.2367,
+   "brier": 0.1403,
+   "accuracy": 0.91,
+   "ece": 0.0287,
+   "sel_acc_90": 0.9407,
+   "agree_jev": 0.91,
+   "mean_conf": 0.9087
+  },
+  "type:choice": {
+   "n": 600,
+   "kl_to_ref": 1.6447,
+   "brier": 0.2723,
+   "accuracy": 0.7,
+   "ece": 0.151,
+   "sel_acc_90": 0.7315,
+   "agree_jev": 0.7,
+   "mean_conf": 0.851
+  },
+  "family:chaosnli (heldout)": {
+   "n": 300,
+   "kl_to_ref": 2.0011,
+   "brier": 0.2686,
+   "accuracy": 0.6,
+   "ece": 0.254,
+   "sel_acc_90": 0.5963,
+   "agree_jev": 0.6,
+   "mean_conf": 0.8276
+  },
+  "family:hwu64 (heldout)": {
+   "n": 300,
+   "kl_to_ref": 1.2883,
+   "brier": 0.2759,
+   "accuracy": 0.8,
+   "ece": 0.087,
+   "sel_acc_90": 0.8667,
+   "agree_jev": 0.8,
+   "mean_conf": 0.8745
+  }
+ }
+}

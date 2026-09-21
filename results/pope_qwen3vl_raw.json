@@ -1,0 +1,63 @@
+{
+ "model": "Qwen/Qwen3-VL-4B-Instruct",
+ "data": "data/vision/unseen/eval.jsonl",
+ "timing": {
+  "device": "mps",
+  "items": 300,
+  "ms_per_item": 911.2,
+  "batch": 1,
+  "note": "letter logits on a raw vision-language model"
+ },
+ "metrics": {
+  "all": {
+   "n": 300,
+   "kl_to_ref": 0.5912,
+   "brier": 0.1387,
+   "accuracy": 0.9133,
+   "ece": 0.0717,
+   "sel_acc_90": 0.9593,
+   "agree_jev": 0.9133,
+   "mean_conf": 0.985
+  },
+  "type:noul": {
+   "n": 300,
+   "kl_to_ref": 0.5912,
+   "brier": 0.1387,
+   "accuracy": 0.9133,
+   "ece": 0.0717,
+   "sel_acc_90": 0.9593,
+   "agree_jev": 0.9133,
+   "mean_conf": 0.985
+  },
+  "family:pope_random (heldout)": {
+   "n": 100,
+   "kl_to_ref": 0.8288,
+   "brier": 0.1447,
+   "accuracy": 0.92,
+   "ece": 0.0764,
+   "sel_acc_90": 0.9667,
+   "agree_jev": 0.92,
+   "mean_conf": 0.9927
+  },
+  "family:pope_popular (heldout)": {
+   "n": 100,
+   "kl_to_ref": 0.5222,
+   "brier": 0.1494,
+   "accuracy": 0.91,
+   "ece": 0.0715,
+   "sel_acc_90": 0.9556,
+   "agree_jev": 0.91,
+   "mean_conf": 0.9815
+  },
+  "family:pope_adversarial (heldout)": {
+   "n": 100,
+   "kl_to_ref": 0.4225,
+   "brier": 0.1221,
+   "accuracy": 0.91,
+   "ece": 0.0707,
+   "sel_acc_90": 0.9667,
+   "agree_jev": 0.91,
+   "mean_conf": 0.9807
+  }
+ }
+}
