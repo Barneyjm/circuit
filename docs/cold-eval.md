@@ -362,6 +362,24 @@ figure. Independently, the ainergiz systematic-review write-up reports "we ran
 the same input twice, scores moved by 0.009 on average" on a completely
 different workload.
 
+**Batch-invariant kernels fix half of it.** Thinking Machines' library
+(`thinking-machines-lab/batch_invariant_ops`, MIT) substitutes four ATen ops —
+`mm`, `addmm`, `_log_softmax`, `mean.dim` — through `torch.Library`, no model
+changes. Measured on an L40S with circuit-1.7b (`deploy/batch_invariance_probe.py`):
+
+| | alone vs batch of 5 identical | alone vs batch of mixed lengths | time |
+|---|---|---|---|
+| standard kernels | 1.93e-02 | 6.90e-03 | 62 ms |
+| batch-invariant | **0.00e+00** | 2.58e-02 | 67 ms |
+
+Batch size stops mattering entirely, and it costs about 5 ms rather than the
+1.6x they report, because we prefill once and never decode. Sequence length
+still matters, because attention is not one of the four ops they swap — their
+attention work goes through vLLM's FlexAttention backend, which we do not use.
+So reproducibility under batching needs either a batch-invariant attention path
+or prompts bucketed by token length so every pass is uniform. The second is
+probably cheaper for us and is untried.
+
 Our batched drift is 0.0096 and their median is 0.0100. That is the same
 phenomenon at the same size, and it reframes the cost comparison:
 
