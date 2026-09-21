@@ -14,11 +14,14 @@ PORT="${2:-22}"
 KEY="${SSH_KEY:-$HOME/.ssh/runpod_s1}"
 SSH="ssh -i $KEY -p $PORT -o StrictHostKeyChecking=accept-new root@$HOST"
 SRC="$(cd "$(dirname "$0")/.." && pwd)"
+# Images and audio are 750 MB over a home uplink, and a text run never reads them. MEDIA=1 sends them.
+MEDIA_EXCLUDE="--exclude data/audio --exclude data/vision"
+[ "${MEDIA:-0}" = "1" ] && MEDIA_EXCLUDE=""
 
 echo "== rsync repo"
 $SSH 'command -v rsync >/dev/null || (apt-get update -qq && apt-get install -y -qq rsync >/dev/null)' </dev/null
 rsync -rltDz --no-owner --no-group --delete -e "ssh -i $KEY -p $PORT -o StrictHostKeyChecking=accept-new" \
-  --exclude .venv --exclude runs --exclude wandb --exclude '.git/objects' --exclude '__pycache__' --exclude '.pytest_cache' \
+  --exclude .venv --exclude runs --exclude wandb --exclude '.git/objects' --exclude '__pycache__' --exclude '.pytest_cache' $MEDIA_EXCLUDE \
   "$SRC/" "root@$HOST:/workspace/s1-proto/"
 rsync -rltDz --no-owner --no-group --delete -e "ssh -i $KEY -p $PORT -o StrictHostKeyChecking=accept-new" \
   --exclude .venv --exclude dist --exclude '.git/objects' --exclude '__pycache__' --exclude '.pytest_cache' \
