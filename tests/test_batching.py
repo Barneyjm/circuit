@@ -87,3 +87,36 @@ def test_disabled_batcher_calls_straight_through():
     b.score([one_prompt("a"), one_prompt("b")])
     assert inner.calls == [2]
     assert b.max_options == inner.max_options  # attributes pass through
+
+
+def test_prompts_of_different_lengths_do_not_share_a_pass():
+    """Mixing lengths pads, padding changes what attention reduces over, and the
+    answer moves. Uniform batching is what makes a batched answer reproducible."""
+    inner = CountingScorer()
+    b = Batcher(inner, max_batch=8, wait_ms=30, uniform=True)
+    lengths = ["a" * 10, "a" * 10, "b" * 400, "a" * 10]
+    threads = [threading.Thread(target=lambda t=t: b.score([one_prompt(t)])) for t in lengths]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert sum(inner.calls) == 4
+    assert max(inner.calls) <= 3, f"a long prompt joined a short batch: {inner.calls}"
+
+
+def test_uniform_off_lets_anything_share_a_pass():
+    inner = CountingScorer()
+    b = Batcher(inner, max_batch=8, wait_ms=30, uniform=False)
+    threads = [threading.Thread(target=lambda t=t: b.score([one_prompt(t)])) for t in ["a" * 10, "b" * 400, "c" * 900]]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert max(inner.calls) > 1, f"nothing batched with uniform off: {inner.calls}"
+
+
+def test_stats_report_what_is_guaranteed():
+    b = Batcher(CountingScorer(), max_batch=4, wait_ms=5)
+    s = b.stats
+    assert s["uniform_length"] is True
+    assert "batch_invariant" in s  # False off CUDA, and the caller can see which

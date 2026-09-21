@@ -14,17 +14,34 @@ in it has waited long enough.
 
     S1_BATCH_MAX     prompts in one pass (1, the default, disables it entirely)
     S1_BATCH_WAIT_MS how long the first prompt in a batch waits for company
+    S1_BATCH_UNIFORM only batch prompts of the same token length (1, the default)
 
-**Off by default, and the reason is not performance.** A batched matmul in bf16
-reduces in a different order than a single-row one, so an answer moves by about
-0.01 depending on the batch it was computed in — measured at 0.5050 alone
-against 0.4954 batched with four *identical* prompts, no padding involved. With
-batching on, that means an answer depends on what other callers happened to send
-at the same moment, and a probability sitting on a threshold can land either
-side of it. For a shared API that advertises a reproducible number, that trade
-is wrong. For a screening run over thousands of items on your own machine, where
-throughput is the whole point and no single answer is quoted later, it is right:
-set S1_BATCH_MAX=8 and take roughly 3x.
+**Batching normally costs you a reproducible answer, and it does not have to.**
+A bf16 matmul reduces in a different order at a different batch size, so the
+same prompt scored in a batch answers about 0.01 away from the same prompt
+scored alone. Two conditions together remove that, both measured on an L40S:
+
+  batch-invariant kernels   thinking-machines-lab/batch_invariant_ops swaps mm,
+                            addmm, _log_softmax and mean.dim through
+                            torch.Library, for about 5 ms a pass. Enabled here
+                            whenever it is installed and CUDA is present.
+
+  uniform token length      attention is not one of the ops they swap, so a pass
+                            holding prompts of different lengths still drifts.
+                            Batching only prompts of the same length closes it.
+
+With both, a prompt batched with four others of the same length and entirely
+different text returns bit-identical numbers to the same prompt scored alone.
+With neither, that case moves by 1.56e-02, which is enough to cross a threshold.
+
+**What it costs is batching itself, on mixed traffic.** Eight requests of eight
+different lengths bucket into eight passes — determinism bought by never
+batching. Measured on an L40S: uniform on, 9 passes for 8 requests and a
+bit-identical answer; uniform off, 2 passes, 2.2x faster, and 6.47e-02 of
+drift. The win is real where lengths cluster naturally, which is the screening
+shape — many similar items, one template — and absent where they do not, which
+is a public endpoint taking whatever arrives. S1_BATCH_UNIFORM=0 takes the
+throughput and gives up the guarantee.
 """
 
 from __future__ import annotations
@@ -34,6 +51,29 @@ import threading
 import time
 from dataclasses import dataclass, field
 from typing import Any
+
+
+def _no_invariance():
+    """A context manager that does nothing, for CPU, MPS, or a missing library."""
+    from contextlib import nullcontext
+
+    return nullcontext()
+
+
+def _batch_invariant_mode():
+    """Kernels whose result does not depend on batch size, when they are available.
+
+    CUDA only: the implementations are Triton. Without them a batch still answers
+    within about 0.01 of a single prompt, which is fine for throughput work and not
+    fine for an answer someone has to reproduce."""
+    try:
+        import torch
+        from batch_invariant_ops import set_batch_invariant_mode
+    except ImportError:
+        return _no_invariance
+    if not torch.cuda.is_available():
+        return _no_invariance
+    return set_batch_invariant_mode
 
 
 @dataclass
@@ -49,8 +89,11 @@ class _Job:
 class Batcher:
     """Runs one scorer on a queue, so concurrent callers share a forward pass."""
 
-    def __init__(self, scorer: Any, max_batch: int | None = None, wait_ms: float | None = None) -> None:
+    def __init__(self, scorer: Any, max_batch: int | None = None, wait_ms: float | None = None, uniform: bool | None = None) -> None:
         self.scorer = scorer
+        self.uniform = (os.environ.get("S1_BATCH_UNIFORM", "1") == "1") if uniform is None else uniform
+        self._lengths: dict[str, int] = {}
+        self.invariant = _batch_invariant_mode()
         self.max_batch = int(os.environ.get("S1_BATCH_MAX", "1") if max_batch is None else max_batch)
         self.wait_s = float(os.environ.get("S1_BATCH_WAIT_MS", "6") if wait_ms is None else wait_ms) / 1000
         self._queue: list[_Job] = []
@@ -75,9 +118,32 @@ class Batcher:
         return job.results or []
 
     def _call(self, prompts: list[Any], temperatures: list[float] | None, media: list[Any] | None) -> list[Any]:
-        if media is not None:
-            return self.scorer.score(prompts, temperatures, media=media)
-        return self.scorer.score(prompts, temperatures)
+        with self.invariant():
+            if media is not None:
+                return self.scorer.score(prompts, temperatures, media=media)
+            return self.scorer.score(prompts, temperatures)
+
+    def _length(self, prompt: Any) -> int:
+        """Token count when a tokenizer is reachable, character count otherwise.
+        Either way it is only a bucket key: prompts that disagree do not share a pass."""
+        n = self._lengths.get(prompt.text)
+        if n is None:
+            tok = getattr(self.scorer, "tokenizer", None)
+            n = len(tok.encode(prompt.text)) if tok is not None else len(prompt.text)
+            if len(self._lengths) < 4096:  # a bounded cache; prompts rarely repeat
+                self._lengths[prompt.text] = n
+        return n
+
+    def _key(self, job: _Job) -> Any:
+        """Jobs share a pass only when they agree on everything the kernels see."""
+        try:
+            if job.media is not None:
+                return ("media", id(job))
+            if not self.uniform:
+                return "any"
+            return ("len", tuple(sorted({self._length(p) for p in job.prompts})))
+        except Exception:  # never let a key failure strand the caller waiting
+            return ("alone", id(job))
 
     def _take(self) -> list[_Job]:
         """The next batch: everything queued, up to the prompt cap, oldest first.
@@ -86,19 +152,21 @@ class Batcher:
             while not self._queue:
                 self._arrived.wait()
             first = self._queue.pop(0)
+            key = self._key(first)
             batch, size = [first], len(first.prompts)
             deadline = time.perf_counter() + self.wait_s
             while size < self.max_batch:
-                if not self._queue:
-                    remaining = deadline - time.perf_counter()
-                    if remaining <= 0 or not self._arrived.wait(remaining):
-                        break
+                # Only a job whose prompts are the same length may join: mixing lengths
+                # pads, padding changes what attention reduces over, and the answer moves.
+                fits = next((j for j in self._queue if self._key(j) == key and len(j.prompts) + size <= self.max_batch), None)
+                if fits is not None:
+                    self._queue.remove(fits)
+                    batch.append(fits)
+                    size += len(fits.prompts)
                     continue
-                if len(self._queue[0].prompts) + size > self.max_batch:
+                remaining = deadline - time.perf_counter()
+                if remaining <= 0 or not self._arrived.wait(remaining):
                     break
-                nxt = self._queue.pop(0)
-                batch.append(nxt)
-                size += len(nxt.prompts)
             return batch
 
     def _run(self) -> None:
@@ -133,6 +201,8 @@ class Batcher:
     def stats(self) -> dict[str, Any]:
         return {
             "max_batch": self.max_batch,
+            "uniform_length": self.uniform,
+            "batch_invariant": self.invariant is not _no_invariance,
             "wait_ms": round(self.wait_s * 1000, 1),
             "batches": self.batches,
             "prompts_scored": self.prompts_scored,

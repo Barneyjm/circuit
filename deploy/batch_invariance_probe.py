@@ -37,7 +37,12 @@ app = modal.App("circuit-batch-invariance", image=image)
 
 
 @app.function(gpu="L40S", volumes={"/vol": weights}, timeout=1800)
-def probe(name: str = "circuit-1.7b") -> None:
+# S1_ATTN=flex_attention tests whether a batch-invariant attention path closes the
+# remaining gap between prompts of different lengths.
+def probe(name: str = "circuit-1.7b", attn: str = "sdpa") -> None:
+    import os
+
+    os.environ["S1_ATTN"] = attn
     import time
 
     from huggingface_hub import snapshot_download
@@ -48,12 +53,33 @@ def probe(name: str = "circuit-1.7b") -> None:
 
     run_dir = f"/vol/{name}"
     snapshot_download(REPO, local_dir=run_dir)
+    import os as _os
+
+    attn = _os.environ.get("S1_ATTN", "sdpa")
     sc = LoRAScorer(run_dir=run_dir)
     sc.prefix_cache = False
+    if attn != "sdpa":  # swap the attention backend on the loaded model
+        sc.model.set_attn_implementation(attn)
+    print(f"\n  attention backend: {attn}")
 
     q = NoulQuestion(type="noul", instructions="Does this need someone today?")
     target = render("the pipe burst on Elm street", q, layout="pointer")
     company = [render(t, q, layout="pointer") for t in ["hi", "x" * 400, "a meter reading that looks wrong", "y" * 900]]
+
+    # Same token count, different content: the case that decides whether bucketing
+    # prompts by length is enough, or whether only identical prompts are safe.
+    tok = sc.tokenizer
+    n_target = len(tok.encode(target.text))
+    same_length = []
+    for filler in ["alpha", "bravo", "charlie", "delta"]:
+        text = target.text.replace("Elm street", f"{filler} street")
+        ids = tok.encode(text)
+        while len(ids) < n_target:
+            text = text.replace("burst", "burst suddenly", 1)
+            ids = tok.encode(text)
+        if len(ids) == n_target:
+            same_length.append(render(text.split("\n")[0], q, layout="pointer"))
+    same_length = [p for p in same_length if len(tok.encode(p.text)) == n_target]
 
     def measure(label: str) -> None:
         sc.score([target])  # warm
@@ -68,6 +94,9 @@ def probe(name: str = "circuit-1.7b") -> None:
         print(f"    alone                      {alone!r}   ({solo_ms:.0f} ms)")
         print(f"    batch of 5, identical      {same!r}   diff {abs(alone - same):.2e}")
         print(f"    batch of 5, mixed lengths  {mixed!r}   diff {abs(alone - mixed):.2e}   ({batch_ms:.0f} ms)")
+        if same_length:
+            eq = sc.score([target] + same_length)[0].probabilities[0]
+            print(f"    batch, same length new text{eq!r}   diff {abs(alone - eq):.2e}   ({len(same_length) + 1} prompts)")
 
     measure("standard kernels")
     from batch_invariant_ops import set_batch_invariant_mode

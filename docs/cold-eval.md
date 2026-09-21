@@ -435,3 +435,32 @@ stars measures the sentiment column only. Topic, bug and churn have no ground
 truth in this corpus, so agreement there would only be agreement with Jev.
 
 Results: `scratchpad/race_circuit-8b.json`, `race_circuit-1.7b.json`.
+
+## Deterministic batching, and what it costs (2026-09-20)
+
+Batch-invariant kernels remove the batch-size half of the drift. The other half
+is sequence length, because attention is not among the four ops they swap. So
+the batcher now buckets by token length: a job joins a pass only if its prompts
+match the lengths already in it. Measured on an L40S with circuit-1.7b, eight
+concurrent requests of assorted lengths through the batcher itself:
+
+| | same prompt, alone vs in traffic | passes for 8 requests | wall |
+|---|---|---|---|
+| uniform lengths + invariant kernels | **0.00e+00** | 9 (1.0 prompts each) | 1,382 ms |
+| mixed lengths + invariant kernels | 6.47e-02 | 2 (4.5 prompts each) | 622 ms |
+
+The guarantee holds exactly: batched with seven other requests, the answer is
+bit-identical to the same prompt scored alone. The cost is that on traffic of
+assorted lengths nothing batches — eight lengths, eight passes — so determinism
+was bought by turning the feature off in all but name. Where lengths cluster,
+which is the screening shape, it should pay; on a public endpoint taking
+whatever arrives, it will not.
+
+FlexAttention is not the way out. Switching the backend and keeping the
+invariant kernels made the identical-length case *worse*, 1.37e-02 against
+bit-identical on SDPA, because transformers does not expose the block sizes
+their attention path needs (`get_batch_invariant_attention_block_size` returns
+16x16 and nothing consumes it). A batch-invariant attention kernel we control
+is the general fix and is not written.
+
+Probes: `deploy/batch_invariance_probe.py`, `deploy/deterministic_batching_probe.py`.
