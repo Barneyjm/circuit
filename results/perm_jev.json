@@ -1,0 +1,177 @@
+{
+ "model": "jev",
+ "k": 4,
+ "per_family": 100,
+ "results": {
+  "all": {
+   "n": 981,
+   "could_not_run": 0,
+   "flip": 0.0826,
+   "tv": 0.0429,
+   "acc_as_written": 0.8114,
+   "acc_reversed": 0.8012,
+   "acc_min": 0.8012,
+   "acc_max": 0.8114
+  },
+  "chaosnli": {
+   "n": 100,
+   "could_not_run": 0,
+   "flip": 0.08,
+   "tv": 0.0287,
+   "acc_as_written": 0.63,
+   "acc_reversed": 0.62,
+   "acc_min": 0.61,
+   "acc_max": 0.63
+  },
+  "chat-classifier.tier": {
+   "n": 30,
+   "could_not_run": 0,
+   "flip": 0.0333,
+   "tv": 0.015,
+   "acc_as_written": 0.9667,
+   "acc_reversed": 0.9667,
+   "acc_min": 0.9667,
+   "acc_max": 1.0
+  },
+  "chat-classifier.tool": {
+   "n": 30,
+   "could_not_run": 0,
+   "flip": 0.1333,
+   "tv": 0.0264,
+   "acc_as_written": 0.9667,
+   "acc_reversed": 0.9667,
+   "acc_min": 0.9,
+   "acc_max": 0.9667
+  },
+  "clinc_intent": {
+   "n": 100,
+   "could_not_run": 0,
+   "flip": 0.05,
+   "tv": 0.0521,
+   "acc_as_written": 0.87,
+   "acc_reversed": 0.88,
+   "acc_min": 0.87,
+   "acc_max": 0.88
+  },
+  "grid:ambiguous": {
+   "n": 9,
+   "could_not_run": 0,
+   "flip": 0.0,
+   "tv": 0.0167,
+   "acc_as_written": 1.0,
+   "acc_reversed": 1.0,
+   "acc_min": 1.0,
+   "acc_max": 1.0
+  },
+  "grid:classify": {
+   "n": 100,
+   "could_not_run": 0,
+   "flip": 0.06,
+   "tv": 0.0386,
+   "acc_as_written": 0.86,
+   "acc_reversed": 0.87,
+   "acc_min": 0.85,
+   "acc_max": 0.9
+  },
+  "grid:compare": {
+   "n": 100,
+   "could_not_run": 0,
+   "flip": 0.0,
+   "tv": 0.0014,
+   "acc_as_written": 0.99,
+   "acc_reversed": 0.99,
+   "acc_min": 0.99,
+   "acc_max": 0.99
+  },
+  "hwu64": {
+   "n": 100,
+   "could_not_run": 0,
+   "flip": 0.16,
+   "tv": 0.078,
+   "acc_as_written": 0.78,
+   "acc_reversed": 0.73,
+   "acc_min": 0.73,
+   "acc_max": 0.81
+  },
+  "mcp-related-pick.pick": {
+   "n": 14,
+   "could_not_run": 0,
+   "flip": 0.5,
+   "tv": 0.2198,
+   "acc_as_written": 0.9286,
+   "acc_reversed": 0.6429,
+   "acc_min": 0.5714,
+   "acc_max": 0.9286
+  },
+  "mnli": {
+   "n": 100,
+   "could_not_run": 0,
+   "flip": 0.04,
+   "tv": 0.0154,
+   "acc_as_written": 0.85,
+   "acc_reversed": 0.87,
+   "acc_min": 0.85,
+   "acc_max": 0.87
+  },
+  "search-intent.kind": {
+   "n": 30,
+   "could_not_run": 0,
+   "flip": 0.0333,
+   "tv": 0.0262,
+   "acc_as_written": 1.0,
+   "acc_reversed": 1.0,
+   "acc_min": 0.9667,
+   "acc_max": 1.0
+  },
+  "search-intent.lead": {
+   "n": 30,
+   "could_not_run": 0,
+   "flip": 0.1,
+   "tv": 0.0623,
+   "acc_as_written": 1.0,
+   "acc_reversed": 0.9333,
+   "acc_min": 0.9,
+   "acc_max": 1.0
+  },
+  "search-miss-triage.corrected": {
+   "n": 8,
+   "could_not_run": 0,
+   "flip": 0.125,
+   "tv": 0.0346,
+   "acc_as_written": 1.0,
+   "acc_reversed": 1.0,
+   "acc_min": 0.875,
+   "acc_max": 1.0
+  },
+  "search-miss-triage.kind": {
+   "n": 30,
+   "could_not_run": 0,
+   "flip": 0.3,
+   "tv": 0.1179,
+   "acc_as_written": 0.9667,
+   "acc_reversed": 0.8667,
+   "acc_min": 0.8333,
+   "acc_max": 0.9667
+  },
+  "ticket_queue": {
+   "n": 100,
+   "could_not_run": 0,
+   "flip": 0.16,
+   "tv": 0.087,
+   "acc_as_written": 0.23,
+   "acc_reversed": 0.24,
+   "acc_min": 0.23,
+   "acc_max": 0.25
+  },
+  "water_calls": {
+   "n": 100,
+   "could_not_run": 0,
+   "flip": 0.0,
+   "tv": 0.0107,
+   "acc_as_written": 0.98,
+   "acc_reversed": 0.98,
+   "acc_min": 0.98,
+   "acc_max": 0.98
+  }
+ }
+}
