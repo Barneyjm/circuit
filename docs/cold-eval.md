@@ -491,3 +491,37 @@ their attention path needs (`get_batch_invariant_attention_block_size` returns
 is the general fix and is not written.
 
 Probes: `deploy/batch_invariance_probe.py`, `deploy/deterministic_batching_probe.py`.
+
+## Qwen3.5 as the base (2026-09-21, not published)
+
+The shipped circuits sit on Qwen3. Qwen3.8 has nothing under 27B, so the newest small
+bases are Qwen3.5 2B and 9B. Same data, head, settings and checkpoint rule as the
+publish run (`results/pipeline26.sh`), one H100, both at once. Accuracy / ECE / KL:
+
+| set | circuit-1.7b | Qwen3.5 2B | circuit-8b | Qwen3.5 9B |
+|---|---|---|---|---|
+| grid, 2,125 | .969 / .013 / .069 | .964 / .018 / .068 | .980 / .007 / .029 | .970 / .009 / .030 |
+| held-out public, 1,200 | .677 / .123 / 1.03 | .694 / .160 / 1.29 | .709 / .181 / 1.37 | .705 / .168 / 1.15 |
+| water calls, 100 | .920 / .077 / .246 | .870 / .097 / .384 | .930 / .048 / .297 | .930 / .044 / .186 |
+| DIY, 546 | .700 / .053 / .569 | .758 / .065 / .508 | .841 / .039 / .318 | **.886 / .036 / .165** |
+| ms per item, batch 1, same card | 343 | 580 | 350 | 592 |
+
+Mostly a wash, with one real difference: the 9B is 4.5 points better than circuit-8b on
+the DIY set at half the KL, and the 2B is 5.9 points better than circuit-1.7b there.
+That is the set furthest from the training distribution. Everywhere else the pairs are
+within noise, and the 2B is worse on water calls and less calibrated on held-out data.
+
+It costs latency and the caching. Qwen3.5 interleaves linear-attention layers, and
+three things follow. Its backward pass returns NaN gradients on a left-padded batch
+(each row is fine alone), so training runs rows unpadded and accumulates
+(`--micro 1`). It compiles once per sequence length, about 1.4 s each, so lengths are
+rounded up to 64 in training and serving would need the same. And its recurrent state
+cannot be copied per question, so shared-prefix scoring — 2.8x on multi-question
+requests — is off for it (`_kv_cache_only` in `scorer.py`). Forward passes on padded
+batches are sound: 300 held-out items score the same at batch 1 and batch 16.
+Per-item latency on the same card is about 1.7x the Qwen3 circuits; both were bound
+by the host rather than the GPU, so treat the ratio as indicative.
+
+Not worth switching the small model. The 9B's DIY result is worth a second look if
+out-of-distribution accuracy becomes the thing to buy and the latency is affordable.
+Weights: `runs/circuit35-2b`, `runs/circuit35-9b`. About 3.3 H100-hours.
