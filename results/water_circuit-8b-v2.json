@@ -1,0 +1,54 @@
+{
+ "model": "lora:circuit-8b-v2",
+ "data": "data/water_calls.jsonl",
+ "temps": {
+  "noul": 1.0,
+  "choice": 1.0,
+  "score": 1.0
+ },
+ "fitted": null,
+ "permutations": 1,
+ "debias": false,
+ "timing": {
+  "device": "cuda",
+  "items": 100,
+  "passes": 1,
+  "seconds": 5.1,
+  "ms_per_item": 51.1,
+  "input_tokens": 31712,
+  "tokens_per_s": 6206.8,
+  "batch": 8
+ },
+ "metrics": {
+  "all": {
+   "n": 100,
+   "kl_to_ref": 0.3382,
+   "brier": 0.1712,
+   "accuracy": 0.89,
+   "ece": 0.0514,
+   "sel_acc_90": 0.9333,
+   "agree_jev": 0.89,
+   "mean_conf": 0.8696
+  },
+  "type:choice": {
+   "n": 100,
+   "kl_to_ref": 0.3382,
+   "brier": 0.1712,
+   "accuracy": 0.89,
+   "ece": 0.0514,
+   "sel_acc_90": 0.9333,
+   "agree_jev": 0.89,
+   "mean_conf": 0.8696
+  },
+  "family:water_calls (heldout)": {
+   "n": 100,
+   "kl_to_ref": 0.3382,
+   "brier": 0.1712,
+   "accuracy": 0.89,
+   "ece": 0.0514,
+   "sel_acc_90": 0.9333,
+   "agree_jev": 0.89,
+   "mean_conf": 0.8696
+  }
+ }
+}

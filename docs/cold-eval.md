@@ -559,3 +559,37 @@ cost anything on photographs, and did not buy much either.
 What to train next is written in the table: groundedness and tool-call judgments,
 neither of which has a family in the mix. Results: `results/unseen_*.json`,
 `results/pope_*.json`.
+
+### Closing the gap: groundedness and tool-call families (2026-09-21, not yet published)
+
+`scripts/build_grounded_tools.py` adds 3,000 rows to the publish mix, all human-labelled:
+VitaminC and SQuAD v2 for whether evidence supports a claim or an answer, and CLINC and
+SNIPS utterances against hand-written tool specs for whether a tool fits. HaluEval and
+BFCL contribute nothing and stay the test. Same recipe otherwise (`pipeline27.sh`).
+Accuracy / ECE / KL on the unseen sets:
+
+| | BFCL | HaluEval | ChaosNLI | HWU64 |
+|---|---|---|---|---|
+| Jev | .813 / .069 / 0.40 | **.910 / .029 / 0.24** | .600 / .254 / 2.00 | **.800** / .087 / 1.29 |
+| circuit-1.7b | .580 / .228 / 0.76 | .730 / .052 / 0.53 | .523 / .242 / 0.98 | .723 / .107 / 1.01 |
+| circuit-1.7b-v2 | .817 / .112 / 0.54 | .767 / .126 / 0.49 | .587 / .238 / 0.70 | .780 / .065 / 0.96 |
+| circuit-8b | .807 / .107 / 0.59 | .720 / .143 / 0.60 | .560 / .314 / 0.96 | .777 / .140 / 1.12 |
+| circuit-8b-v2 | **.857** / .099 / 0.45 | .840 / .048 / 0.34 | **.710 / .098 / 0.38** | .777 / **.071 / 0.97** |
+
+Tool relevance moved the most: the 1.7B from a coin to level with Jev, the 8B past it.
+Groundedness closed from 19 points behind to 7 at 8B; the 1.7B gained less (.73 to .77),
+so here size does matter once the data exists. In distribution the 1.7B is unchanged or
+better everywhere (grid .970, DIY .700 to .747, water .930); the 8B gives back a little
+(grid .980 to .959, water .930 to .890, DIY .841 to .828).
+
+**The checkpoint rule turned out to matter more than expected.** `train_lora.py` keeps the
+lowest validation ECE, which for the 8B was step 1,200 of 4,446. The last checkpoint is
+more accurate where the training data lives (grid .972, HaluEval .877, HWU64 .820) and
+much worse calibrated where it does not: ChaosNLI falls from .710 / KL 0.38 to .577 / KL
+1.11, and for the 1.7B to KL 3.11, worse than Jev. Training longer on one-hot labels buys
+accuracy and spends calibration, and the ChaosNLI result above is mostly early stopping,
+not the new rows. An earlier note here called the rule a bug after it kept a 26%-accurate
+router checkpoint; the rule is right for a calibrated model and wrong only when accuracy
+has not arrived yet. The fix is a floor, not a different metric.
+
+Weights: `runs/circuit-{1.7b,8b}-v2` (kept) and `-v2-final` (last). About 1.9 H100-hours.
