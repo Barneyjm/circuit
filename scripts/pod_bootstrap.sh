@@ -15,7 +15,10 @@ cd s1-proto
 find /workspace/stage -maxdepth 1 -name '*.jsonl' -exec cp {} data/ \;
 echo "== stage: deps"
 command -v uv >/dev/null || (curl -LsSf https://astral.sh/uv/install.sh | sh >/dev/null 2>&1)
+# A quiet install looks like a stall to pod_run.sh, and on a network volume it takes minutes.
+(while sleep 60; do echo "   installing: $(du -sh .venv 2>/dev/null | cut -f1)"; done) & TICK=$!
 uv sync -q
+kill $TICK 2>/dev/null || true
 echo "== stage: cuda"
 cuda_ok () { uv run --no-sync python -c "import torch, sys; print('torch', torch.__version__, torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'NO CUDA'); sys.exit(0 if torch.cuda.is_available() else 1)"; }
 if ! cuda_ok; then
@@ -24,12 +27,14 @@ if ! cuda_ok; then
   cuda_ok || { echo "!!! no usable CUDA torch; aborting"; exit 3; }
 fi
 echo "== stage: models"
+(while sleep 60; do echo "   downloading: $(du -sh "$HF_HOME" 2>/dev/null | cut -f1)"; done) & TICK=$!
 BASES="$BASES" uv run --no-sync python - <<'PY'
 import os
 from huggingface_hub import snapshot_download
 for m in os.environ["BASES"].split(","):
     snapshot_download(m, allow_patterns=["*.json", "*.safetensors", "*.txt", "*.jinja"]); print("cached", m)
 PY
+kill $TICK 2>/dev/null || true
 echo "== stage: launch $*"
 chmod +x results/*.sh
 exec "$@"
