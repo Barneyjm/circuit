@@ -593,6 +593,9 @@ router checkpoint; the rule is right for a calibrated model and wrong only when 
 has not arrived yet. The fix is a floor, not a different metric.
 
 These are v1.1, not v2: same base, head and recipe, more data. Published as tag `v1.1` on
-`jbarney/circuit-1.7b` (2026-09-21); `v1.0` tags the original weights, and Modal and
+`jbarney/circuit-1.7b` and `jbarney/circuit-8b` (2026-09-21; the 8B is the step-1,200
+checkpoint, chosen for calibration off distribution over accuracy on it; a retrain on a
+different GPU peaked late instead, so the best step is a property of a run, not of the
+recipe); `v1.0` tags the original weights, and Modal and
 `REPRODUCE.md` pin `v1.0` until the 8B is settled. Weights: `runs/circuit-{1.7b,8b}-v1.1`
 (kept) and `-v1.1-final` (last). About 1.9 H100-hours.
