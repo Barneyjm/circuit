@@ -53,6 +53,9 @@ use. Non-commercial and unclear sources are **eval-only** under
 | google/civil_comments | ok | CC0 |
 | ucirvine/sms_spam | ok | CC BY 4.0 (UCI) |
 | clinc/clinc_oos | ok | CC BY 3.0 |
+| tals/vitaminc | ok | CC BY-SA 3.0; human-written claims against Wikipedia revisions (`build_grounded_tools.py`) |
+| rajpurkar/squad_v2 | ok | CC BY-SA 4.0; crowd-written questions and spans |
+| benayas/snips | ok | SNIPS NLU benchmark, CC0; this mirror is tagged Apache-2.0 |
 | Tobi-Bueck/customer-support-tickets | nc | CC BY-NC 4.0, eval only, never trained on |
 | gorilla-llm/Berkeley-Function-Calling-Leaderboard | eval | Apache-2.0; a benchmark, so eval only by convention (`build_unseen_eval.py`) |
 | pminervini/HaluEval | eval | Apache-2.0 mirror of the MIT original; eval only |
