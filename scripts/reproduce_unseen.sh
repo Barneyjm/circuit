@@ -6,6 +6,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 MODELS="${MODELS:-circuit-1.7b circuit-8b}"
+REVISION="${REVISION-v1.0}"   # the weights the published table was measured on; REVISION=v1.1 or REVISION= for the latest
 OUT="${OUT:-results/repro}"
 mkdir -p "$OUT" runs/hub
 
@@ -13,7 +14,7 @@ uv sync -q
 [ -f data/unseen_eval.jsonl ] || uv run python scripts/build_unseen_eval.py --n 300   # seed is fixed: same 1,200 items for everyone
 
 for m in $MODELS; do
-  [ -f "runs/hub/$m/head.pt" ] || uv run hf download "jbarney/$m" --local-dir "runs/hub/$m" >/dev/null
+  [ -f "runs/hub/$m/head.pt" ] || uv run hf download "jbarney/$m" ${REVISION:+--revision "$REVISION"} --local-dir "runs/hub/$m" >/dev/null
   uv run python scripts/eval_set.py "lora:runs/hub/$m" data/unseen_eval.jsonl --batch 4 --out "$OUT/unseen_$m.json" >/dev/null
 done
 if [ -n "${TYPESAFE_API_KEY:-}" ]; then

@@ -14,6 +14,11 @@ weights, scores them, and prints the table below. About ten minutes on an Apple-
 laptop or any GPU with 20 GB; `MODELS="circuit-1.7b" scripts/reproduce_unseen.sh` runs
 in five on much less.
 
+The table was measured on the `v1.0` weights, and the script pins them. `REVISION=v1.1
+scripts/reproduce_unseen.sh` scores the current ones, which were trained after this
+benchmark found the gaps (tool relevance .58 to .82 for the 1.7B), so they are a
+response to it and not a blind result.
+
 To include Jev, TypeSafe's hosted model, bring your own key. It takes about a minute
 and costs a few cents:
 
@@ -62,4 +67,4 @@ files are not committed, because ChaosNLI is non-commercial; the script rebuilds
 
 Our own result files are in `results/unseen_*.json`, and the write-up, including where
 our models lose, is the section "Datasets nobody prepared for" in `docs/cold-eval.md`.
-Weights: `jbarney/circuit-1.7b` and `jbarney/circuit-8b` on Hugging Face.
+Weights: `jbarney/circuit-1.7b` and `jbarney/circuit-8b` on Hugging Face, tags `v1.0` and `v1.1`.

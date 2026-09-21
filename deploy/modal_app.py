@@ -47,8 +47,8 @@ secret = modal.Secret.from_dict({k: v for k in ("S1_API_KEY",) if (v := os.envir
 # case, not the usual one. S1_MAX_CONTAINERS at deploy time overrides it.
 MAX_CONTAINERS = int(os.environ.get("S1_MAX_CONTAINERS", "6"))
 MODELS = {
-    "circuit-1.7b": {"repo": "jbarney/circuit-1.7b", "gpu": "L4"},
-    "circuit-8b": {"repo": "jbarney/circuit-8b", "gpu": "L40S"},
+    "circuit-1.7b": {"repo": "jbarney/circuit-1.7b", "gpu": "L4", "revision": "v1.0"},
+    "circuit-8b": {"repo": "jbarney/circuit-8b", "gpu": "L40S", "revision": "v1.0"},
     "circuit-vl-4b": {"repo": "jbarney/circuit-vl-4b", "gpu": "L4"},
     "circuit-audio-7b": {"repo": "jbarney/circuit-audio-7b", "gpu": "L40S"},
 }
@@ -58,8 +58,11 @@ def build(name: str):
     """Fetch the run from the Hub into the volume (adapter/, head.pt, config.json), then the base it names."""
     from huggingface_hub import snapshot_download
 
-    run_dir = f"/vol/runs/{name}"
-    snapshot_download(MODELS[name]["repo"], local_dir=run_dir)
+    # A container fetches on every cold start, so an unpinned repo changes the served model
+    # the moment new weights are pushed. Pin a tag; changing it here is the release.
+    revision = MODELS[name].get("revision")
+    run_dir = f"/vol/runs/{name}" + (f"@{revision}" if revision else "")
+    snapshot_download(MODELS[name]["repo"], revision=revision, local_dir=run_dir)
     weights.commit()
     from s1proto.scorer import load_scorer
     from s1proto.service import create_app

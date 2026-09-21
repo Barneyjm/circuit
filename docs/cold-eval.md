@@ -572,9 +572,9 @@ Accuracy / ECE / KL on the unseen sets:
 |---|---|---|---|---|
 | Jev | .813 / .069 / 0.40 | **.910 / .029 / 0.24** | .600 / .254 / 2.00 | **.800** / .087 / 1.29 |
 | circuit-1.7b | .580 / .228 / 0.76 | .730 / .052 / 0.53 | .523 / .242 / 0.98 | .723 / .107 / 1.01 |
-| circuit-1.7b-v2 | .817 / .112 / 0.54 | .767 / .126 / 0.49 | .587 / .238 / 0.70 | .780 / .065 / 0.96 |
+| circuit-1.7b v1.1 | .817 / .112 / 0.54 | .767 / .126 / 0.49 | .587 / .238 / 0.70 | .780 / .065 / 0.96 |
 | circuit-8b | .807 / .107 / 0.59 | .720 / .143 / 0.60 | .560 / .314 / 0.96 | .777 / .140 / 1.12 |
-| circuit-8b-v2 | **.857** / .099 / 0.45 | .840 / .048 / 0.34 | **.710 / .098 / 0.38** | .777 / **.071 / 0.97** |
+| circuit-8b v1.1 | **.857** / .099 / 0.45 | .840 / .048 / 0.34 | **.710 / .098 / 0.38** | .777 / **.071 / 0.97** |
 
 Tool relevance moved the most: the 1.7B from a coin to level with Jev, the 8B past it.
 Groundedness closed from 19 points behind to 7 at 8B; the 1.7B gained less (.73 to .77),
@@ -592,4 +592,7 @@ not the new rows. An earlier note here called the rule a bug after it kept a 26%
 router checkpoint; the rule is right for a calibrated model and wrong only when accuracy
 has not arrived yet. The fix is a floor, not a different metric.
 
-Weights: `runs/circuit-{1.7b,8b}-v2` (kept) and `-v2-final` (last). About 1.9 H100-hours.
+These are v1.1, not v2: same base, head and recipe, more data. Published as tag `v1.1` on
+`jbarney/circuit-1.7b` (2026-09-21); `v1.0` tags the original weights, and Modal and
+`REPRODUCE.md` pin `v1.0` until the 8B is settled. Weights: `runs/circuit-{1.7b,8b}-v1.1`
+(kept) and `-v1.1-final` (last). About 1.9 H100-hours.
