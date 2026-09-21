@@ -1,0 +1,83 @@
+{
+ "model": "convaiinnovations/laya",
+ "data": "data/unseen_eval.jsonl",
+ "timing": {
+  "device": "mps",
+  "items": 1200,
+  "could_not_run": 0,
+  "ms_per_item_p50": 32.6,
+  "batch": 1
+ },
+ "metrics": {
+  "all": {
+   "n": 1200,
+   "kl_to_ref": 2.5334,
+   "brier": 0.5651,
+   "accuracy": 0.595,
+   "ece": 0.2527,
+   "sel_acc_90": 0.6157,
+   "agree_jev": 0.595,
+   "mean_conf": 0.8444
+  },
+  "type:noul": {
+   "n": 600,
+   "kl_to_ref": 0.7379,
+   "brier": 0.4942,
+   "accuracy": 0.6417,
+   "ece": 0.16,
+   "sel_acc_90": 0.663,
+   "agree_jev": 0.6417,
+   "mean_conf": 0.8016
+  },
+  "family:bfcl_relevance (heldout)": {
+   "n": 300,
+   "kl_to_ref": 0.7222,
+   "brier": 0.4994,
+   "accuracy": 0.6167,
+   "ece": 0.142,
+   "sel_acc_90": 0.6296,
+   "agree_jev": 0.6167,
+   "mean_conf": 0.7587
+  },
+  "family:halueval_qa (heldout)": {
+   "n": 300,
+   "kl_to_ref": 0.7536,
+   "brier": 0.489,
+   "accuracy": 0.6667,
+   "ece": 0.1779,
+   "sel_acc_90": 0.6926,
+   "agree_jev": 0.6667,
+   "mean_conf": 0.8445
+  },
+  "type:choice": {
+   "n": 600,
+   "kl_to_ref": 4.3289,
+   "brier": 0.6359,
+   "accuracy": 0.5483,
+   "ece": 0.3455,
+   "sel_acc_90": 0.5759,
+   "agree_jev": 0.5483,
+   "mean_conf": 0.8872
+  },
+  "family:chaosnli (heldout)": {
+   "n": 300,
+   "kl_to_ref": 0.7087,
+   "brier": 0.3217,
+   "accuracy": 0.62,
+   "ece": 0.25,
+   "sel_acc_90": 0.6296,
+   "agree_jev": 0.62,
+   "mean_conf": 0.8663
+  },
+  "family:hwu64 (heldout)": {
+   "n": 300,
+   "kl_to_ref": 7.9491,
+   "brier": 0.9501,
+   "accuracy": 0.4767,
+   "ece": 0.4447,
+   "sel_acc_90": 0.5111,
+   "agree_jev": 0.4767,
+   "mean_conf": 0.9082
+  }
+ }
+}
