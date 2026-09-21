@@ -54,6 +54,11 @@ use. Non-commercial and unclear sources are **eval-only** under
 | ucirvine/sms_spam | ok | CC BY 4.0 (UCI) |
 | clinc/clinc_oos | ok | CC BY 3.0 |
 | Tobi-Bueck/customer-support-tickets | nc | CC BY-NC 4.0, eval only, never trained on |
+| gorilla-llm/Berkeley-Function-Calling-Leaderboard | eval | Apache-2.0; a benchmark, so eval only by convention (`build_unseen_eval.py`) |
+| pminervini/HaluEval | eval | Apache-2.0 mirror of the MIT original; eval only |
+| metaeval/chaos-mnli-ambiguity | nc | ChaosNLI is CC BY-NC 4.0; eval only, output not committed |
+| FastFit/hwu_64 | eval | HWU64 (NLU-Evaluation-Data) is CC BY 4.0; kept unseen on purpose, eval only |
+| lmms-lab-encoder/POPE | eval | MIT; images are COCO val2014 under their photographers' licences, so not committed |
 
 ## Two things that are not dataset licenses
 

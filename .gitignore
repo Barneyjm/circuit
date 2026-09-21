@@ -15,6 +15,10 @@ results/*.log
 data/vision/grid/train/
 data/vision/grid/eval/
 
+# built by scripts/build_unseen_eval.py from the seed; non-commercial text and COCO images
+data/unseen_eval.jsonl
+data/vision/unseen/
+
 # trained adapters live on the Hub, not in git
 runs/
 # datasets with teacher-model (Jev/Gemini) targets stay local
