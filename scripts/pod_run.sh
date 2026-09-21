@@ -13,7 +13,8 @@ GPUS="${GPUS:-NVIDIA A40,NVIDIA RTX A6000}"          # 48 GB, about $0.50/hr; en
 STALL_MIN="${STALL_MIN:-7}"; MAX_HOURS="${MAX_HOURS:-4}"
 api () { curl -s -H "Authorization: Bearer $RUNPOD_API_KEY" -H "Content-Type: application/json" "$@"; }
 
-[ -z "$(git status --porcelain --untracked-files=no)" ] && [ -z "$(git log origin/main..HEAD --oneline)" ] || { echo "!!! commit and push first; the pod clones main"; exit 1; }
+[ -z "$(git log origin/main..HEAD --oneline)" ] || { echo "!!! push first; the pod clones main"; exit 1; }
+DIRTY=$(git status --porcelain --untracked-files=no); [ -z "$DIRTY" ] || echo "note: the pod will not see these uncommitted changes:"$'\n'"$DIRTY"
 
 REQ=$(GPUS="$GPUS" RUN="$RUN" KEYFILE="$KEY.pub" python3 -c '
 import json, os
