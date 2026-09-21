@@ -30,6 +30,15 @@ from s1proto import template as T
 from s1proto.template import LETTER_LABELS, Prompt
 
 
+def _kv_cache_only(model: Any) -> bool:
+    """True when every layer keeps a key-value cache that can be copied per question.
+    Qwen3.5 mixes in linear-attention layers whose recurrent state cannot, so the
+    shared-prefix path is skipped for it and each prompt is scored in full."""
+    cfg = getattr(model, "config", None)
+    cfg = getattr(cfg, "text_config", None) or cfg
+    return "linear_attention" not in (getattr(cfg, "layer_types", None) or [])
+
+
 @dataclass
 class ScoreResult:
     probabilities: list[float]  # over the prompt's options, sums to 1
@@ -102,6 +111,7 @@ class HFScorer:
         self.model = AutoModelForCausalLM.from_pretrained(self.model_id, dtype=torch_dtype)
         self.model.to(self.device)
         self.model.eval()
+        self.prefix_cache = _kv_cache_only(self.model)
         self.load_seconds = time.perf_counter() - t0
 
         # Label token ids: the token for " A", " B", ... as it would
@@ -263,7 +273,7 @@ class LoRAScorer:
             self.max_options = cfg["head_size"]
         # On: a request asking several questions about one state reads it once.
         # Falls back to scoring each prompt in full when the prefixes differ.
-        self.prefix_cache = True
+        self.prefix_cache = _kv_cache_only(self.model)
         # Prompts scored in one pass. Sized for a 22 GB card at 1,300 tokens a prompt;
         # S1_SCORE_CHUNK raises it on bigger hardware or lowers it on smaller.
         self.chunk = int(os.environ.get("S1_SCORE_CHUNK", "16"))
