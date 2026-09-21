@@ -225,7 +225,7 @@ def hidden_states(model, enc, modality: str = "text"):
     elif modality == "audio":
         keep = ("input_ids", "attention_mask", "input_features", "feature_attention_mask")
     else:
-        keep = ("input_ids", "attention_mask")
+        keep = ("input_ids", "attention_mask", "position_ids")  # position_ids only when options are encoded side by side
     return body(**{k: v for k, v in enc.items() if k in keep}, use_cache=False).last_hidden_state
 
 

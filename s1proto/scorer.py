@@ -266,6 +266,8 @@ class LoRAScorer:
             if cfg.get("pointer_tokens"):
                 T.use_pointer_tokens(*cfg["pointer_tokens"])
             self.opt_end_id = self.tokenizer.convert_tokens_to_ids(T.OPT_END)
+            self.opt_start_id = self.tokenizer.convert_tokens_to_ids(T.OPT_START)
+            self.decide_id = self.tokenizer.convert_tokens_to_ids(T.DECIDE)
         else:
             self.head = torch.nn.Linear(cfg["hidden"], cfg["head_size"])
             self.head.load_state_dict({k.replace("proj.", ""): v for k, v in state.items()})
@@ -273,7 +275,12 @@ class LoRAScorer:
             self.max_options = cfg["head_size"]
         # On: a request asking several questions about one state reads it once.
         # Falls back to scoring each prompt in full when the prefixes differ.
-        self.prefix_cache = _kv_cache_only(self.model)
+        # Options encoded side by side (s1proto/parallel.py): the answer does not depend on
+        # option order. S1_PARALLEL_OPTIONS=1 forces it on a model trained without it, which
+        # is only useful for measuring how much the training matters. The shared-prefix
+        # path builds its own mask, so it is off until it learns this one.
+        self.parallel_options = self.head_kind == "pointer" and (bool(cfg.get("parallel_options")) or os.environ.get("S1_PARALLEL_OPTIONS") == "1")
+        self.prefix_cache = _kv_cache_only(self.model) and not self.parallel_options
         # Prompts scored in one pass. Sized for a 22 GB card at 1,300 tokens a prompt;
         # S1_SCORE_CHUNK raises it on bigger hardware or lowers it on smaller.
         self.chunk = int(os.environ.get("S1_SCORE_CHUNK", "16"))
@@ -370,7 +377,14 @@ class LoRAScorer:
             # long one is read at the wrong rotary positions and answers differently
             # depending on what shared its batch.
             position_ids = (mask.cumsum(dim=-1) - 1).clamp(min=0)
-            hs = decoder(input_ids=ids, attention_mask=mask, position_ids=position_ids, use_cache=False).last_hidden_state
+            attn = mask
+            if self.parallel_options:
+                from .parallel import is_choice, parallel_inputs
+
+                attn, position_ids = parallel_inputs(
+                    ids, mask, [is_choice(p.text) for p in prompts], self.opt_start_id, self.decide_id, next(decoder.parameters()).dtype
+                )
+            hs = decoder(input_ids=ids, attention_mask=attn, position_ids=position_ids, use_cache=False).last_hidden_state
             h_last = hs[:, -1, :].float()
             if self.head_kind == "pointer":
                 q = self.q(h_last)  # [B, d]

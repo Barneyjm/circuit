@@ -47,6 +47,7 @@ from s1proto.media import (
     hidden_states,
     load_media,
 )
+from s1proto.parallel import is_choice, parallel_inputs
 from s1proto.schema import ChoiceQuestion, NoulQuestion, ScoreQuestion
 from s1proto.template import render
 
@@ -76,6 +77,9 @@ def ece15(confs, correct, bins=15):
         if idx:
             e += len(idx) / n * abs(sum(correct[i] for i in idx) / len(idx) - sum(confs[i] for i in idx) / len(idx))
     return e
+
+
+PARALLEL_OPTIONS: torch.dtype | None = None  # set by --parallel-options to the model's dtype, which the mask must share
 
 
 def build_batch(tok, items, rng, device, max_length: int, train: bool, layout: str = "letters", proc=None, image_root=None, modality: str | None = None):
@@ -119,6 +123,10 @@ def build_batch(tok, items, rng, device, max_length: int, train: bool, layout: s
             if len(dpos) == 0:
                 raise ValueError(f"item {items[i].get('id')}: no decide token")
             dec_pos[i] = dpos[-1]
+    if PARALLEL_OPTIONS and layout == "pointer" and modality == "text":
+        start_id = tok.convert_tokens_to_ids(T.OPT_START)
+        mask4d, position_ids = parallel_inputs(ids, enc["attention_mask"], [is_choice(t) for t in texts], start_id, dec_id, PARALLEL_OPTIONS)
+        enc = {"input_ids": ids, "attention_mask": mask4d, "position_ids": position_ids}
     enc = {k: v.to(device) for k, v in enc.items() if hasattr(v, "to")}
     return enc, ref_t.to(device), torch.tensor(nopts, device=device), opt_pos.to(device), dec_pos.to(device)
 
@@ -190,6 +198,11 @@ def main() -> None:
         help="keep the lowest-ECE checkpoint among those within this much of the best validation accuracy; 1.0 is lowest ECE outright",
     )
     ap.add_argument(
+        "--parallel-options",
+        action="store_true",
+        help="encode a choice question's options side by side so the answer cannot depend on their order (s1proto/parallel.py)",
+    )
+    ap.add_argument(
         "--micro",
         type=int,
         default=0,
@@ -228,6 +241,9 @@ def main() -> None:
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
     torch.manual_seed(args.seed)
+    if args.parallel_options:
+        global PARALLEL_OPTIONS
+        PARALLEL_OPTIONS = getattr(torch, args.dtype)
     rng = random.Random(args.seed)
     device = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
 
@@ -443,6 +459,7 @@ def main() -> None:
                         "load_4bit": args.load_4bit,
                         "modality": args.modality,
                         "pointer_tokens": pointer_tokens,
+                        "parallel_options": bool(args.parallel_options),
                         "best": best,
                         "history": history,
                         "args": vars(args),
