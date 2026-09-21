@@ -49,8 +49,8 @@ MAX_CONTAINERS = int(os.environ.get("S1_MAX_CONTAINERS", "6"))
 MODELS = {
     "circuit-1.7b": {"repo": "jbarney/circuit-1.7b", "gpu": "L4", "revision": "v1.0"},
     "circuit-8b": {"repo": "jbarney/circuit-8b", "gpu": "L40S", "revision": "v1.0"},
-    "circuit-vl-4b": {"repo": "jbarney/circuit-vl-4b", "gpu": "L4"},
-    "circuit-audio-7b": {"repo": "jbarney/circuit-audio-7b", "gpu": "L40S"},
+    "circuit-vl-4b": {"repo": "jbarney/circuit-vl-4b", "gpu": "L4", "revision": "v1.1"},
+    "circuit-audio-7b": {"repo": "jbarney/circuit-audio-7b", "gpu": "L40S", "revision": "v1.1"},
 }
 
 
