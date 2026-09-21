@@ -169,6 +169,12 @@ def main() -> None:
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--dtype", default="bfloat16")
+    ap.add_argument(
+        "--micro",
+        type=int,
+        default=0,
+        help="rows per forward pass, accumulated to --batch (0 = whole batch). Use 1 for Qwen3.5: its backward pass returns NaN gradients on a left-padded batch, and a single row needs no padding.",
+    )
     ap.add_argument("--grad-checkpoint", action="store_true", help="trade compute for activation memory (use for 8B+ on 64 GB)")
     ap.add_argument("--wandb", default=None, help="W&B project name; logs loss/lr every 10 steps and val metrics per checkpoint")
     ap.add_argument("--run-name", default=None)
@@ -343,24 +349,44 @@ def main() -> None:
                 skip -= 1
                 step += 1
                 continue
-            enc, ref, nopts, opt_pos, dec_pos = build_batch(
-                tok, chunk, rng, device, args.max_length, train=True, layout=layout, proc=proc, image_root=image_root, modality=args.modality
-            )
-            logits = head_logits(head, hidden_states(model, enc, args.modality), nopts, opt_pos, dec_pos)
-            loss = soft_ce(logits, ref, nopts)
-            loss.backward()
+            micro = args.micro or len(chunk)
+            batch_loss = 0.0
+            for m in range(0, len(chunk), micro):
+                part = chunk[m : m + micro]
+                enc, ref, nopts, opt_pos, dec_pos = build_batch(
+                    tok, part, rng, device, args.max_length, train=True, layout=layout, proc=proc, image_root=image_root, modality=args.modality
+                )
+                if len(part) == 1 and args.modality == "text":
+                    # Qwen3.5 compiles its linear-attention path once per sequence length, about
+                    # 1.4 s each. Round the length up so there are 16 of them, not a thousand. The
+                    # filler sits after the decide token and stays unmasked: a causal model never
+                    # lets it reach the positions the head reads, and masking is what NaNs.
+                    n = enc["input_ids"].shape[1]
+                    fill = -n % 64
+                    if fill:
+                        enc["input_ids"] = F.pad(enc["input_ids"], (0, fill), value=tok.pad_token_id)
+                        enc["attention_mask"] = F.pad(enc["attention_mask"], (0, fill), value=1)
+                logits = head_logits(head, hidden_states(model, enc, args.modality), nopts, opt_pos, dec_pos)
+                # weighted so the accumulated gradient is the mean over the whole batch
+                loss = soft_ce(logits, ref, nopts) * len(part) / len(chunk)
+                loss.backward()
+                batch_loss += loss.item()
             torch.nn.utils.clip_grad_norm_([p for g in params for p in g["params"]], 1.0)
             opt.step()
             sched.step()
             opt.zero_grad(set_to_none=True)
             step += 1
             if step % 10 == 0:
+                # Bucketed batches vary in length, and the MPS allocator keeps a block per
+                # size it has seen: left alone the pool grows until every step pages.
+                if device == "mps":
+                    torch.mps.empty_cache()
                 done_here = step - start_step
                 spd = (time.time() - t0) / max(1, done_here)
                 eta_min = spd * (total_steps - step) / 60
-                print(f"ep{epoch} step {step}/{total_steps} loss {loss.item():.4f} ({spd:.2f}s/step, ETA {eta_min:.0f} min)", flush=True)
+                print(f"ep{epoch} step {step}/{total_steps} loss {batch_loss:.4f} ({spd:.2f}s/step, ETA {eta_min:.0f} min)", flush=True)
                 if wb:
-                    wb.log({"train/loss": loss.item(), "train/lr": sched.get_last_lr()[0], "train/s_per_step": spd, "train/eta_min": eta_min}, step=step)
+                    wb.log({"train/loss": batch_loss, "train/lr": sched.get_last_lr()[0], "train/s_per_step": spd, "train/eta_min": eta_min}, step=step)
             if step % args.eval_every == 0 or step == total_steps:
                 m = evaluate(model, head, tok, val, device, args.batch, args.max_length, layout, proc, image_root, args.modality)
                 print(f"  val: ece={m['ece']:.4f} acc={m['accuracy']:.4f} kl={m['kl']:.4f}", flush=True)

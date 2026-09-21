@@ -36,8 +36,9 @@ mkdir -p "$HF_HOME"
 uv sync -q
 # CUDA torch: the lockfile pins the Mac wheel; swap in the CUDA build
 uv pip install -q --index-url https://download.pytorch.org/whl/cu128 torch torchvision 2>/dev/null || uv pip install -q --index-url https://download.pytorch.org/whl/cu124 torch torchvision
-uv run python -c "import torch; print('torch', torch.__version__, 'cuda', torch.cuda.is_available(), torch.cuda.get_device_name(0) if torch.cuda.is_available() else '')"
-uv run python - <<'PY'
+# --no-sync from here on: a sync puts the lockfile torch back, built for a newer CUDA than most rented drivers
+uv run --no-sync python -c "import torch; print('torch', torch.__version__, 'cuda', torch.cuda.is_available(), torch.cuda.get_device_name(0) if torch.cuda.is_available() else '')"
+uv run --no-sync python - <<'PY'
 from huggingface_hub import snapshot_download
 import os
 for m in os.environ.get("BASES", "Qwen/Qwen3-1.7B-Base,Qwen/Qwen3-8B-Base").split(","):

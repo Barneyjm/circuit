@@ -325,6 +325,33 @@ generator stays, because the negative result depends on it being reproducible
 and the next attempt should start from real prompt distributions rather than
 templates.
 
+### v2: real prompts instead of templates (2026-09-20)
+
+The next attempt did start from real prompt distributions. `router_grid.py` v2 draws
+about 5,000 prompts from ten public sets, labels each by the set it came from (GSM8K
+and LogiQA are REASONING, BoolQ and TriviaQA SIMPLE, and so on), and keeps synthetic
+items to 14%. Qwen3-1.7B-Base, same head and settings, 60 minutes on the laptop GPU.
+
+**93.4% on our eval split, 83/244 = 34.0% on LiteLLM's cases** — worse than v1, and
+the confusion says why:
+
+|  | SIMPLE | MEDIUM | COMPLEX | REASONING |
+|---|---|---|---|---|
+| SIMPLE | 16 | 39 | 6 | 0 |
+| MEDIUM | 0 | 58 | 3 | 0 |
+| COMPLEX | 0 | 55 | 6 | 0 |
+| REASONING | 0 | 52 | 6 | 3 |
+
+Everything it does not recognise goes to MEDIUM. A label that comes from which dataset
+a prompt was drawn from teaches the model to recognise datasets; LiteLLM's authored
+cases come from none of them. v1 memorised generators and v2 memorised sources, and
+the gap between our split and theirs (99/48, then 93/34) did not close. Two attempts,
+same conclusion: without per-prompt tier labels from someone who read the rubric, a
+small model does not learn routing, and circuit-8b zero-shot at 91.4% remains the
+answer. The final checkpoint is `runs/router-1.7b-v2-final`; `train_lora.py` keeps the
+lowest-ECE checkpoint as "best", which here was step 100 at 26% accuracy, so the
+last one was used.
+
 Results: `scratchpad/replay_circuit-8b.json`, `replay_router-0.6b.json`,
 `replay_router-1.7b.json`;
 their archive is `jev-live-evidence-20260918.tar.gz` from docs.litellm.ai.

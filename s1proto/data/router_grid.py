@@ -2,17 +2,25 @@
 
     uv run python -m s1proto.data.router_grid --per-cell 240
 
-The label is never an opinion about a prompt. It comes from one of two places:
+Every prompt is one a person actually wrote. v1 built them from templates and
+the result was a model that scored 99.3% on its own eval split and 47.5% on
+LiteLLM's, having learned to recognise the generators rather than read the
+rubric — and a 1.7B trained the same way returned the same 244 answers, so the
+data was the constraint, not the size.
 
-  provenance  A prompt taken from a public benchmark whose task fixes the tier.
-              GSM8K is multi-step arithmetic, so it is REASONING; BoolQ is a
-              single lookup against a passage, so it is SIMPLE. The label is
-              which file the prompt came out of, which is code, not judgement.
+So the tier is decided by the class of source, stated once here, and never by a
+judgement about an individual prompt:
 
-  construction  A prompt built from a tier's own template, so the generator
-              knows the tier because it assembled the work. Used for the shapes
-              no benchmark supplies: follow-ups, tool output, and the long
-              prompts that are long without being hard.
+  SIMPLE      TriviaQA and BoolQ questions, and Dolly's open_qa: one known fact.
+  MEDIUM      Dolly's summarisation, extraction, classification, brainstorming
+              and creative writing, plus MBPP's short standard functions.
+  COMPLEX     Stack Exchange questions long enough to carry their own context:
+              real problems with real detail attached.
+  REASONING   GSM8K, LogiQA, and competitive programming statements, all of
+              which require a derivation rather than a recollection.
+
+Only the tool-output format is still constructed, because no public corpus of
+"here is what the tool returned, now what" exists. It is a tenth of the set.
 
 Both are crossed with the formats LiteLLM's router sees in production — short,
 long, follow-up, tool-context — plus boundary items that sit deliberately
@@ -82,85 +90,21 @@ def load_source(name: str) -> list[str]:
     return [line.strip() for line in p.read_text().splitlines() if line.strip()]
 
 
-PROVENANCE = {  # source file -> rung it fixes
-    "boolq": 0,
+PROVENANCE = {  # source file -> rung its class of task fixes
     "trivia": 0,
+    "boolq": 0,
+    "dolly_simple": 0,
+    "dolly_medium": 1,
     "mbpp": 1,
-    "xsum": 1,
+    "stackexchange": 2,
     "gsm8k": 3,
     "logiqa": 3,
+    "codereasoning": 3,
 }
+# Real prompts that carry no tier of their own; used for the formats, not the labels.
+UNLABELLED = ("oasst",)
 
 # --- construction: the shapes no benchmark hands you ----------------------------
-
-GREETINGS = ["hi", "hello there", "thanks!", "morning", "ok got it", "perfect, thank you", "hey", "cheers"]
-LOOKUPS = [
-    ("What is the chemical symbol for {}?", ["gold", "iron", "potassium", "tin", "lead"]),
-    ("What is the capital of {}?", ["Peru", "Finland", "Kenya", "Nepal", "Uruguay"]),
-    ("How many {} in a {}?", None),
-    ("What does {} stand for?", ["TTL", "SLA", "MTU", "CIDR", "ACID", "CORS"]),
-    ("What year did {} happen?", ["the moon landing", "the fall of the Berlin wall", "the first web page"]),
-]
-UNITS = [("grams", "kilogram"), ("minutes", "day"), ("bytes", "kibibyte"), ("millilitres", "litre"), ("inches", "foot")]
-
-DRAFTS = [
-    "Write a polite email declining {}.",
-    "Turn these notes into a short paragraph: {}.",
-    "Summarise this for a status update: {}.",
-    "Write a changelog entry for {}.",
-    "Explain {} to someone who has never used it.",
-]
-DRAFT_SUBJECTS = [
-    "a vendor's meeting request",
-    "an invitation to speak at a meetup",
-    "shipped Tuesday, conversion up 3%, no incidents",
-    "the migration finished, two tables left, no downtime",
-    "a database index",
-    "why we moved from polling to webhooks",
-]
-
-ENGINEERING = [
-    "Our {} got about {}x slower after a deploy that only touched application code. Walk me through finding the cause.",
-    "We have a memory leak in a {} service that only shows up under load after several hours. How would you track it down?",
-    "Design the schema for {} with usage metering and monthly invoices.",
-    "Write a {} that is correct under concurrency, with the tests you would keep.",
-    "Our {} lag grows every Monday morning and recovers by noon. What are the candidate causes and how would you separate them?",
-    "Review this for weaknesses: {}.",
-]
-ENG_SUBJECTS = [
-    ("Postgres query", "40"),
-    ("Node", ""),
-    ("a multi-tenant billing system", ""),
-    ("token-bucket rate limiter", ""),
-    ("Kafka consumer", ""),
-    ("clients post a password to /login and get a 30-day JWT kept in localStorage", ""),
-]
-
-ARGUED = [
-    "Prove that {}, then say which step fails if you change it to {}.",
-    "Our A/B test shows a {}% lift at p={} across {} metrics. Should we ship it? Reason about what the p-value does and does not say here.",
-    "Decide whether to buy or build given {}, and justify the decision against each constraint.",
-    "Derive the expected number of {} before {}, and show the derivation rather than quoting a result.",
-    "Argue both sides of {}, then commit to an answer and say what would change your mind.",
-]
-
-OPENERS = [
-    ("we need to pick a {thing}", "{a}, {b} and {c} are the usual three.", "which one for {scale} and a single consumer?", 2),
-    ("our {system} is slow", "how slow, and on which {unit}?", "p99 is {secs} seconds over {size}, one node, no replicas", 2),
-    ("can you check the {ephemeral}", "I can't see live {ephemeral} from here.", "{closer}", 0),
-    ("summarise the incident", "Sure, send me the timeline.", "{t1} alert, {t2} rollback, {t3} recovered, cause was {cause}", 1),
-    ("what does {acronym} stand for?", "{acronym} is {expansion}.", "{closer}", 0),
-    ("I need to explain {topic} to the board", "Happy to help. What do they already know?", "nothing technical, and they care about {concern}", 1),
-]
-THINGS = ["queue", "cache", "search engine", "job runner", "feature flag service"]
-TRIPLES = [("SQS", "Kafka", "RabbitMQ"), ("Redis", "Memcached", "Hazelcast"), ("Celery", "Sidekiq", "Temporal")]
-SYSTEMS = ["search", "checkout", "dashboard", "import job", "report builder"]
-EPHEMERAL = ["weather", "stock price", "flight status", "server status"]
-CLOSERS = ["no problem, thanks", "ok thanks", "got it, cheers", "understood, thank you"]
-CAUSES = ["a bad migration", "an expired certificate", "a full disk on the primary", "a runaway backfill"]
-ACRONYMS = [("TTL", "time to live"), ("SLA", "service level agreement"), ("CIDR", "classless inter-domain routing")]
-TOPICS = ["our outage last month", "why we are migrating databases", "the cost of the new vendor"]
-CONCERNS = ["cost", "risk", "the timeline", "customer impact"]
 
 TOOL_SHAPES = [
     ('{{"status": {code}, "body": "{msg}"}}', "What should I tell the user?", 1),
@@ -223,70 +167,34 @@ def make(rng: random.Random, state: Any, rung: int, fmt: str, boundary: bool = F
     }
 
 
-def gen_short(rng: random.Random) -> dict[str, Any]:
-    rung = rng.randrange(4)
-    if rung == 0:
-        if rng.random() < 0.3:
-            return make(rng, rng.choice(GREETINGS), 0, "short")
-        tpl, opts = rng.choice(LOOKUPS)
-        if opts is None:
-            a, b = rng.choice(UNITS)
-            return make(rng, tpl.format(a, b), 0, "short")
-        return make(rng, tpl.format(rng.choice(opts)), 0, "short")
-    if rung == 1:
-        return make(rng, rng.choice(DRAFTS).format(rng.choice(DRAFT_SUBJECTS)), 1, "short")
-    if rung == 2:
-        tpl, (subj, n) = rng.choice(ENGINEERING), rng.choice(ENG_SUBJECTS)
-        return make(rng, tpl.format(subj, n) if "{}x" in tpl else tpl.replace("{}", subj, 1), 2, "short")
-    tpl = rng.choice(ARGUED)
-    filled = tpl.format(
-        *{
-            0: ("the square root of 2 is irrational", "the square root of 4"),
-            1: (round(rng.uniform(2, 9), 1), rng.choice(["0.03", "0.049", "0.02"]), rng.randrange(4, 14)),
-            2: ("18 months of runway, two backend engineers, and a vendor wanting a 12-month commitment",),
-            3: (rng.choice(["coin flips", "rolls", "retries"]), rng.choice(["two heads in a row", "a six", "a success"])),
-            4: (rng.choice(["a monorepo at sixty engineers", "rewriting the billing service", "hiring a contractor for the migration"]),),
-        }[ARGUED.index(tpl)]
-    )
-    return make(rng, filled, 3, "short")
+def gen_provenance(rng: random.Random, source: str) -> dict[str, Any] | None:
+    prompts = load_source(source)
+    if not prompts:
+        return None
+    return make(rng, rng.choice(prompts), PROVENANCE[source], f"real/{source}")
 
 
 def gen_long(rng: random.Random) -> dict[str, Any]:
-    """Long, but no harder: padding a lookup or a draft must not move the tier."""
-    base = gen_short(rng)
-    if base["rung"] > 1 and rng.random() < 0.5:
-        return dict(base, format="long", id=base["id"].replace("short", "long"))
-    padded = FILLER * rng.randint(1, 3) + str(base["state"])
-    return make(rng, padded, base["rung"], "long")
+    """A real prompt that is long without being hard, or hard without being long:
+    the pairing that stops length standing in for difficulty."""
+    source = rng.choice(["dolly_simple", "trivia", "dolly_medium"])
+    prompts = load_source(source)
+    if not prompts:
+        return None  # type: ignore[return-value]
+    text = rng.choice(prompts)
+    padding = rng.choice(load_source("oasst") or [""])[:400]
+    return make(rng, f"{padding}\n\n{text}" if padding else text, PROVENANCE[source], "long")
 
 
 def gen_follow_up(rng: random.Random) -> dict[str, Any]:
-    opener, reply, last, rung = rng.choice(OPENERS)
-    a, b, c = rng.choice(TRIPLES)
-    acr, exp = rng.choice(ACRONYMS)
-    fill = {
-        "thing": rng.choice(THINGS),
-        "a": a,
-        "b": b,
-        "c": c,
-        "scale": f"{rng.choice([2, 5, 10, 40, 100])}k messages a day",
-        "system": rng.choice(SYSTEMS),
-        "unit": rng.choice(["queries", "pages", "requests"]),
-        "secs": rng.choice([2, 3, 4, 7]),
-        "size": f"{rng.choice([2, 8, 20, 50])} million documents",
-        "ephemeral": rng.choice(EPHEMERAL),
-        "closer": rng.choice(CLOSERS),
-        "t1": f"{rng.randrange(9, 17)}:{rng.randrange(10, 59)}",
-        "t2": f"{rng.randrange(9, 17)}:{rng.randrange(10, 59)}",
-        "t3": f"{rng.randrange(9, 17)}:{rng.randrange(10, 59)}",
-        "cause": rng.choice(CAUSES),
-        "acronym": acr,
-        "expansion": exp,
-        "topic": rng.choice(TOPICS),
-        "concern": rng.choice(CONCERNS),
-    }
-    turns = [("user", opener.format(**fill)), ("assistant", reply.format(**fill)), ("user", last.format(**fill))]
-    return make(rng, "\n".join(f"{r}: {t}" for r, t in turns), rung, "follow_up")
+    """Two real prompts as a conversation: the work is whatever the last turn asks."""
+    opening = load_source("oasst")
+    if not opening:
+        return None  # type: ignore[return-value]
+    source = rng.choice([s for s in PROVENANCE if load_source(s)])
+    last = rng.choice(load_source(source))
+    turns = [("user", rng.choice(opening)[:300]), ("assistant", "Happy to help with that."), ("user", last)]
+    return make(rng, "\n".join(f"{r}: {t}" for r, t in turns), PROVENANCE[source], "follow_up")
 
 
 def gen_tool_context(rng: random.Random) -> dict[str, Any]:
@@ -313,40 +221,20 @@ def gen_tool_context(rng: random.Random) -> dict[str, Any]:
 
 
 def gen_boundary(rng: random.Random) -> dict[str, Any]:
-    """Items that genuinely sit between two rungs; the label says so rather than picking."""
-    pairs = [
-        ("Explain why this query is slow and how you would fix it: SELECT * FROM {t} WHERE created_at > now() - interval '{d} days'", 1),
-        ("Write a regex for {kind} and explain each part.", 1),
-        ("Should we use {a} or {b} for {ctx}? Give me a recommendation.", 2),
-        ("Summarise this incident and say what we should change: {cause} locked {t} for {m} minutes during peak.", 1),
-        ("What is the time complexity of this and can it be improved? for i in a: for j in b: if i == j: out.append(i)", 2),
-        ("Is {a} or {b} the right call for {ctx}? One paragraph.", 2),
-        ("Rewrite this to be faster and say why the original was slow: {snippet}", 2),
-    ]
-    tpl, rung = rng.choice(pairs)
-    text = tpl.format(
-        t=rng.choice(["events", "orders", "sessions", "audit_log"]),
-        d=rng.choice([7, 30, 90]),
-        kind=rng.choice(["UK postcodes", "ISO dates", "semver tags", "IPv4 addresses"]),
-        a=rng.choice(["REST", "Postgres", "a monolith", "server-side rendering"]),
-        b=rng.choice(["GraphQL", "DynamoDB", "microservices", "a SPA"]),
-        ctx=rng.choice(["a small mobile app", "a 4-person team", "an internal tool", "a high-write workload"]),
-        cause=rng.choice(CAUSES),
-        m=rng.randrange(5, 40),
-        snippet=rng.choice(["sorted(x)[0]", "len([c for c in s if c == 'a']) > 0", "list(set(a) & set(b))"]),
-    )
-    return make(rng, text, rung, "boundary", boundary=True)
-
-
-def gen_provenance(rng: random.Random, source: str) -> dict[str, Any] | None:
-    prompts = load_source(source)
-    if not prompts:
-        return None
-    return make(rng, rng.choice(prompts), PROVENANCE[source], f"real/{source}")
+    """A real prompt from one tier, labelled softly across it and its neighbour.
+    Which prompts are genuinely borderline is not mine to decide, so the ones
+    drawn here are simply the shortest of a hard tier and the longest of an easy
+    one — where the classes actually meet."""
+    if rng.random() < 0.5:
+        prompts = sorted(load_source("stackexchange") or [""], key=len)[:120]
+        rung = 2
+    else:
+        prompts = sorted(load_source("dolly_medium") or [""], key=len, reverse=True)[:120]
+        rung = 1
+    return make(rng, rng.choice(prompts), rung, "boundary", boundary=True)
 
 
 CELLS = {
-    "short": gen_short,
     "long": gen_long,
     "follow_up": gen_follow_up,
     "tool_context": gen_tool_context,
