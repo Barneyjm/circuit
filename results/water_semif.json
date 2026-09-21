@@ -1,0 +1,43 @@
+{
+ "model": "semif:Qwen/Qwen3.5-4B@851bf6e8",
+ "data": "data/water_calls.jsonl",
+ "timing": {
+  "items": 100,
+  "could_not_run": 0,
+  "ms_per_item_p50": 617.5,
+  "batch": 1,
+  "backend": "mlx"
+ },
+ "metrics": {
+  "all": {
+   "n": 100,
+   "kl_to_ref": 0.2952,
+   "brier": 0.1323,
+   "accuracy": 0.91,
+   "ece": 0.0711,
+   "sel_acc_90": 0.9667,
+   "agree_jev": 0.91,
+   "mean_conf": 0.918
+  },
+  "type:choice": {
+   "n": 100,
+   "kl_to_ref": 0.2952,
+   "brier": 0.1323,
+   "accuracy": 0.91,
+   "ece": 0.0711,
+   "sel_acc_90": 0.9667,
+   "agree_jev": 0.91,
+   "mean_conf": 0.918
+  },
+  "family:water_calls (heldout)": {
+   "n": 100,
+   "kl_to_ref": 0.2952,
+   "brier": 0.1323,
+   "accuracy": 0.91,
+   "ece": 0.0711,
+   "sel_acc_90": 0.9667,
+   "agree_jev": 0.91,
+   "mean_conf": 0.918
+  }
+ }
+}

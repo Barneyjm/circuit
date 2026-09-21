@@ -599,3 +599,41 @@ different GPU peaked late instead, so the best step is a property of a run, not 
 recipe); `v1.0` tags the original weights, and Modal and
 `REPRODUCE.md` pin `v1.0` until the 8B is settled. Weights: `runs/circuit-{1.7b,8b}-v1.1`
 (kept) and `-v1.1-final` (last). About 1.9 H100-hours.
+
+## SemIf: what an untuned 4B does (2026-09-21)
+
+SemIf (TheoLeeCJ/SemIf, MIT; LangSmith hosts it as `semif-qwen3.5-4b`) is not a trained
+decision model. It asks stock `Qwen/Qwen3.5-4B` a lettered multiple-choice question and
+reads the logits of the answer letters, one pass, nothing generated. That makes it the
+control the rest of this document was missing: what do you get with no training at all?
+`scripts/eval_semif.py`, MLX backend on the Mac. Accuracy / ECE / KL:
+
+| set | SemIf | Jev | circuit-1.7b v1.1 | circuit-8b v1.1 |
+|---|---|---|---|---|
+| BFCL tool relevance | .813 / .118 / 0.52 | .813 / .069 / 0.40 | .817 / .112 / 0.54 | **.857** / .099 / 0.45 |
+| HaluEval groundedness | .847 / .065 / 0.42 | **.910 / .029 / 0.24** | .767 / .126 / 0.49 | .840 / .048 / 0.34 |
+| ChaosNLI | .623 / .205 / 0.61 | .600 / .254 / 2.00 | .587 / .238 / 0.70 | **.710 / .098 / 0.38** |
+| HWU64, 64 intents | cannot ask | **.800** | .780 | .777 |
+| grid, 2,125 | .868 / .020 / 0.35 | .947 / .014 / 0.28 | **.970 / .011 / 0.06** | .959 / .019 / 0.09 |
+| water calls | .910 / .071 | **.980** / .015 | .930 / .055 | .890 / .051 |
+| DIY, 546 | .802 / .056 | | .747 / .063 | **.828** / .038 |
+| MNLI / SMS spam / civil toxicity | .79 / .92 / .79 | .88 / .96 / .82 | .82 / .97 / .87 | .86 / .98 / .86 |
+| ms per item, same Mac | 250 to 690 | | 184 | 777 |
+
+A recent 4B instruct model already does most of this. With no training it equals Jev on
+tool relevance, equals our 8B on groundedness, beats our 1.7B on groundedness by 8 points
+and on the DIY set by 5. What training buys is narrower than "accuracy": the grid (.97
+against .87, and the gap is in classify, ordinal and temporal, the operations that need
+a rubric read rather than a fact recalled), calibration off distribution (ECE .05 to .10
+for the 8B against .07 to .21), and the things its construction rules out. Answers are
+letters A to P, so more than 16 options cannot be asked at all: every HWU64 and CLINC
+item, 30 DIY items and 69 grid items were unaskable and are scored as wrong above. Score
+questions read as five unrelated letters, and ticket priority shows it (.25, ECE .52).
+
+Nimble, which is this same base fine-tuned, scores .853 on the grid, slightly *below*
+the untuned model. Whatever Nimble's training added, it was not this.
+
+The obvious conclusion is the one Qwen3.5 already suggested twice: the base matters more
+than anything done to it so far, and a circuit on Qwen3.5-4B would start from .85 on
+groundedness rather than .72. The costs are the ones measured above in this document:
+no shared-prefix caching, per-length compilation, about 1.7x the latency.
