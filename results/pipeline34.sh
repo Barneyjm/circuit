@@ -1,18 +1,19 @@
 #!/usr/bin/env bash
-# circuit-8b v1.2 recipe plus the hard tier (long policy, contracts, multi-hop) at 4,096 tokens.
+# circuit v1.2 recipe (BASE=Qwen/Qwen3-1.7B-Base N=circuit-1.7b-hard for the small one) plus the hard tier (long policy, contracts, multi-hop) at 4,096 tokens.
 # Hard-tier JSONL arrives through STAGE (not in the repo). Every step kept and scored on the
 # hard-tier eval and unseen sets; the kept step gets the full suite plus the permutation test.
 set -u
 cd /workspace/s1-proto
 export UV_NO_SYNC=1 UV_CACHE_DIR=/workspace/uv-cache PATH="$HOME/.local/bin:$PATH" HF_HOME=/workspace/hf PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 E="uv run python scripts/eval_set.py"
-N=circuit-8b-hard
+BASE=${BASE:-Qwen/Qwen3-8B-Base}
+N=${N:-circuit-8b-hard}
 uv run python -c "import torch, sys; sys.exit(0 if torch.cuda.is_available() else 1)" || { echo "!!! no GPU; aborting"; exit 3; }
 [ -f data/hard_tier_train.jsonl ] && [ -f data/hard_tier_eval.jsonl ] || { echo "!!! hard tier data not staged"; exit 4; }
 cat data/publish_train_v2.jsonl data/hard_tier_train.jsonl > data/hard_mix_train.jsonl
 echo "mix rows: $(wc -l < data/hard_mix_train.jsonl)"
 echo "=== train $N"
-uv run python -u scripts/train_lora.py Qwen/Qwen3-8B-Base data/hard_mix_train.jsonl --out runs/$N --head pointer --epochs 1 --batch 4 --micro 2 --max-length 4096 --eval-every 400 --grad-checkpoint --parallel-options --wandb s1proto --run-name $N 2>&1 | grep --line-buffered -E "train=|step [0-9]+000/|val:|kept step|done in|View run|Traceback|Error"
+uv run python -u scripts/train_lora.py $BASE data/hard_mix_train.jsonl --out runs/$N --head pointer --epochs 1 --batch 4 --micro 2 --max-length 4096 --eval-every 400 --grad-checkpoint --parallel-options --wandb s1proto --run-name $N 2>&1 | grep --line-buffered -E "train=|step [0-9]+000/|val:|kept step|done in|View run|Traceback|Error"
 [ -f runs/$N/head.pt ] || { echo "!!! $N did not train"; exit 2; }
 echo "=== steps $N"
 for d in runs/$N/steps/*/; do

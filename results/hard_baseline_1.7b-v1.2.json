@@ -1,0 +1,36 @@
+{
+ "cuad_clause": {
+  "acc": 0.78,
+  "brier": 0.311,
+  "n": 100,
+  "errors": 0
+ },
+ "maud_deal": {
+  "acc": 0.547,
+  "brier": 0.578,
+  "n": 150,
+  "errors": 0
+ },
+ "musique_hops": {
+  "acc": 0.44,
+  "brier": 0.699,
+  "n": 150,
+  "errors": 0
+ },
+ "sharc_policy": {
+  "acc": 0.553,
+  "brier": 0.593,
+  "n": 150,
+  "errors": 0
+ },
+ "wiki2_hops": {
+  "acc": 0.75,
+  "brier": 0.29,
+  "n": 100,
+  "errors": 0
+ },
+ "all": {
+  "acc": 0.591,
+  "n": 650
+ }
+}
