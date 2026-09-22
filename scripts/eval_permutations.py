@@ -137,6 +137,21 @@ def run_media(spec: str, jobs: list[tuple[dict, list[str]]], modality: str, sour
     return [dict(zip(order, p, strict=True)) if p else None for (_, order), p in zip(jobs, preds, strict=True)]
 
 
+def run_laya(jobs: list[tuple[dict, list[str]]]) -> list[dict[str, float] | None]:
+    """Laya (convaiinnovations/laya): the same request contract, one question at a time."""
+    import laya
+
+    agent = laya.load("convaiinnovations/laya")
+    out: list[dict[str, float] | None] = []
+    for it, order in jobs:
+        try:
+            a = agent.system_one(it["state"], {"q": reordered(it["question"], order)})["answers"]["q"]
+            out.append({k: a["probabilities"][k] for k in order})
+        except ValueError:
+            out.append(None)
+    return out
+
+
 def report(items: list[dict], k: int, dists: list[dict[str, float] | None]) -> dict:
     groups: dict[str, list[int]] = defaultdict(list)
     for i, it in enumerate(items):
@@ -176,7 +191,7 @@ def report(items: list[dict], k: int, dists: list[dict[str, float] | None]) -> d
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("model", help="lora:<run dir> | jev | semif")
+    ap.add_argument("model", help="lora:<run dir> | jev | semif | laya")
     ap.add_argument("--out", required=True)
     ap.add_argument("--k", type=int, default=4, help="orders per item: as written, reversed, then shuffles")
     ap.add_argument("--per-family", type=int, default=100)
@@ -203,6 +218,8 @@ def main() -> None:
         dists = asyncio.run(run_jev(jobs, args.concurrency))
     elif args.model == "semif":
         dists = run_semif(jobs, args.semif, args.backend)
+    elif args.model == "laya":
+        dists = run_laya(jobs)
     else:
         dists = run_lora(args.model, jobs, args.batch)
     if args.dump:

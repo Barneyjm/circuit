@@ -780,3 +780,21 @@ than accuracy does, and the checkpoint rule needs the score type to carry a sign
 means harder score items in validation. And a per-type temperature closes most of the
 choice gap (ECE .231 to .148 for the kept step) but none of the accuracy gap, as it
 cannot.
+
+## Laya, restored (2026-09-22)
+
+Laya (convaiinnovations/laya, Apache-2.0) was scored on 2026-09-21 and dropped from the
+benchmark as uninteresting; people asked, so the results are back (`results/*_laya.json`,
+`scripts/eval_laya.py`) with the permutation test added. It is a 32 ms encoder that reads
+the whole request in 512 tokens and gives the option list 192 of them.
+
+Accuracy / ECE: grid .596 / .118, held-out public .561 / .040, water calls .900 / .098,
+DIY .418 / .169, BFCL .617 / .142, HaluEval .667 / .178, ChaosNLI .620 / .250, HWU64
+.477 / .445. CLINC's 151 options do not fit.
+
+**Option order**: 30.0% of top answers change under reordering on the 881 items it can
+run, the highest of any model tested, with a mean probability shift of .155. It is
+stable on three-way NLI (1 to 2%) and unstable wherever the list is long: 71% on the
+64-way intents, 35% on ticket queues, 21% on water calls where accuracy is .90 as
+written and .82 reversed. Fast, open, and the answer depends on the order more than
+anything else measured here.
