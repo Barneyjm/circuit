@@ -659,6 +659,11 @@ differs between identical requests on **3.7%** of items, with a mean probability
 whether it is batch composition on their side, with other customers' traffic, cannot be
 told from outside. Our 1.7B on the Mac, same probe: 0.0% / .000. The permutation test's
 8% for Jev therefore has a floor of about 4% that has nothing to do with option order.
+The flips are all on near-ties: the highest top probability among the 11 flipped items is
+.58 and the top-two margin never exceeds .07, so a confident answer never flips. But 42 of
+the 289 items that did not flip moved by more than .05 between identical calls (one went
+.58 / .42 / .34 / .43 on its top option). A threshold gate at 0.5 sees those as different
+decisions; a band around the threshold, which is what decision-circuits does, does not.
 
 **A second question in the same request.** Jev's answer to the first question moves by
 2.0% flips / .015 when an unrelated noul question rides along, which is within its
