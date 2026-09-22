@@ -170,11 +170,16 @@ def main() -> None:
     ap.add_argument("--per-family", type=int, default=100)
     ap.add_argument("--batch", type=int, default=4)
     ap.add_argument("--concurrency", type=int, default=4)
+    ap.add_argument("--dump", default=None, help="also write every distribution, per item and order, to this JSONL")
+    ap.add_argument("--ids", default=None, help="comma-separated item ids: ask only these")
     ap.add_argument("--semif", default=None)
     ap.add_argument("--backend", default=None)
     args = ap.parse_args()
 
     items = pick(SOURCES, args.per_family)
+    if args.ids:
+        want = set(args.ids.split(","))
+        items = [it for it in items if it["id"] in want]
     jobs = [(it, order) for it in items for order in orders(it, args.k)]
     print(f"{len(items)} items x {args.k} orders = {len(jobs)} questions", flush=True)
     if args.model == "jev":
@@ -183,6 +188,10 @@ def main() -> None:
         dists = run_semif(jobs, args.semif, args.backend)
     else:
         dists = run_lora(args.model, jobs, args.batch)
+    if args.dump:
+        with open(args.dump, "w") as f:
+            for j, (it, order) in enumerate(jobs):
+                f.write(json.dumps({"id": it["id"], "family": it["family"], "order": order, "dist": dists[j]}) + "\n")
     rep = report(items, args.k, dists)
     for name, r in rep.items():
         if r["n"]:
