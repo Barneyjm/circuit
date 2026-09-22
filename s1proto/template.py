@@ -105,6 +105,7 @@ class Prompt:
     prefix: str = ""
     tail: str = ""
     layout: str = "letters"
+    kind: str = "choice"  # noul | choice | score, so a scorer can apply a per-type temperature
 
 
 def render_state(state: Any) -> str:
@@ -163,7 +164,7 @@ def render_noul(state: Any, q: NoulQuestion, layout: str = "letters") -> Prompt:
     no_desc = render_text(q.criteria.false) if q.criteria else ""
     options = [("yes", yes_desc), ("no", no_desc)]
     prefix, tail = _assemble(state, q.instructions, options, lead="Question (answer yes or no):", layout=layout)
-    return Prompt(text=prefix + tail, n_options=2, option_keys=NOUL_OPTIONS, prefix=prefix, tail=tail, layout=layout)
+    return Prompt(text=prefix + tail, n_options=2, option_keys=NOUL_OPTIONS, prefix=prefix, tail=tail, layout=layout, kind="noul")
 
 
 def render_choice(state: Any, q: ChoiceQuestion, layout: str = "letters") -> Prompt:
@@ -178,7 +179,15 @@ def render_score(state: Any, q: ScoreQuestion, layout: str = "letters") -> Promp
     # caller can compute the expected value and the legend.
     options = [(render_text(level), "") for level in q.criteria]
     prefix, tail = _assemble(state, q.instructions, options, lead="Question (pick the level that fits best; levels are in increasing order):", layout=layout)
-    return Prompt(text=prefix + tail, n_options=len(options), option_keys=tuple(str(i) for i in range(len(options))), prefix=prefix, tail=tail, layout=layout)
+    return Prompt(
+        text=prefix + tail,
+        n_options=len(options),
+        option_keys=tuple(str(i) for i in range(len(options))),
+        prefix=prefix,
+        tail=tail,
+        layout=layout,
+        kind="score",
+    )
 
 
 def render(state: Any, q: NoulQuestion | ChoiceQuestion | ScoreQuestion, layout: str = "letters") -> Prompt:

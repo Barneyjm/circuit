@@ -60,11 +60,12 @@ while true; do
   if [ $(( now - START )) -gt $(( MAX_HOURS * 3600 )) ]; then echo "!!! over $MAX_HOURS h; collecting what exists and terminating"; break; fi
 done
 
-# The kept checkpoint and the results come home before anything is terminated. tar over ssh, because
+# The kept checkpoint, every step, and the results come home before anything is terminated. tar over ssh, because
 # a fresh pod has no rsync; the per-step checkpoints stay behind. A pod whose weights could not be
 # fetched is left running, loudly: an hour of an A40 costs less than the run that produced them.
 collect () {
-  $S "cd /workspace/s1-proto && tar -cf - runs/$RUN/adapter runs/$RUN/head.pt runs/$RUN/config.json results/*.json" | tar -xf - -C "$SRC"
+  # steps/ holds every evaluated checkpoint; for a 1.7B that is about 1.6 GB, for an 8B about 4 GB
+  $S "cd /workspace/s1-proto && tar -cf - runs/$RUN/adapter runs/$RUN/head.pt runs/$RUN/config.json results/*.json \$( [ -d runs/$RUN/steps ] && echo runs/$RUN/steps )" | tar -xf - -C "$SRC"
   [ -s "runs/$RUN/head.pt" ] && [ -s "runs/$RUN/adapter/adapter_model.safetensors" ] && [ -s "runs/$RUN/config.json" ]
 }
 if [ "${collected:-0}" = 0 ]; then

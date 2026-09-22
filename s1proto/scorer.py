@@ -281,6 +281,9 @@ class LoRAScorer:
         # path builds its own mask, so it is off until it learns this one.
         self.parallel_options = self.head_kind == "pointer" and (bool(cfg.get("parallel_options")) or os.environ.get("S1_PARALLEL_OPTIONS") == "1")
         self.prefix_cache = _kv_cache_only(self.model) and not self.parallel_options
+        # Per-type temperatures fitted on the run's validation split; a caller's temperature
+        # multiplies them, so the default request gets calibrated numbers.
+        self.temperatures: dict[str, float] = {k: float(v) for k, v in (cfg.get("temperatures") or {}).items()}
         # Prompts scored in one pass. Sized for a 22 GB card at 1,300 tokens a prompt;
         # S1_SCORE_CHUNK raises it on bigger hardware or lowers it on smaller.
         self.chunk = int(os.environ.get("S1_SCORE_CHUNK", "16"))
@@ -308,7 +311,7 @@ class LoRAScorer:
         bf16 noise; cost is O(state + sum of tails) rather than O(questions x state)."""
         import torch
 
-        temps = temperatures or [1.0] * len(prompts)
+        temps = [t * self.temperatures.get(p.kind, 1.0) for t, p in zip(temperatures or [1.0] * len(prompts), prompts, strict=True)]
         n = len(prompts)
         prefix_ids = self.tokenizer.encode(prompts[0].prefix, add_special_tokens=False)
         tails = [self.tokenizer.encode(p.tail, add_special_tokens=False) for p in prompts]
@@ -366,7 +369,7 @@ class LoRAScorer:
     def _score_independent(self, prompts: list[Prompt], temperatures: list[float] | None) -> list[ScoreResult]:
         import torch
 
-        temps = temperatures or [1.0] * len(prompts)
+        temps = [t * self.temperatures.get(p.kind, 1.0) for t, p in zip(temperatures or [1.0] * len(prompts), prompts, strict=True)]
         enc = self.tokenizer([p.text for p in prompts], return_tensors="pt", padding=True, truncation=True, max_length=self.max_length)
         ids = enc["input_ids"].to(self.device)
         mask = enc["attention_mask"].to(self.device)
@@ -443,6 +446,7 @@ class MultimodalScorer:
         self.tokenizer = self.proc.tokenizer
         self.tokenizer.padding_side = "left"
         self.model = PeftModel.from_pretrained(base, os.path.join(self.run_dir, "adapter")).to(self.device).eval()
+        self.temperatures: dict[str, float] = {k: float(v) for k, v in (cfg.get("temperatures") or {}).items()}
         self.head_kind = cfg.get("head", "pointer")
         self.layout = cfg.get("layout", "pointer")
         self.head = PointerHead(cfg["hidden"], cfg.get("head_dim", 256)) if self.head_kind == "pointer" else SlotHead(cfg["hidden"])
@@ -463,7 +467,7 @@ class MultimodalScorer:
             return []
         if media is None or len(media) != len(prompts):
             raise ValueError(f"{self.name} needs one loaded {self.modality} item per prompt")
-        temps = temperatures or [1.0] * len(prompts)
+        temps = [t * self.temperatures.get(p.kind, 1.0) for t, p in zip(temperatures or [1.0] * len(prompts), prompts, strict=True)]
         texts = [chat_text(self.proc, p.text, self.modality) for p in prompts]
         enc = encode(self.proc, texts, media, self.modality)
         enc = {k: v.to(self.device) for k, v in enc.items() if hasattr(v, "to")}

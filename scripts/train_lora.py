@@ -148,14 +148,14 @@ def pick_checkpoint(history: list[dict], acc_floor: float) -> dict:
     steps buy accuracy where the training data lives and spend calibration everywhere
     else, which is why this does not simply take the last one."""
     top = max(h["accuracy"] for h in history)
-    return min((h for h in history if h["accuracy"] >= top - acc_floor), key=lambda h: h["ece"])
+    return min((h for h in history if h["accuracy"] >= top - acc_floor), key=lambda h: h.get("ece_worst", h["ece"]))
 
 
 @torch.no_grad()
 def evaluate(model, head, tok, items, device, batch, max_length, layout="letters", proc=None, image_root=None, modality="text"):
     model.eval()
     head.eval()
-    confs, correct, kls = [], [], []
+    confs, correct, kls, kinds, raw = [], [], [], [], []
     rng = random.Random(0)
     for s in range(0, len(items), batch):
         chunk = items[s : s + batch]
@@ -170,9 +170,49 @@ def evaluate(model, head, tok, items, device, batch, max_length, layout="letters
             confs.append(float(pi.max()))
             correct.append(bool(pi.argmax() == ri.argmax()))
             kls.append(float((ri * (torch.log(ri + 1e-9) - torch.log(pi + 1e-9))).sum()))
+            kinds.append(chunk[i]["kind"])
+            raw.append((logits[i, :n].float().cpu().tolist(), ri.cpu().tolist()))
     model.train()
     head.train()
-    return {"ece": ece15(confs, correct), "accuracy": sum(correct) / len(correct), "kl": sum(kls) / len(kls)}
+    # Calibration per question type, and the worst of them. Overall ECE is dominated by
+    # whichever type the split has most of, so a checkpoint can look well calibrated while
+    # its score questions are not; the checkpoint rule reads the worst type instead.
+    by_type = {}
+    for kind in ("noul", "choice", "score"):
+        idx = [i for i, k in enumerate(kinds) if k == kind]
+        if len(idx) >= 50:
+            by_type[kind] = ece15([confs[i] for i in idx], [correct[i] for i in idx])
+    out = {"ece": ece15(confs, correct), "accuracy": sum(correct) / len(correct), "kl": sum(kls) / len(kls), "ece_by_type": by_type}
+    if by_type:
+        out["ece_worst"] = max(by_type.values())
+    out["_raw"] = (raw, kinds)  # for fit_temperatures; stripped before anything is written
+    return out
+
+
+def fit_temperatures(raw, kinds) -> dict[str, float]:
+    """Per type, the temperature that minimises mean KL(ref || softmax(logits / T)) on the
+    validation split. One scalar per type: it sharpens or softens every answer of that type
+    alike, so it cannot reintroduce a dependence on anything in the prompt."""
+    grid = [0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.15, 1.3, 1.5, 1.75, 2.0, 2.5, 3.0]
+    temps = {}
+    for kind in ("noul", "choice", "score"):
+        rows = [r for r, k in zip(raw, kinds, strict=True) if k == kind]
+        if len(rows) < 50:
+            temps[kind] = 1.0
+            continue
+        best_t, best = 1.0, float("inf")
+        for t in grid:
+            tot = 0.0
+            for logits, ref in rows:
+                z = [x / t for x in logits]
+                m = max(z)
+                e = [math.exp(x - m) for x in z]
+                p = [x / sum(e) for x in e]
+                tot += sum(r * (math.log(r + 1e-9) - math.log(q + 1e-9)) for r, q in zip(ref, p, strict=True))
+            if tot < best:
+                best, best_t = tot, t
+        temps[kind] = best_t
+    return temps
 
 
 def main() -> None:
@@ -375,6 +415,8 @@ def main() -> None:
 
     best: dict = {}
     history: list[dict] = []
+    raw_by_step: dict[int, tuple] = {}
+    temperatures: dict[str, float] = {}
     step = 0
     t0 = time.time()
     skip = start_step
@@ -393,7 +435,9 @@ def main() -> None:
                 enc, ref, nopts, opt_pos, dec_pos = build_batch(
                     tok, part, rng, device, args.max_length, train=True, layout=layout, proc=proc, image_root=image_root, modality=args.modality
                 )
-                if len(part) == 1 and args.modality == "text":
+                if (
+                    len(part) == 1 and args.modality == "text" and "position_ids" not in enc
+                ):  # not with side-by-side options: their mask and positions are already built
                     # Qwen3.5 compiles its linear-attention path once per sequence length, about
                     # 1.4 s each. Round the length up so there are 16 of them, not a thousand. The
                     # filler sits after the decide token and stays unmasked: a causal model never
@@ -426,9 +470,15 @@ def main() -> None:
                     wb.log({"train/loss": batch_loss, "train/lr": sched.get_last_lr()[0], "train/s_per_step": spd, "train/eta_min": eta_min}, step=step)
             if step % args.eval_every == 0 or step == total_steps:
                 m = evaluate(model, head, tok, val, device, args.batch, args.max_length, layout, proc, image_root, args.modality)
-                print(f"  val: ece={m['ece']:.4f} acc={m['accuracy']:.4f} kl={m['kl']:.4f}", flush=True)
+                print(
+                    f"  val: ece={m['ece']:.4f} acc={m['accuracy']:.4f} kl={m['kl']:.4f} by_type={ {k: round(v, 4) for k, v in m['ece_by_type'].items()} }",
+                    flush=True,
+                )
                 if wb:
-                    wb.log({"val/ece": m["ece"], "val/accuracy": m["accuracy"], "val/kl": m["kl"]}, step=step)
+                    wb.log(
+                        {"val/ece": m["ece"], "val/accuracy": m["accuracy"], "val/kl": m["kl"], **{f"val/ece_{k}": v for k, v in m["ece_by_type"].items()}},
+                        step=step,
+                    )
                 # always keep the latest state for resume
                 (out / "latest").mkdir(parents=True, exist_ok=True)
                 model.save_pretrained(out / "latest" / "adapter")
@@ -439,7 +489,9 @@ def main() -> None:
                 here.mkdir(parents=True, exist_ok=True)
                 model.save_pretrained(here / "adapter")
                 torch.save(head.state_dict(), here / "head.pt")
+                raw_val = m.pop("_raw")
                 history.append({**m, "step": step})
+                raw_by_step[step] = raw_val
                 chosen = pick_checkpoint(history, args.acc_floor)
                 if chosen["step"] != best.get("step"):
                     best = chosen
@@ -447,7 +499,11 @@ def main() -> None:
                     shutil.rmtree(out / "adapter", ignore_errors=True)
                     shutil.copytree(src / "adapter", out / "adapter")
                     shutil.copy(src / "head.pt", out / "head.pt")
-                    print(f"  kept step {best['step']} (ece {best['ece']:.4f}, acc {best['accuracy']:.4f})", flush=True)
+                    temperatures = fit_temperatures(*raw_by_step[best["step"]])
+                    print(
+                        f"  kept step {best['step']} (ece {best['ece']:.4f}, worst type {best.get('ece_worst', best['ece']):.4f}, acc {best['accuracy']:.4f}); temperatures {temperatures}",
+                        flush=True,
+                    )
                 json.dump(
                     {
                         "base": args.model,
@@ -460,6 +516,7 @@ def main() -> None:
                         "modality": args.modality,
                         "pointer_tokens": pointer_tokens,
                         "parallel_options": bool(args.parallel_options),
+                        "temperatures": temperatures,
                         "best": best,
                         "history": history,
                         "args": vars(args),

@@ -240,6 +240,8 @@ def main() -> None:
                 f.write(json.dumps({"id": it["id"], "kind": it["kind"], "family": it["family"], "logits": v}) + "\n")
 
     temps = parse_temperatures(args.temps)
+    if args.temps is None and getattr(scorer, "temperatures", None):
+        temps = {**temps, **scorer.temperatures}  # the run's own fitted temperatures, what the API serves
     report_items, report_logits = items, per_item
     fitted = None
     if args.fit_temps:
