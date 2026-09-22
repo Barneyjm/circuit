@@ -1,0 +1,55 @@
+{
+ "model": "circuit-1.7b",
+ "url": "https://james-73074--circuit-1-7b.modal.run/v1/systemone",
+ "results": {
+  "4": {
+   "n": 30,
+   "accuracy": 1.0,
+   "mean_conf": 0.9941,
+   "mean_p_truth": 0.9941,
+   "ms_p50": 188.0
+  },
+  "8": {
+   "n": 30,
+   "accuracy": 1.0,
+   "mean_conf": 0.9949,
+   "mean_p_truth": 0.9949,
+   "ms_p50": 190.0
+  },
+  "16": {
+   "n": 30,
+   "accuracy": 1.0,
+   "mean_conf": 0.9932,
+   "mean_p_truth": 0.9932,
+   "ms_p50": 187.9
+  },
+  "26": {
+   "n": 30,
+   "accuracy": 1.0,
+   "mean_conf": 0.9934,
+   "mean_p_truth": 0.9934,
+   "ms_p50": 190.4
+  },
+  "32": {
+   "n": 30,
+   "accuracy": 1.0,
+   "mean_conf": 0.9855,
+   "mean_p_truth": 0.9855,
+   "ms_p50": 188.9
+  },
+  "64": {
+   "n": 30,
+   "accuracy": 1.0,
+   "mean_conf": 0.9699,
+   "mean_p_truth": 0.9699,
+   "ms_p50": 189.7
+  },
+  "151": {
+   "n": 30,
+   "accuracy": 0.9667,
+   "mean_conf": 0.9468,
+   "mean_p_truth": 0.923,
+   "ms_p50": 200.7
+  }
+ }
+}

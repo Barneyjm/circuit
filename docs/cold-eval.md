@@ -688,9 +688,11 @@ options, truth always present):
 
 Accuracy declines smoothly for both, no step anywhere, and ours is level or ahead at
 every size. Jev's latency is flat across a 38x range of option count while ours grows
-6.6x, as a decoder that reads every option in context must. Flat is consistent with a
-big card where 900 tokens of prefill hide under the network round trip, and also with
-options not being read in context at all; the probe cannot tell those apart. Both models
+6.6x on the Mac. On the rented tier it does not: the same probe straight at the Modal L4
+container gives 188 / 190 / 188 / 190 / 189 / 190 / 201 ms for 4 to 151 options, and
+30 of 30 correct up to 64. A 1,300-token prefill on a proper GPU is a few milliseconds
+under a 180 ms round trip; the Mac's Apple GPU is what made the count show. So Jev's
+flat curve says nothing about its architecture either way, and neither does ours. Both models
 grow overconfident with size (conf above p(truth) by .07 for Jev and .05 for ours at 151).
 
 ## Four more probes, both models (2026-09-22, overnight)

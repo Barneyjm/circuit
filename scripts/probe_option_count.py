@@ -35,11 +35,13 @@ async def main() -> None:
     ap.add_argument("--model", default="jev-latest")
     ap.add_argument("--n", type=int, default=60)
     ap.add_argument("--concurrency", type=int, default=3)
+    ap.add_argument("--headers", default=None, help="extra request headers as JSON")
+    ap.add_argument("--key", default=None)
     args = ap.parse_args()
     items = [json.loads(line) for line in open("data/hf_eval.jsonl")]
     items = [it for it in items if it["family"] == "clinc_intent"][: args.n]
-    key = os.environ.get("TYPESAFE_API_KEY" if "typesafe" in args.url else "S1_API_KEY", "x")
-    client = httpx.AsyncClient(timeout=180.0, headers={"Authorization": f"Bearer {key}"})
+    key = args.key or os.environ.get("TYPESAFE_API_KEY" if "typesafe" in args.url else "S1_API_KEY", "x")
+    client = httpx.AsyncClient(timeout=180.0, headers={"Authorization": f"Bearer {key}", **(json.loads(args.headers) if args.headers else {})})
     gate = asyncio.Semaphore(args.concurrency)
     rng = random.Random(5)
 
