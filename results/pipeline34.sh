@@ -9,7 +9,10 @@ E="uv run python scripts/eval_set.py"
 BASE=${BASE:-Qwen/Qwen3-8B-Base}
 N=${N:-circuit-8b-hard}
 uv run python -c "import torch, sys; sys.exit(0 if torch.cuda.is_available() else 1)" || { echo "!!! no GPU; aborting"; exit 3; }
-[ -f data/hard_tier_train.jsonl ] && [ -f data/hard_tier_eval.jsonl ] || { echo "!!! hard tier data not staged"; exit 4; }
+# Staged, not in git: STAGE="data/hard_tier_train.jsonl data/hard_tier_eval.jsonl data/unseen_eval.jsonl data/grid_eval.jsonl data/hf_eval.jsonl data/cmdiy_eval.jsonl"
+for f in hard_tier_train hard_tier_eval unseen_eval grid_eval hf_eval cmdiy_eval grounded_tools_eval water_calls; do
+  [ -f data/$f.jsonl ] || { echo "!!! data/$f.jsonl missing; add it to STAGE"; exit 4; }
+done
 cat data/publish_train_v2.jsonl data/hard_tier_train.jsonl > data/hard_mix_train.jsonl
 echo "mix rows: $(wc -l < data/hard_mix_train.jsonl)"
 echo "=== train $N"
