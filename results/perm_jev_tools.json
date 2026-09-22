@@ -1,0 +1,37 @@
+{
+ "model": "jev",
+ "k": 4,
+ "per_family": 100,
+ "results": {
+  "all": {
+   "n": 199,
+   "could_not_run": 0,
+   "flip": 0.0201,
+   "tv": 0.0237,
+   "acc_as_written": 0.8392,
+   "acc_reversed": 0.8492,
+   "acc_min": 0.8392,
+   "acc_max": 0.8492
+  },
+  "claim_status": {
+   "n": 99,
+   "could_not_run": 0,
+   "flip": 0.0202,
+   "tv": 0.0225,
+   "acc_as_written": 0.7576,
+   "acc_reversed": 0.7576,
+   "acc_min": 0.7475,
+   "acc_max": 0.7576
+  },
+  "tool_choice": {
+   "n": 100,
+   "could_not_run": 0,
+   "flip": 0.02,
+   "tv": 0.0249,
+   "acc_as_written": 0.92,
+   "acc_reversed": 0.94,
+   "acc_min": 0.92,
+   "acc_max": 0.94
+  }
+ }
+}

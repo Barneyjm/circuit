@@ -184,12 +184,13 @@ def main() -> None:
     ap.add_argument("--concurrency", type=int, default=4)
     ap.add_argument("--dump", default=None, help="also write every distribution, per item and order, to this JSONL")
     ap.add_argument("--ids", default=None, help="comma-separated item ids: ask only these")
+    ap.add_argument("--sources", default=None, help="comma-separated eval JSONL files instead of the built-in set")
     ap.add_argument("--media", choices=["vision", "audio"], default=None, help="score a media circuit on its grid eval instead of the text sets")
     ap.add_argument("--semif", default=None)
     ap.add_argument("--backend", default=None)
     args = ap.parse_args()
 
-    sources = [f"data/{args.media}/grid/eval.jsonl"] if args.media else SOURCES
+    sources = [f"data/{args.media}/grid/eval.jsonl"] if args.media else (args.sources.split(",") if args.sources else SOURCES)
     items = pick(sources, args.per_family)
     if args.ids:
         want = set(args.ids.split(","))
