@@ -1,0 +1,216 @@
+{
+ "model": "jev-latest",
+ "url": "https://api.typesafe.ai/v1/systemone",
+ "results": {
+  "chat-classifier.tier": {
+   "named": {
+    "n": 30,
+    "by_description": 1.0,
+    "by_name": 0.0,
+    "neither": 0.0,
+    "mean_conf": 0.943
+   },
+   "swapped": {
+    "n": 30,
+    "by_description": 0.967,
+    "by_name": 0.033,
+    "neither": 0.0,
+    "mean_conf": 0.891
+   },
+   "anonymous": {
+    "n": 30,
+    "by_description": 0.967,
+    "by_name": 0.0,
+    "neither": 0.033,
+    "mean_conf": 0.929
+   },
+   "names_only": {
+    "n": 30,
+    "by_description": 0.9,
+    "by_name": 0.0,
+    "neither": 0.1,
+    "mean_conf": 0.912
+   }
+  },
+  "chat-classifier.tool": {
+   "named": {
+    "n": 30,
+    "by_description": 0.967,
+    "by_name": 0.0,
+    "neither": 0.033,
+    "mean_conf": 0.874
+   },
+   "swapped": {
+    "n": 30,
+    "by_description": 0.633,
+    "by_name": 0.333,
+    "neither": 0.033,
+    "mean_conf": 0.6
+   },
+   "anonymous": {
+    "n": 30,
+    "by_description": 0.967,
+    "by_name": 0.0,
+    "neither": 0.033,
+    "mean_conf": 0.884
+   },
+   "names_only": {
+    "n": 30,
+    "by_description": 0.933,
+    "by_name": 0.0,
+    "neither": 0.067,
+    "mean_conf": 0.873
+   }
+  },
+  "mcp-related-pick.pick": {
+   "named": {
+    "n": 14,
+    "by_description": 0.857,
+    "by_name": 0.0,
+    "neither": 0.143,
+    "mean_conf": 0.701
+   },
+   "swapped": {
+    "n": 14,
+    "by_description": 0.786,
+    "by_name": 0.071,
+    "neither": 0.143,
+    "mean_conf": 0.664
+   },
+   "anonymous": {
+    "n": 14,
+    "by_description": 0.786,
+    "by_name": 0.0,
+    "neither": 0.214,
+    "mean_conf": 0.696
+   },
+   "names_only": {
+    "n": 14,
+    "by_description": 0.429,
+    "by_name": 0.0,
+    "neither": 0.571,
+    "mean_conf": 0.897
+   }
+  },
+  "search-intent.kind": {
+   "named": {
+    "n": 30,
+    "by_description": 1.0,
+    "by_name": 0.0,
+    "neither": 0.0,
+    "mean_conf": 0.933
+   },
+   "swapped": {
+    "n": 30,
+    "by_description": 0.9,
+    "by_name": 0.1,
+    "neither": 0.0,
+    "mean_conf": 0.873
+   },
+   "anonymous": {
+    "n": 30,
+    "by_description": 1.0,
+    "by_name": 0.0,
+    "neither": 0.0,
+    "mean_conf": 0.933
+   },
+   "names_only": {
+    "n": 30,
+    "by_description": 0.867,
+    "by_name": 0.0,
+    "neither": 0.133,
+    "mean_conf": 0.706
+   }
+  },
+  "search-intent.lead": {
+   "named": {
+    "n": 30,
+    "by_description": 0.967,
+    "by_name": 0.0,
+    "neither": 0.033,
+    "mean_conf": 0.776
+   },
+   "swapped": {
+    "n": 30,
+    "by_description": 0.7,
+    "by_name": 0.133,
+    "neither": 0.167,
+    "mean_conf": 0.608
+   },
+   "anonymous": {
+    "n": 30,
+    "by_description": 0.933,
+    "by_name": 0.0,
+    "neither": 0.067,
+    "mean_conf": 0.791
+   },
+   "names_only": {
+    "n": 30,
+    "by_description": 0.9,
+    "by_name": 0.0,
+    "neither": 0.1,
+    "mean_conf": 0.746
+   }
+  },
+  "search-miss-triage.kind": {
+   "named": {
+    "n": 30,
+    "by_description": 0.967,
+    "by_name": 0.0,
+    "neither": 0.033,
+    "mean_conf": 0.667
+   },
+   "swapped": {
+    "n": 30,
+    "by_description": 0.833,
+    "by_name": 0.1,
+    "neither": 0.067,
+    "mean_conf": 0.642
+   },
+   "anonymous": {
+    "n": 30,
+    "by_description": 0.833,
+    "by_name": 0.0,
+    "neither": 0.167,
+    "mean_conf": 0.699
+   },
+   "names_only": {
+    "n": 30,
+    "by_description": 0.567,
+    "by_name": 0.0,
+    "neither": 0.433,
+    "mean_conf": 0.652
+   }
+  },
+  "water_calls": {
+   "named": {
+    "n": 100,
+    "by_description": 0.98,
+    "by_name": 0.0,
+    "neither": 0.02,
+    "mean_conf": 0.971
+   },
+   "swapped": {
+    "n": 100,
+    "by_description": 0.95,
+    "by_name": 0.02,
+    "neither": 0.03,
+    "mean_conf": 0.928
+   },
+   "anonymous": {
+    "n": 100,
+    "by_description": 0.95,
+    "by_name": 0.0,
+    "neither": 0.05,
+    "mean_conf": 0.958
+   },
+   "names_only": {
+    "n": 100,
+    "by_description": 0.87,
+    "by_name": 0.0,
+    "neither": 0.13,
+    "mean_conf": 0.953
+   }
+  }
+ }
+}

@@ -1,0 +1,216 @@
+{
+ "model": "circuit-1.7b",
+ "url": "http://localhost:8903/v1/systemone",
+ "results": {
+  "chat-classifier.tier": {
+   "named": {
+    "n": 30,
+    "by_description": 0.767,
+    "by_name": 0.0,
+    "neither": 0.233,
+    "mean_conf": 0.806
+   },
+   "swapped": {
+    "n": 30,
+    "by_description": 0.767,
+    "by_name": 0.033,
+    "neither": 0.2,
+    "mean_conf": 0.748
+   },
+   "anonymous": {
+    "n": 30,
+    "by_description": 0.8,
+    "by_name": 0.0,
+    "neither": 0.2,
+    "mean_conf": 0.78
+   },
+   "names_only": {
+    "n": 30,
+    "by_description": 0.733,
+    "by_name": 0.0,
+    "neither": 0.267,
+    "mean_conf": 0.797
+   }
+  },
+  "chat-classifier.tool": {
+   "named": {
+    "n": 30,
+    "by_description": 0.5,
+    "by_name": 0.0,
+    "neither": 0.5,
+    "mean_conf": 0.664
+   },
+   "swapped": {
+    "n": 30,
+    "by_description": 0.567,
+    "by_name": 0.067,
+    "neither": 0.367,
+    "mean_conf": 0.633
+   },
+   "anonymous": {
+    "n": 30,
+    "by_description": 0.567,
+    "by_name": 0.0,
+    "neither": 0.433,
+    "mean_conf": 0.664
+   },
+   "names_only": {
+    "n": 30,
+    "by_description": 0.467,
+    "by_name": 0.0,
+    "neither": 0.533,
+    "mean_conf": 0.673
+   }
+  },
+  "mcp-related-pick.pick": {
+   "named": {
+    "n": 14,
+    "by_description": 0.429,
+    "by_name": 0.0,
+    "neither": 0.571,
+    "mean_conf": 0.605
+   },
+   "swapped": {
+    "n": 14,
+    "by_description": 0.5,
+    "by_name": 0.0,
+    "neither": 0.5,
+    "mean_conf": 0.642
+   },
+   "anonymous": {
+    "n": 14,
+    "by_description": 0.571,
+    "by_name": 0.0,
+    "neither": 0.429,
+    "mean_conf": 0.589
+   },
+   "names_only": {
+    "n": 14,
+    "by_description": 0.429,
+    "by_name": 0.0,
+    "neither": 0.571,
+    "mean_conf": 0.564
+   }
+  },
+  "search-intent.kind": {
+   "named": {
+    "n": 30,
+    "by_description": 0.7,
+    "by_name": 0.0,
+    "neither": 0.3,
+    "mean_conf": 0.74
+   },
+   "swapped": {
+    "n": 30,
+    "by_description": 0.933,
+    "by_name": 0.0,
+    "neither": 0.067,
+    "mean_conf": 0.725
+   },
+   "anonymous": {
+    "n": 30,
+    "by_description": 0.833,
+    "by_name": 0.0,
+    "neither": 0.167,
+    "mean_conf": 0.745
+   },
+   "names_only": {
+    "n": 30,
+    "by_description": 0.6,
+    "by_name": 0.0,
+    "neither": 0.4,
+    "mean_conf": 0.681
+   }
+  },
+  "search-intent.lead": {
+   "named": {
+    "n": 30,
+    "by_description": 0.7,
+    "by_name": 0.0,
+    "neither": 0.3,
+    "mean_conf": 0.648
+   },
+   "swapped": {
+    "n": 30,
+    "by_description": 0.733,
+    "by_name": 0.0,
+    "neither": 0.267,
+    "mean_conf": 0.588
+   },
+   "anonymous": {
+    "n": 30,
+    "by_description": 0.667,
+    "by_name": 0.0,
+    "neither": 0.333,
+    "mean_conf": 0.672
+   },
+   "names_only": {
+    "n": 30,
+    "by_description": 0.633,
+    "by_name": 0.0,
+    "neither": 0.367,
+    "mean_conf": 0.651
+   }
+  },
+  "search-miss-triage.kind": {
+   "named": {
+    "n": 30,
+    "by_description": 0.367,
+    "by_name": 0.0,
+    "neither": 0.633,
+    "mean_conf": 0.367
+   },
+   "swapped": {
+    "n": 30,
+    "by_description": 0.5,
+    "by_name": 0.2,
+    "neither": 0.3,
+    "mean_conf": 0.377
+   },
+   "anonymous": {
+    "n": 30,
+    "by_description": 0.433,
+    "by_name": 0.0,
+    "neither": 0.567,
+    "mean_conf": 0.419
+   },
+   "names_only": {
+    "n": 30,
+    "by_description": 0.233,
+    "by_name": 0.0,
+    "neither": 0.767,
+    "mean_conf": 0.473
+   }
+  },
+  "water_calls": {
+   "named": {
+    "n": 100,
+    "by_description": 0.93,
+    "by_name": 0.0,
+    "neither": 0.07,
+    "mean_conf": 0.888
+   },
+   "swapped": {
+    "n": 100,
+    "by_description": 0.93,
+    "by_name": 0.01,
+    "neither": 0.06,
+    "mean_conf": 0.842
+   },
+   "anonymous": {
+    "n": 100,
+    "by_description": 0.92,
+    "by_name": 0.0,
+    "neither": 0.08,
+    "mean_conf": 0.865
+   },
+   "names_only": {
+    "n": 100,
+    "by_description": 0.8,
+    "by_name": 0.0,
+    "neither": 0.2,
+    "mean_conf": 0.839
+   }
+  }
+ }
+}

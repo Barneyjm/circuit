@@ -1,0 +1,210 @@
+{
+ "model": "jev-latest",
+ "url": "https://api.typesafe.ai/v1/systemone",
+ "results": {
+  "all": {
+   "n": 356,
+   "flip_after": 0.051,
+   "flip_before": 0.09,
+   "tv_after": 0.046,
+   "tv_before": 0.096,
+   "acc": [
+    0.846,
+    0.834,
+    0.82
+   ]
+  },
+  "chaosnli": {
+   "n": 25,
+   "flip_after": 0.04,
+   "flip_before": 0.2,
+   "tv_after": 0.049,
+   "tv_before": 0.099,
+   "acc": [
+    0.56,
+    0.6,
+    0.56
+   ]
+  },
+  "chat-classifier.tier": {
+   "n": 25,
+   "flip_after": 0.08,
+   "flip_before": 0.0,
+   "tv_after": 0.012,
+   "tv_before": 0.09,
+   "acc": [
+    1.0,
+    0.92,
+    1.0
+   ]
+  },
+  "chat-classifier.tool": {
+   "n": 25,
+   "flip_after": 0.0,
+   "flip_before": 0.04,
+   "tv_after": 0.012,
+   "tv_before": 0.074,
+   "acc": [
+    0.92,
+    0.92,
+    0.96
+   ]
+  },
+  "clinc_intent": {
+   "n": 25,
+   "flip_after": 0.08,
+   "flip_before": 0.04,
+   "tv_after": 0.108,
+   "tv_before": 0.119,
+   "acc": [
+    0.76,
+    0.68,
+    0.72
+   ]
+  },
+  "grid:ambiguous": {
+   "n": 9,
+   "flip_after": 0.0,
+   "flip_before": 0.0,
+   "tv_after": 0.013,
+   "tv_before": 0.014,
+   "acc": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  "grid:classify": {
+   "n": 25,
+   "flip_after": 0.12,
+   "flip_before": 0.2,
+   "tv_after": 0.12,
+   "tv_before": 0.134,
+   "acc": [
+    0.8,
+    0.76,
+    0.8
+   ]
+  },
+  "grid:compare": {
+   "n": 25,
+   "flip_after": 0.0,
+   "flip_before": 0.04,
+   "tv_after": 0.011,
+   "tv_before": 0.031,
+   "acc": [
+    1.0,
+    1.0,
+    0.96
+   ]
+  },
+  "hwu64": {
+   "n": 25,
+   "flip_after": 0.04,
+   "flip_before": 0.0,
+   "tv_after": 0.073,
+   "tv_before": 0.059,
+   "acc": [
+    0.88,
+    0.88,
+    0.88
+   ]
+  },
+  "mcp-related-pick.pick": {
+   "n": 14,
+   "flip_after": 0.214,
+   "flip_before": 0.214,
+   "tv_after": 0.084,
+   "tv_before": 0.171,
+   "acc": [
+    0.857,
+    0.786,
+    0.786
+   ]
+  },
+  "mnli": {
+   "n": 25,
+   "flip_after": 0.04,
+   "flip_before": 0.08,
+   "tv_after": 0.024,
+   "tv_before": 0.087,
+   "acc": [
+    0.8,
+    0.84,
+    0.88
+   ]
+  },
+  "search-intent.kind": {
+   "n": 25,
+   "flip_after": 0.0,
+   "flip_before": 0.04,
+   "tv_after": 0.014,
+   "tv_before": 0.066,
+   "acc": [
+    1.0,
+    1.0,
+    0.96
+   ]
+  },
+  "search-intent.lead": {
+   "n": 25,
+   "flip_after": 0.12,
+   "flip_before": 0.16,
+   "tv_after": 0.022,
+   "tv_before": 0.066,
+   "acc": [
+    0.92,
+    0.96,
+    0.88
+   ]
+  },
+  "search-miss-triage.corrected": {
+   "n": 8,
+   "flip_after": 0.0,
+   "flip_before": 0.125,
+   "tv_after": 0.027,
+   "tv_before": 0.054,
+   "acc": [
+    1.0,
+    1.0,
+    0.875
+   ]
+  },
+  "search-miss-triage.kind": {
+   "n": 25,
+   "flip_after": 0.04,
+   "flip_before": 0.2,
+   "tv_after": 0.059,
+   "tv_before": 0.273,
+   "acc": [
+    1.0,
+    0.96,
+    0.8
+   ]
+  },
+  "ticket_queue": {
+   "n": 25,
+   "flip_after": 0.04,
+   "flip_before": 0.12,
+   "tv_after": 0.075,
+   "tv_before": 0.122,
+   "acc": [
+    0.28,
+    0.28,
+    0.24
+   ]
+  },
+  "water_calls": {
+   "n": 25,
+   "flip_after": 0.0,
+   "flip_before": 0.0,
+   "tv_after": 0.017,
+   "tv_before": 0.022,
+   "acc": [
+    0.96,
+    0.96,
+    0.96
+   ]
+  }
+ }
+}

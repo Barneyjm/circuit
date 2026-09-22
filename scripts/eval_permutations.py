@@ -133,7 +133,7 @@ def run_media(spec: str, jobs: list[tuple[dict, list[str]]], modality: str, sour
     mod = __import__("eval_vision" if modality == "vision" else "eval_audio")
     device = "mps" if torch.backends.mps.is_available() else ("cuda" if torch.cuda.is_available() else "cpu")
     permuted = [{**it, "question": reordered(it["question"], order)} for it, order in jobs]
-    preds, _lat, _name = mod.score_lora(spec, permuted, Path(source).parent, device)
+    preds, _lat, _name = mod.score_lora(spec.removeprefix("lora:"), permuted, Path(source).parent, device)
     return [dict(zip(order, p, strict=True)) if p else None for (_, order), p in zip(jobs, preds, strict=True)]
 
 

@@ -1,0 +1,67 @@
+{
+ "model": "lora:runs/circuit-audio-7b-v2",
+ "k": 4,
+ "per_family": 100,
+ "results": {
+  "all": {
+   "n": 240,
+   "could_not_run": 0,
+   "flip": 0.1167,
+   "tv": 0.0288,
+   "acc_as_written": 0.8583,
+   "acc_reversed": 0.8958,
+   "acc_min": 0.8583,
+   "acc_max": 0.8958
+  },
+  "grid:ambiguous": {
+   "n": 20,
+   "could_not_run": 0,
+   "flip": 0.75,
+   "tv": 0.096,
+   "acc_as_written": 0.05,
+   "acc_reversed": 0.5,
+   "acc_min": 0.05,
+   "acc_max": 0.5
+  },
+  "grid:classify": {
+   "n": 56,
+   "could_not_run": 0,
+   "flip": 0.0,
+   "tv": 0.0005,
+   "acc_as_written": 1.0,
+   "acc_reversed": 1.0,
+   "acc_min": 1.0,
+   "acc_max": 1.0
+  },
+  "grid:count": {
+   "n": 54,
+   "could_not_run": 0,
+   "flip": 0.2222,
+   "tv": 0.0713,
+   "acc_as_written": 0.7407,
+   "acc_reversed": 0.7222,
+   "acc_min": 0.7222,
+   "acc_max": 0.7407
+  },
+  "grid:extract": {
+   "n": 83,
+   "could_not_run": 0,
+   "flip": 0.012,
+   "tv": 0.0134,
+   "acc_as_written": 0.988,
+   "acc_reversed": 1.0,
+   "acc_min": 0.988,
+   "acc_max": 1.0
+  },
+  "grid:which": {
+   "n": 27,
+   "could_not_run": 0,
+   "flip": 0.0,
+   "tv": 0.0,
+   "acc_as_written": 1.0,
+   "acc_reversed": 1.0,
+   "acc_min": 1.0,
+   "acc_max": 1.0
+  }
+ }
+}
