@@ -125,6 +125,18 @@ def run_semif(jobs: list[tuple[dict, list[str]]], semif: str, backend: str | Non
     return [got.get(str(i)) for i in range(len(jobs))]
 
 
+def run_media(spec: str, jobs: list[tuple[dict, list[str]]], modality: str, source: str) -> list[dict[str, float] | None]:
+    """The vision and audio circuits, through the same loader their evals use: each job is
+    the item with its options reordered, scored one at a time with the image or clip."""
+    import torch
+
+    mod = __import__("eval_vision" if modality == "vision" else "eval_audio")
+    device = "mps" if torch.backends.mps.is_available() else ("cuda" if torch.cuda.is_available() else "cpu")
+    permuted = [{**it, "question": reordered(it["question"], order)} for it, order in jobs]
+    preds, _lat, _name = mod.score_lora(spec, permuted, Path(source).parent, device)
+    return [dict(zip(order, p, strict=True)) if p else None for (_, order), p in zip(jobs, preds, strict=True)]
+
+
 def report(items: list[dict], k: int, dists: list[dict[str, float] | None]) -> dict:
     groups: dict[str, list[int]] = defaultdict(list)
     for i, it in enumerate(items):
@@ -172,17 +184,21 @@ def main() -> None:
     ap.add_argument("--concurrency", type=int, default=4)
     ap.add_argument("--dump", default=None, help="also write every distribution, per item and order, to this JSONL")
     ap.add_argument("--ids", default=None, help="comma-separated item ids: ask only these")
+    ap.add_argument("--media", choices=["vision", "audio"], default=None, help="score a media circuit on its grid eval instead of the text sets")
     ap.add_argument("--semif", default=None)
     ap.add_argument("--backend", default=None)
     args = ap.parse_args()
 
-    items = pick(SOURCES, args.per_family)
+    sources = [f"data/{args.media}/grid/eval.jsonl"] if args.media else SOURCES
+    items = pick(sources, args.per_family)
     if args.ids:
         want = set(args.ids.split(","))
         items = [it for it in items if it["id"] in want]
     jobs = [(it, order) for it in items for order in orders(it, args.k)]
     print(f"{len(items)} items x {args.k} orders = {len(jobs)} questions", flush=True)
-    if args.model == "jev":
+    if args.media:
+        dists = run_media(args.model, jobs, args.media, sources[0])
+    elif args.model == "jev":
         dists = asyncio.run(run_jev(jobs, args.concurrency))
     elif args.model == "semif":
         dists = run_semif(jobs, args.semif, args.backend)

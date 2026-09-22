@@ -1,0 +1,55 @@
+{
+ "model": "jev-latest",
+ "url": "https://api.typesafe.ai/v1/systemone",
+ "results": {
+  "4": {
+   "n": 60,
+   "accuracy": 0.9833,
+   "mean_conf": 0.9892,
+   "mean_p_truth": 0.9832,
+   "ms_p50": 159.0
+  },
+  "8": {
+   "n": 60,
+   "accuracy": 0.9667,
+   "mean_conf": 0.975,
+   "mean_p_truth": 0.9617,
+   "ms_p50": 161.3
+  },
+  "16": {
+   "n": 60,
+   "accuracy": 0.9667,
+   "mean_conf": 0.9703,
+   "mean_p_truth": 0.9537,
+   "ms_p50": 158.3
+  },
+  "26": {
+   "n": 60,
+   "accuracy": 0.95,
+   "mean_conf": 0.9566,
+   "mean_p_truth": 0.9352,
+   "ms_p50": 170.3
+  },
+  "32": {
+   "n": 60,
+   "accuracy": 0.95,
+   "mean_conf": 0.9763,
+   "mean_p_truth": 0.9307,
+   "ms_p50": 161.9
+  },
+  "64": {
+   "n": 60,
+   "accuracy": 0.9333,
+   "mean_conf": 0.9477,
+   "mean_p_truth": 0.8946,
+   "ms_p50": 164.2
+  },
+  "151": {
+   "n": 60,
+   "accuracy": 0.9,
+   "mean_conf": 0.9228,
+   "mean_p_truth": 0.8558,
+   "ms_p50": 156.7
+  }
+ }
+}

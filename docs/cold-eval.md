@@ -647,3 +647,43 @@ The obvious conclusion is the one Qwen3.5 already suggested twice: the base matt
 than anything done to it so far, and a circuit on Qwen3.5-4B would start from .85 on
 groundedness rather than .72. The costs are the ones measured above in this document:
 no shared-prefix caching, per-length compilation, about 1.7x the latency.
+
+## Three probes of the hosted model (2026-09-22, overnight)
+
+All against `jev-latest`, all reproducible with the scripts named; each costs cents.
+
+**Same request, four times** (`scripts/probe_jev.py`, 300 choice items). Jev's top answer
+differs between identical requests on **3.7%** of items, with a mean probability shift of
+.016. Under six copies in flight at once it is 5.0% / .016, and one at a time also 5.0% /
+.016 (`probe_jev_concurrency.py`, 120 items), so our own concurrency is not the cause;
+whether it is batch composition on their side, with other customers' traffic, cannot be
+told from outside. Our 1.7B on the Mac, same probe: 0.0% / .000. The permutation test's
+8% for Jev therefore has a floor of about 4% that has nothing to do with option order.
+
+**A second question in the same request.** Jev's answer to the first question moves by
+2.0% flips / .015 when an unrelated noul question rides along, which is within its
+repeat noise: the branches are isolated, as Hume's reconstruction says. Ours moves 1.3% /
+.005 with zero repeat noise, which is the shared-prefix path batching the two tails
+together (bf16 again); a real, small, fixable drift.
+
+**Two decimals.** 100% of Jev's reported probabilities lie on 0.01 steps, and the true
+label is reported as exactly 0.00 on 2% of items overall and 12% of 151-way ones. So a
+downstream `p > 0` gate sees the truth as impossible one time in eight on a big list.
+
+**Option count** (`probe_option_count.py`, 60 CLINC items, the same item at 4 to 151
+options, truth always present):
+
+| options | Jev acc / conf / p50 | circuit-1.7b v1.1 (Mac) acc / conf / p50 |
+|---|---|---|
+| 4 | .983 / .989 / 159 ms | .983 / .987 / 202 ms |
+| 16 | .967 / .970 / 158 ms | .983 / .976 / 306 ms |
+| 32 | .950 / .976 / 162 ms | .967 / .973 / 444 ms |
+| 64 | .933 / .948 / 164 ms | .967 / .954 / 650 ms |
+| 151 | .900 / .923 / 157 ms | .917 / .951 / 1,328 ms |
+
+Accuracy declines smoothly for both, no step anywhere, and ours is level or ahead at
+every size. Jev's latency is flat across a 38x range of option count while ours grows
+6.6x, as a decoder that reads every option in context must. Flat is consistent with a
+big card where 900 tokens of prefill hide under the network round trip, and also with
+options not being read in context at all; the probe cannot tell those apart. Both models
+grow overconfident with size (conf above p(truth) by .07 for Jev and .05 for ours at 151).

@@ -1,0 +1,19 @@
+{
+ "model": "jev-latest",
+ "url": "https://api.typesafe.ai/v1/systemone",
+ "k": 6,
+ "results": {
+  "sequential": {
+   "n": 120,
+   "flip": 0.05,
+   "tv": 0.0158,
+   "distinct_answers_mean": null
+  },
+  "concurrent": {
+   "n": 120,
+   "flip": 0.05,
+   "tv": 0.0161,
+   "distinct_answers_mean": null
+  }
+ }
+}

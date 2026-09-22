@@ -1,0 +1,55 @@
+{
+ "model": "circuit-1.7b",
+ "url": "http://localhost:8903/v1/systemone",
+ "results": {
+  "4": {
+   "n": 60,
+   "accuracy": 0.9833,
+   "mean_conf": 0.9867,
+   "mean_p_truth": 0.9834,
+   "ms_p50": 202.0
+  },
+  "8": {
+   "n": 60,
+   "accuracy": 0.9833,
+   "mean_conf": 0.9824,
+   "mean_p_truth": 0.9779,
+   "ms_p50": 242.1
+  },
+  "16": {
+   "n": 60,
+   "accuracy": 0.9833,
+   "mean_conf": 0.9764,
+   "mean_p_truth": 0.9724,
+   "ms_p50": 306.3
+  },
+  "26": {
+   "n": 60,
+   "accuracy": 0.9667,
+   "mean_conf": 0.9801,
+   "mean_p_truth": 0.9636,
+   "ms_p50": 395.7
+  },
+  "32": {
+   "n": 60,
+   "accuracy": 0.9667,
+   "mean_conf": 0.9732,
+   "mean_p_truth": 0.9566,
+   "ms_p50": 443.5
+  },
+  "64": {
+   "n": 60,
+   "accuracy": 0.9667,
+   "mean_conf": 0.9541,
+   "mean_p_truth": 0.9407,
+   "ms_p50": 650.3
+  },
+  "151": {
+   "n": 60,
+   "accuracy": 0.9167,
+   "mean_conf": 0.951,
+   "mean_p_truth": 0.9027,
+   "ms_p50": 1327.8
+  }
+ }
+}
