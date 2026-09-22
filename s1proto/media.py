@@ -226,7 +226,25 @@ def hidden_states(model, enc, modality: str = "text"):
         keep = ("input_ids", "attention_mask", "input_features", "feature_attention_mask")
     else:
         keep = ("input_ids", "attention_mask", "position_ids")  # position_ids only when options are encoded side by side
-    return body(**{k: v for k, v in enc.items() if k in keep}, use_cache=False).last_hidden_state
+    inputs = {k: v for k, v in enc.items() if k in keep}
+    if enc.get("parallel") and modality in ("vision", "audio"):
+        # Options side by side (s1proto/parallel.py) with the media in front. The image or
+        # clip keeps the positions the model gives it; only the option spans and the decide
+        # token move. Qwen3-VL's positions are [3, B, L] and come from its own rope index.
+        from .parallel import option_spans, parallel_mask, parallel_positions
+
+        rows, start_id, decide_id = enc["parallel"]
+        spans = option_spans(enc["input_ids"], rows, start_id, decide_id)
+        dtype = next(body.parameters()).dtype
+        if modality == "vision":
+            base_pos, _ = body.get_rope_index(
+                enc["input_ids"], enc["mm_token_type_ids"], image_grid_thw=enc.get("image_grid_thw"), attention_mask=enc["attention_mask"]
+            )
+        else:
+            base_pos = (enc["attention_mask"].cumsum(dim=-1) - 1).clamp(min=0)
+        inputs["position_ids"] = parallel_positions(base_pos, spans)
+        inputs["attention_mask"] = parallel_mask(enc["attention_mask"], spans, dtype)
+    return body(**inputs, use_cache=False).last_hidden_state
 
 
 def head_logits(head, hs, nopts, opt_pos, dec_pos):

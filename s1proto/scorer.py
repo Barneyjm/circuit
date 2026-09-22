@@ -447,6 +447,7 @@ class MultimodalScorer:
         self.tokenizer.padding_side = "left"
         self.model = PeftModel.from_pretrained(base, os.path.join(self.run_dir, "adapter")).to(self.device).eval()
         self.temperatures: dict[str, float] = {k: float(v) for k, v in (cfg.get("temperatures") or {}).items()}
+        self.parallel_options = bool(cfg.get("parallel_options")) or os.environ.get("S1_PARALLEL_OPTIONS") == "1"
         self.head_kind = cfg.get("head", "pointer")
         self.layout = cfg.get("layout", "pointer")
         self.head = PointerHead(cfg["hidden"], cfg.get("head_dim", 256)) if self.head_kind == "pointer" else SlotHead(cfg["hidden"])
@@ -471,6 +472,14 @@ class MultimodalScorer:
         texts = [chat_text(self.proc, p.text, self.modality) for p in prompts]
         enc = encode(self.proc, texts, media, self.modality)
         enc = {k: v.to(self.device) for k, v in enc.items() if hasattr(v, "to")}
+        if self.parallel_options:
+            from .parallel import is_choice
+
+            enc["parallel"] = (
+                [is_choice(p.text) for p in prompts],
+                self.tokenizer.convert_tokens_to_ids(T.OPT_START),
+                self.tokenizer.convert_tokens_to_ids(T.DECIDE),
+            )
         ids = enc["input_ids"]
         maxn = max(p.n_options for p in prompts)
         opt_pos = torch.zeros((len(prompts), maxn), dtype=torch.long)

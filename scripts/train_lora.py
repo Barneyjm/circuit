@@ -123,11 +123,18 @@ def build_batch(tok, items, rng, device, max_length: int, train: bool, layout: s
             if len(dpos) == 0:
                 raise ValueError(f"item {items[i].get('id')}: no decide token")
             dec_pos[i] = dpos[-1]
-    if PARALLEL_OPTIONS and layout == "pointer" and modality == "text":
+    parallel = None
+    if PARALLEL_OPTIONS and layout == "pointer":
         start_id = tok.convert_tokens_to_ids(T.OPT_START)
-        mask4d, position_ids = parallel_inputs(ids, enc["attention_mask"], [is_choice(t) for t in texts], start_id, dec_id, PARALLEL_OPTIONS)
-        enc = {"input_ids": ids, "attention_mask": mask4d, "position_ids": position_ids}
+        rows = [is_choice(t) for t in texts]
+        if modality == "text":
+            mask4d, position_ids = parallel_inputs(ids, enc["attention_mask"], rows, start_id, dec_id, PARALLEL_OPTIONS)
+            enc = {"input_ids": ids, "attention_mask": mask4d, "position_ids": position_ids}
+        else:
+            parallel = (rows, start_id, dec_id)  # hidden_states builds the mask around the media positions
     enc = {k: v.to(device) for k, v in enc.items() if hasattr(v, "to")}
+    if parallel:
+        enc["parallel"] = parallel
     return enc, ref_t.to(device), torch.tensor(nopts, device=device), opt_pos.to(device), dec_pos.to(device)
 
 

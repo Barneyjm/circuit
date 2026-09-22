@@ -86,3 +86,19 @@ def test_unflagged_rows_keep_the_causal_mask():
 def test_only_choice_questions_are_flagged():
     assert is_choice("state\n\nQuestion (pick exactly one option):\nWhich?")
     assert not is_choice("state\n\nQuestion (answer yes or no):\nIs it?")
+
+
+def test_positions_move_the_same_way_on_three_axes():
+    """Qwen3-VL positions are [3, B, L]; option spans restart on every axis alike."""
+    from s1proto.parallel import option_spans, parallel_positions
+
+    x = torch.tensor([sequence(PREFIX, OPTIONS)])
+    n = x.shape[1]
+    base = torch.arange(n).view(1, 1, n).repeat(3, 1, 1) + torch.tensor([0, 100, 200]).view(3, 1, 1)  # axes differ by an offset
+    spans = option_spans(x, [True], START, DECIDE)
+    pos = parallel_positions(base, spans)
+    first = spans[0][0][0]
+    for lo, hi in spans[0]:
+        for ax in range(3):
+            assert pos[ax, 0, lo:hi].tolist() == [base[ax, 0, first].item() + k for k in range(hi - lo)]
+    assert (pos[1] - pos[0] == 100).all() and (pos[2] - pos[0] == 200).all()

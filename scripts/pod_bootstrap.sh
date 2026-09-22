@@ -17,7 +17,7 @@ echo "== stage: deps"
 command -v uv >/dev/null || (curl -LsSf https://astral.sh/uv/install.sh | sh >/dev/null 2>&1)
 # A quiet install looks like a stall to pod_run.sh, and on a network volume it takes minutes.
 (while sleep 60; do echo "   installing: $(du -sh .venv 2>/dev/null | cut -f1)"; done) & TICK=$!
-uv sync -q
+uv sync -q --all-groups
 kill $TICK 2>/dev/null || true
 echo "== stage: cuda"
 cuda_ok () { uv run --no-sync python -c "import torch, sys; print('torch', torch.__version__, torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'NO CUDA'); sys.exit(0 if torch.cuda.is_available() else 1)"; }
@@ -35,6 +35,10 @@ for m in os.environ["BASES"].split(","):
     snapshot_download(m, allow_patterns=["*.json", "*.safetensors", "*.txt", "*.jinja"]); print("cached", m)
 PY
 kill $TICK 2>/dev/null || true
+if [ -n "${MEDIA_DATASET:-}" ]; then
+  echo "== stage: media"
+  uv run --no-sync hf download "$MEDIA_DATASET" media_grids.tgz --repo-type dataset --local-dir /workspace/stage && tar -xzf /workspace/stage/media_grids.tgz -C /workspace/s1-proto && echo "media unpacked: $(ls data/vision/grid/train | wc -l) images, $(ls data/audio/grid/train | wc -l) clips"
+fi
 echo "== stage: launch $*"
 chmod +x results/*.sh
 exec "$@"

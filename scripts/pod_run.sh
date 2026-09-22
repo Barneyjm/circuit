@@ -40,7 +40,7 @@ $S 'mkdir -p /workspace/stage'
 scp -q -i "$KEY" -P "$P" .env scripts/pod_bootstrap.sh "root@$H:/workspace/stage/"
 for f in ${STAGE:-}; do scp -q -i "$KEY" -P "$P" "$f" "root@$H:/workspace/stage/"; done
 JOB=$(printf '%q ' "$@")
-$S "nohup bash /workspace/stage/pod_bootstrap.sh '$BASES' $JOB > /workspace/boot.log 2>&1 &" </dev/null
+$S "MEDIA_DATASET='${MEDIA_DATASET:-}' HF_TOKEN='${HF_TOKEN:-}' nohup bash /workspace/stage/pod_bootstrap.sh '$BASES' $JOB > /workspace/boot.log 2>&1 &" </dev/null
 echo "launched after $(( $(date +%s) - START )) s"
 
 seen=0; last_change=$(date +%s); training=0
