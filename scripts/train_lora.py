@@ -189,6 +189,12 @@ def evaluate(model, head, tok, items, device, batch, max_length, layout="letters
     return out
 
 
+def _softmax(z):
+    m = max(z)
+    e = [math.exp(x - m) for x in z]
+    return [x / sum(e) for x in e]
+
+
 def fit_temperatures(raw, kinds) -> dict[str, float]:
     """Per type, the temperature that minimises mean KL(ref || softmax(logits / T)) on the
     validation split. One scalar per type: it sharpens or softens every answer of that type
@@ -198,6 +204,13 @@ def fit_temperatures(raw, kinds) -> dict[str, float]:
     for kind in ("noul", "choice", "score"):
         rows = [r for r, k in zip(raw, kinds, strict=True) if k == kind]
         if len(rows) < 50:
+            temps[kind] = 1.0
+            continue
+        # A type the validation split already gets right (KL near zero at T=1) gives the fit
+        # nothing to correct and it sharpens to the floor of the grid; that sharpening then
+        # hurts on harder data. Such a type keeps T=1.
+        at_one = sum(sum(r * (math.log(r + 1e-9) - math.log(q + 1e-9)) for r, q in zip(ref, _softmax(logits), strict=True)) for logits, ref in rows) / len(rows)
+        if at_one < 0.02:
             temps[kind] = 1.0
             continue
         best_t, best = 1.0, float("inf")
