@@ -771,8 +771,9 @@ Step 4,400 is the release candidate: within 1.6 points of v1.1 on the unseen set
 of Brier, better calibrated than v1.1 on the held-out public set and the DIY set, and it
 gives up water calls (8 points, the near-duplicate-options task) and about 3.5 points on
 DIY. That is what order immunity costs today: one task where options have to be compared
-against each other, and a little accuracy elsewhere. Not published; the choice is the
-user's. Weights: `runs/circuit-1.7b-par2` (kept) and `runs/circuit-1.7b-par2/steps/*`.
+against each other, and a little accuracy elsewhere. Published 2026-09-22 as tag `v1.2` on `jbarney/circuit-1.7b` (config carries
+`parallel_options` and the temperatures); the API stays on v1.1. Weights locally:
+`runs/circuit-1.7b-par2` (kept) and `runs/circuit-1.7b-par2/steps/*`.
 
 Two things learned about the recipe. Calibration under this layout wants an earlier stop
 than accuracy does, and the checkpoint rule needs the score type to carry a signal, which
