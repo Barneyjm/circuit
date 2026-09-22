@@ -44,6 +44,24 @@ use. Non-commercial and unclear sources are **eval-only** under
 | wiki_qa | microsoft/wiki_qa | unclear | Microsoft Research data license; read it before commercial use |
 | trec | CogComp/trec | unclear | no license stated |
 | newsgroups | SetFit/20_newsgroups | unclear | public Usenet posts, no license stated |
+| maud_deal (hard tier) | theatticusproject/maud | ok | CC BY 4.0 |
+| sharc_policy (hard tier) | UCLNLP/sharc | ok | CC BY-SA 3.0 |
+| cuad_clause (hard tier) | theatticusproject/cuad-qa | ok | CC BY 4.0 |
+| musique_hops (hard tier) | dgslibisey/MuSiQue | ok | CC BY 4.0 |
+| wiki2_hops (hard tier) | xanhho/2WikiMultihopQA | ok | Apache 2.0 |
+
+## Hard tier (`scripts/build_hard_tier.py`)
+
+Long documents and multi-hop reading, aimed at the two JevBench tiers where the open
+models trail Jev (long_policy, multi_hop). Nothing is taken from JevBench itself. Rows
+run up to about 4,000 Qwen3 tokens, so the training pipeline uses `--max-length 4096`.
+The built JSONL is not committed; rebuild it with the script (fixed seeds).
+
+- maud_deal: MAUD merger-agreement excerpts, one question per single-answer deal point, choice over that point's answers.
+- sharc_policy: ShARC, with the policy widened to every rule snippet from the same government page (shuffled), choice of yes / no / not covered / need more information, balanced by label.
+- cuad_clause: CUAD contracts cut into 13k-character windows, noul "does this part contain a {clause} provision?", half positive.
+- musique_hops: MuSiQue answerable questions, choice of supported / wrong (an intermediate hop's answer is proposed) / not enough information (one hop's paragraph removed).
+- wiki2_hops: 2WikiMultihopQA, noul on the gold answer or a flipped one.
 
 ## The earlier real-data set (`data/hf_train.jsonl`)
 

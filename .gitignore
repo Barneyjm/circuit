@@ -39,3 +39,5 @@ data/vision/sources/
 
 # output of scripts/reproduce_unseen.sh
 results/repro/
+data/hard_tier_*.jsonl
+data/hard_mix_train.jsonl
