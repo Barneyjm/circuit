@@ -852,3 +852,30 @@ the highest of any model measured here. ChaosNLI falls back to v1.0's level, whi
 the earlier finding that v1.1's .710 came from stopping early rather than from the data.
 The one real loss is the DIY set, 2.8 points, where options often have to be compared
 against each other.
+
+## JevBench, public subset (2026-09-22)
+
+[JevBench](https://github.com/fstandhartinger/jevbench) (commit `51a8d73`) publishes 231 of its
+534 decisions: 72 original, 48 easy, 111 hard. Its own `typesafe` adapter, pointed at the
+Modal containers (v1.2, one request at a time), and at Jev the same day for reference. All
+693 requests succeeded. Summaries: `results/jevbench/`.
+
+| | original / 72 | easy / 48 | hard / 111 | all / 231 | p50 / p95 |
+|---|---|---|---|---|---|
+| Jev 1.13 (ours, same day) | 71 | 48 | 80 | 199 | 0.31 / 0.37 s |
+| Jev 1.13 (published) | 71 | 48 | 81 | 200 | |
+| circuit-8b v1.2 | 65 | 48 | 56 | 169 | 0.23 / 0.59 s |
+| circuit-1.7b v1.2 | 53 | 48 | 44 | 145 | 0.31 / 0.71 s |
+
+On the same 231 items the published field runs from 226 (DeepSeek V4.1 Flash, thinking) to
+51. circuit-8b ties for 24th of 49 complete rows, level with system-one-open and just under
+jev-local (173) and Open-Jev 9B (179); circuit-1.7b is 38th, level with jeff and a point or
+two under Open-Jev 2B (149) and Laya's neighbourhood above it. The hard tier is the whole
+gap: 56 and 44 against Jev's 80, and within it long policies (7 of 19 against 12) and
+multi-hop reasoning (10 of 18 against 16), the kinds of item the training mix has least
+of and whose states run past the 1,024 tokens it was trained on. Where the item is a trap,
+a routing decision or temporal arithmetic, the 8B is level with Jev or ahead (temporal 3 of
+15 for Jev, 3 for the 8B; trap 8 of 8 both).
+
+This is the public subset only. The official score needs the 303 held-out and judge items,
+which the maintainers run themselves on a submitted endpoint.
