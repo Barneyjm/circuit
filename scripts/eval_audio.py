@@ -102,6 +102,11 @@ def score_lora(run_dir: str, items: list, base_dir: Path, device: str):
     from s1proto import template as T
 
     cfg = json.load(open(Path(run_dir) / "config.json"))
+    if cfg.get("parallel_options"):
+        # the run was trained with options side by side; evaluate it the same way
+        import train_lora
+
+        train_lora.PARALLEL_OPTIONS = torch.bfloat16
     if cfg.get("pointer_tokens"):
         T.use_pointer_tokens(*cfg["pointer_tokens"])
     proc = AutoProcessor.from_pretrained(cfg["base"])
