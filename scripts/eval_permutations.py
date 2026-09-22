@@ -89,10 +89,12 @@ def run_lora(spec: str, jobs: list[tuple[dict, list[str]]], batch: int) -> list[
     return out
 
 
-async def run_jev(jobs: list[tuple[dict, list[str]]], concurrency: int) -> list[dict[str, float] | None]:
+async def run_jev(
+    jobs: list[tuple[dict, list[str]]], concurrency: int, url: str | None = None, key: str | None = None, model: str = "jev-latest"
+) -> list[dict[str, float] | None]:
     from s1proto.data.teachers import JevTeacher
 
-    jev = JevTeacher(concurrency=concurrency)
+    jev = JevTeacher(api_key=key, model=model, concurrency=concurrency, **({"url": url} if url else {}))
     out: list[dict[str, float] | None] = [None] * len(jobs)
 
     async def one(i: int) -> None:
@@ -199,6 +201,9 @@ def main() -> None:
     ap.add_argument("--concurrency", type=int, default=4)
     ap.add_argument("--dump", default=None, help="also write every distribution, per item and order, to this JSONL")
     ap.add_argument("--ids", default=None, help="comma-separated item ids: ask only these")
+    ap.add_argument("--url", default=None, help="a /v1/systemone endpoint other than TypeSafe for the jev path; key from S1_API_KEY or --key")
+    ap.add_argument("--key", default=None)
+    ap.add_argument("--jev-model", default="jev-latest")
     ap.add_argument("--sources", default=None, help="comma-separated eval JSONL files instead of the built-in set")
     ap.add_argument("--media", choices=["vision", "audio"], default=None, help="score a media circuit on its grid eval instead of the text sets")
     ap.add_argument("--semif", default=None)
@@ -215,7 +220,7 @@ def main() -> None:
     if args.media:
         dists = run_media(args.model, jobs, args.media, sources[0])
     elif args.model == "jev":
-        dists = asyncio.run(run_jev(jobs, args.concurrency))
+        dists = asyncio.run(run_jev(jobs, args.concurrency, args.url, args.key, args.jev_model))
     elif args.model == "semif":
         dists = run_semif(jobs, args.semif, args.backend)
     elif args.model == "laya":

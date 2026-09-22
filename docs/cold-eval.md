@@ -819,3 +819,10 @@ remaining audio flips are six of the twenty deliberately ambiguous items (labell
 so any answer is a tie) and one count question; the mean shift across all 240 is .002.
 Neither media model gave anything up. Weights: `runs/circuit-vl-4b-par`,
 `runs/circuit-audio-7b-par`. Not published.
+
+**SemIf on LangSmith's gateway** (2026-09-22, `semif-qwen3.5-4b` at
+`gateway.smith.langchain.com`, free tier): 23.5% of answers flip under reordering on the
+583 items that ran, mean shift .140; grid compare .954 as written and .837 reversed. The
+hosted build behaves like the open checkpoint (23.0%, .145). Its option cap is exactly 16:
+16 options returns 200, 17 returns `422 invalid TypeSafe request for SemIf`; the docs
+page does not say so. `results/perm_semif_gateway.json`.
