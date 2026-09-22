@@ -65,17 +65,21 @@ done
 # fetched is left running, loudly: an hour of an A40 costs less than the run that produced them.
 collect () {
   # steps/ holds every evaluated checkpoint; for a 1.7B that is about 1.6 GB, for an 8B about 4 GB
-  $S "cd /workspace/s1-proto && tar -cf - runs/$RUN/adapter runs/$RUN/head.pt runs/$RUN/config.json results/*.json \$( [ -d runs/$RUN/steps ] && echo runs/$RUN/steps )" | tar -xf - -C "$SRC"
-  [ -s "runs/$RUN/head.pt" ] && [ -s "runs/$RUN/adapter/adapter_model.safetensors" ] && [ -s "runs/$RUN/config.json" ]
+  # RUN may name several runs separated by commas (a job that trains two models at once)
+  local paths="" ok=1
+  for r in ${RUN//,/ }; do paths="$paths runs/$r/adapter runs/$r/head.pt runs/$r/config.json \$( [ -d runs/$r/steps ] && echo runs/$r/steps )"; done
+  $S "cd /workspace/s1-proto && tar -cf - $paths results/*.json" | tar -xf - -C "$SRC"
+  for r in ${RUN//,/ }; do [ -s "runs/$r/head.pt" ] && [ -s "runs/$r/adapter/adapter_model.safetensors" ] && [ -s "runs/$r/config.json" ] || ok=0; done
+  [ "$ok" = 1 ]
 }
 if [ "${collected:-0}" = 0 ]; then
   for attempt in 1 2 3; do collect && { collected=1; break; }; echo "collect attempt $attempt failed"; sleep 20; done
 fi
-if [ "${collected:-0}" != 1 ] && $S "test -s /workspace/s1-proto/runs/$RUN/head.pt" 2>/dev/null; then
+if [ "${collected:-0}" != 1 ] && $S "for r in ${RUN//,/ }; do test -s /workspace/s1-proto/runs/\$r/head.pt && exit 0; done; exit 1" 2>/dev/null; then
   trap - EXIT
   echo "!!! WEIGHTS EXIST ON THE POD BUT COULD NOT BE FETCHED. POD $POD LEFT RUNNING at \$$COST/hr."
   echo "!!! fetch by hand: ssh -i $KEY -p $P root@$H   then terminate it."
   exit 4
 fi
-ls -la "runs/$RUN/head.pt" "runs/$RUN/adapter/adapter_model.safetensors" 2>&1 | awk '{print $5, $9}'
+for r in ${RUN//,/ }; do ls -la "runs/$r/head.pt" "runs/$r/adapter/adapter_model.safetensors" 2>&1 | awk '{print $5, $9}'; done
 echo "cost: about \$$(python3 -c "print(round(($(date +%s) - $START) / 3600 * $COST, 2))")"
