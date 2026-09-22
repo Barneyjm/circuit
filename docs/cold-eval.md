@@ -730,3 +730,50 @@ everything except option order, where after tonight's training neither has an ed
 and it reads a rubric as well as it is claimed to. Its weaknesses are nondeterminism, two
 decimals, and confidence on items people disagree about. Ours are distractibility and
 calibration off distribution, both of which are training data, not architecture.
+
+## Options side by side, second run (2026-09-22, overnight)
+
+`circuit-1.7b-par2`: the same layout as the first run, with the checkpoint rule reading
+the worst question type's validation ECE, per-type temperatures fitted on validation and
+stored in the config, and every evaluated step kept and scored on the unseen sets and a
+501-item permutation test. A40, 104 minutes of training, 267 minutes with the per-step
+scoring, $2.19. The curve, all at T=1:
+
+| step | unseen acc | unseen ECE | Brier | flips |
+|---|---|---|---|---|
+| 800 | .706 | .116 | .351 | 0.6% |
+| 1,200 | .696 | **.113** | .337 | 1.4% |
+| 2,400 | .727 | .196 | .375 | 1.0% |
+| 4,400 | .722 | .170 | .347 | 0.6% |
+| 8,400 (kept) | .719 | .231 | .414 | 0.8% |
+| 8,892 (last) | .723 | .234 | .421 | 1.0% |
+
+Order stability is there from step 400 and never leaves: 0.4 to 1.8% at every step, 0.5%
+on the full 981 items for the kept step, against 14.5% for v1.1. That is the layout, not
+the training. Calibration off distribution is best early and gets worse with every epoch
+while accuracy stays flat from step 2,400 on, the same drift the 8B showed on one-hot
+labels, and the worst-type rule did not stop it: the score type reads ECE 0 on the grid's
+easy validation items, so the rule saw choice ECE only and let accuracy pull the kept
+step late.
+
+With the fitted temperatures (noul 1.75, choice 2.5; the score fit sharpened to 0.4 on a
+type validation gets perfect and is now guarded to stay at 1):
+
+| | unseen acc / ECE / Brier | grid | held-out public | water | DIY | flips |
+|---|---|---|---|---|---|---|
+| v1.1 | .738 / .133 / .306 | .970 / .011 | .687 / .125 | .930 / .055 | .747 / .063 | 14.5% |
+| par2 kept, step 8,400 | .719 / .148 / .338 | .973 / .012 | .699 / .159 | .860 / .070 | .685 / .105 | 0.5% |
+| par2 step 4,400, T 1.0 / 1.3 | .722 / .147 / .327 | .961 / .010 | .684 / .111 | .850 / .077 | .711 / .060 | 0.6% |
+
+Step 4,400 is the release candidate: within 1.6 points of v1.1 on the unseen sets and .02
+of Brier, better calibrated than v1.1 on the held-out public set and the DIY set, and it
+gives up water calls (8 points, the near-duplicate-options task) and about 3.5 points on
+DIY. That is what order immunity costs today: one task where options have to be compared
+against each other, and a little accuracy elsewhere. Not published; the choice is the
+user's. Weights: `runs/circuit-1.7b-par2` (kept) and `runs/circuit-1.7b-par2/steps/*`.
+
+Two things learned about the recipe. Calibration under this layout wants an earlier stop
+than accuracy does, and the checkpoint rule needs the score type to carry a signal, which
+means harder score items in validation. And a per-type temperature closes most of the
+choice gap (ECE .231 to .148 for the kept step) but none of the accuracy gap, as it
+cannot.

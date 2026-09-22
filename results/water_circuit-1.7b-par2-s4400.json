@@ -1,0 +1,54 @@
+{
+ "model": "lora:4400",
+ "data": "data/water_calls.jsonl",
+ "temps": {
+  "noul": 1.0,
+  "choice": 1.3,
+  "score": 1.0
+ },
+ "fitted": null,
+ "permutations": 1,
+ "debias": false,
+ "timing": {
+  "device": "mps",
+  "items": 100,
+  "passes": 1,
+  "seconds": 23.8,
+  "ms_per_item": 237.7,
+  "input_tokens": 31712,
+  "tokens_per_s": 1333.9,
+  "batch": 4
+ },
+ "metrics": {
+  "all": {
+   "n": 100,
+   "kl_to_ref": 0.3893,
+   "brier": 0.2022,
+   "accuracy": 0.85,
+   "ece": 0.0773,
+   "sel_acc_90": 0.8889,
+   "agree_jev": 0.85,
+   "mean_conf": 0.8275
+  },
+  "type:choice": {
+   "n": 100,
+   "kl_to_ref": 0.3893,
+   "brier": 0.2022,
+   "accuracy": 0.85,
+   "ece": 0.0773,
+   "sel_acc_90": 0.8889,
+   "agree_jev": 0.85,
+   "mean_conf": 0.8275
+  },
+  "family:water_calls (heldout)": {
+   "n": 100,
+   "kl_to_ref": 0.3893,
+   "brier": 0.2022,
+   "accuracy": 0.85,
+   "ece": 0.0773,
+   "sel_acc_90": 0.8889,
+   "agree_jev": 0.85,
+   "mean_conf": 0.8275
+  }
+ }
+}
