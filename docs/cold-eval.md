@@ -826,3 +826,29 @@ Neither media model gave anything up. Weights: `runs/circuit-vl-4b-par`,
 hosted build behaves like the open checkpoint (23.0%, .145). Its option cap is exactly 16:
 16 options returns 200, 17 returns `422 invalid TypeSafe request for SemIf`; the docs
 page does not say so. `results/perm_semif_gateway.json`.
+
+## circuit-8b with options side by side (2026-09-22)
+
+Same layout as the 1.7B, the v1.1 recipe otherwise, one A40, 108 minutes of training and
+$1.65 all in. Published as tag `v1.2` and serving on both tiers. Accuracy / ECE / Brier:
+
+| | tool relevance | groundedness | ChaosNLI | 64 intents | flips |
+|---|---|---|---|---|---|
+| Jev | .813 / .069 / .259 | **.910 / .029 / .140** | **.600** / .254 / .269 | .800 / .087 / .276 | 8.3% |
+| 8b v1.0 | .807 / .107 / .314 | .720 / .143 / .384 | .560 / .314 / .357 | .777 / .140 / .355 | 11.4% |
+| 8b v1.1 | **.857** / .099 / .241 | .840 / .048 / .214 | .710 / .098 / .177 | .777 / .071 / .341 | 18.3% |
+| **8b v1.2** | .823 / .128 / .285 | .857 / .072 / .206 | .557 / .278 / .313 | **.807 / .044** / .281 | **0.6%** |
+
+| | new families | grid | held-out public | water calls | DIY |
+|---|---|---|---|---|---|
+| 8b v1.0 | | .980 / .007 | .709 / .181 | **.930** / .048 | **.841** / .039 |
+| 8b v1.1 | .888 / .035 | .959 / .019 | .701 / .127 | .890 / .051 | .828 / .038 |
+| **8b v1.2** | **.927 / .018** | .977 / .012 | **.709** / .156 | .890 / .069 | .813 / .046 |
+
+Unlike the 1.7B, the 8B gave up almost nothing for the guarantee: it is the best of the
+three on the new families, on 64-way intents, and on groundedness, and it recovers the
+grid v1.1 had lost (.959 to .977). Its accuracy over the 981 permutation items is .773,
+the highest of any model measured here. ChaosNLI falls back to v1.0's level, which fits
+the earlier finding that v1.1's .710 came from stopping early rather than from the data.
+The one real loss is the DIY set, 2.8 points, where options often have to be compared
+against each other.
