@@ -868,9 +868,9 @@ Modal containers (v1.2, one request at a time), and at Jev the same day for refe
 | circuit-1.7b v1.2 | 53 | 48 | 44 | 145 | 0.31 / 0.71 s |
 
 On the same 231 items the published field runs from 226 (DeepSeek V4.1 Flash, thinking) to
-51. circuit-8b ties for 24th of 49 complete rows, level with system-one-open and just under
-jev-local (173) and Open-Jev 9B (179); circuit-1.7b is 38th, level with jeff and a point or
-two under Open-Jev 2B (149) and Laya's neighbourhood above it. The hard tier is the whole
+51. circuit-8b ties for 24th of 50 complete rows, level with system-one-open and just under
+jev-local (173) and Open-Jev 9B (179); circuit-1.7b ties for 34th, level with jeff and four
+under Open-Jev 2B (149). The hard tier is the whole
 gap: 56 and 44 against Jev's 80, and within it long policies (7 of 19 against 12) and
 multi-hop reasoning (10 of 18 against 16), the kinds of item the training mix has least
 of and whose states run past the 1,024 tokens it was trained on. Where the item is a trap,
