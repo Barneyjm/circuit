@@ -1,0 +1,210 @@
+{
+ "model": "circuit-1.7b",
+ "url": "http://localhost:8903/v1/systemone",
+ "results": {
+  "all": {
+   "n": 356,
+   "flip_after": 0.076,
+   "flip_before": 0.171,
+   "tv_after": 0.051,
+   "tv_before": 0.152,
+   "acc": [
+    0.68,
+    0.683,
+    0.688
+   ]
+  },
+  "chaosnli": {
+   "n": 25,
+   "flip_after": 0.04,
+   "flip_before": 0.16,
+   "tv_after": 0.046,
+   "tv_before": 0.117,
+   "acc": [
+    0.64,
+    0.68,
+    0.76
+   ]
+  },
+  "chat-classifier.tier": {
+   "n": 25,
+   "flip_after": 0.0,
+   "flip_before": 0.04,
+   "tv_after": 0.018,
+   "tv_before": 0.161,
+   "acc": [
+    0.84,
+    0.84,
+    0.8
+   ]
+  },
+  "chat-classifier.tool": {
+   "n": 25,
+   "flip_after": 0.04,
+   "flip_before": 0.32,
+   "tv_after": 0.029,
+   "tv_before": 0.259,
+   "acc": [
+    0.52,
+    0.52,
+    0.48
+   ]
+  },
+  "clinc_intent": {
+   "n": 25,
+   "flip_after": 0.08,
+   "flip_before": 0.08,
+   "tv_after": 0.073,
+   "tv_before": 0.134,
+   "acc": [
+    0.84,
+    0.84,
+    0.8
+   ]
+  },
+  "grid:ambiguous": {
+   "n": 9,
+   "flip_after": 0.111,
+   "flip_before": 0.111,
+   "tv_after": 0.033,
+   "tv_before": 0.036,
+   "acc": [
+    0.667,
+    0.556,
+    0.556
+   ]
+  },
+  "grid:classify": {
+   "n": 25,
+   "flip_after": 0.0,
+   "flip_before": 0.04,
+   "tv_after": 0.012,
+   "tv_before": 0.037,
+   "acc": [
+    1.0,
+    1.0,
+    0.96
+   ]
+  },
+  "grid:compare": {
+   "n": 25,
+   "flip_after": 0.0,
+   "flip_before": 0.12,
+   "tv_after": 0.01,
+   "tv_before": 0.072,
+   "acc": [
+    0.88,
+    0.88,
+    0.92
+   ]
+  },
+  "hwu64": {
+   "n": 25,
+   "flip_after": 0.16,
+   "flip_before": 0.24,
+   "tv_after": 0.129,
+   "tv_before": 0.335,
+   "acc": [
+    0.76,
+    0.72,
+    0.64
+   ]
+  },
+  "mcp-related-pick.pick": {
+   "n": 14,
+   "flip_after": 0.071,
+   "flip_before": 0.214,
+   "tv_after": 0.058,
+   "tv_before": 0.108,
+   "acc": [
+    0.429,
+    0.5,
+    0.643
+   ]
+  },
+  "mnli": {
+   "n": 25,
+   "flip_after": 0.08,
+   "flip_before": 0.08,
+   "tv_after": 0.031,
+   "tv_before": 0.086,
+   "acc": [
+    0.76,
+    0.76,
+    0.76
+   ]
+  },
+  "search-intent.kind": {
+   "n": 25,
+   "flip_after": 0.08,
+   "flip_before": 0.24,
+   "tv_after": 0.036,
+   "tv_before": 0.272,
+   "acc": [
+    0.68,
+    0.76,
+    0.84
+   ]
+  },
+  "search-intent.lead": {
+   "n": 25,
+   "flip_after": 0.04,
+   "flip_before": 0.2,
+   "tv_after": 0.051,
+   "tv_before": 0.209,
+   "acc": [
+    0.76,
+    0.76,
+    0.72
+   ]
+  },
+  "search-miss-triage.corrected": {
+   "n": 8,
+   "flip_after": 0.0,
+   "flip_before": 0.125,
+   "tv_after": 0.055,
+   "tv_before": 0.095,
+   "acc": [
+    0.75,
+    0.75,
+    0.875
+   ]
+  },
+  "search-miss-triage.kind": {
+   "n": 25,
+   "flip_after": 0.24,
+   "flip_before": 0.28,
+   "tv_after": 0.044,
+   "tv_before": 0.125,
+   "acc": [
+    0.36,
+    0.36,
+    0.32
+   ]
+  },
+  "ticket_queue": {
+   "n": 25,
+   "flip_after": 0.24,
+   "flip_before": 0.28,
+   "tv_after": 0.138,
+   "tv_before": 0.159,
+   "acc": [
+    0.16,
+    0.12,
+    0.16
+   ]
+  },
+  "water_calls": {
+   "n": 25,
+   "flip_after": 0.0,
+   "flip_before": 0.16,
+   "tv_after": 0.051,
+   "tv_before": 0.101,
+   "acc": [
+    0.76,
+    0.76,
+    0.8
+   ]
+  }
+ }
+}

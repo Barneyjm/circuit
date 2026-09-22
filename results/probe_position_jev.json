@@ -1,0 +1,30 @@
+{
+ "model": "jev-latest",
+ "url": "https://api.typesafe.ai/v1/systemone",
+ "results": {
+  "alone": {
+   "n": 100,
+   "accuracy": 0.98,
+   "mean_conf": 0.973,
+   "mean_p_truth": 0.965
+  },
+  "start": {
+   "n": 100,
+   "accuracy": 0.98,
+   "mean_conf": 0.98,
+   "mean_p_truth": 0.973
+  },
+  "middle": {
+   "n": 100,
+   "accuracy": 0.98,
+   "mean_conf": 0.981,
+   "mean_p_truth": 0.966
+  },
+  "end": {
+   "n": 100,
+   "accuracy": 0.97,
+   "mean_conf": 0.979,
+   "mean_p_truth": 0.963
+  }
+ }
+}

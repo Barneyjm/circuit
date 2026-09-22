@@ -1,0 +1,30 @@
+{
+ "model": "circuit-1.7b",
+ "url": "http://localhost:8903/v1/systemone",
+ "results": {
+  "alone": {
+   "n": 100,
+   "accuracy": 0.93,
+   "mean_conf": 0.888,
+   "mean_p_truth": 0.859
+  },
+  "start": {
+   "n": 100,
+   "accuracy": 0.93,
+   "mean_conf": 0.885,
+   "mean_p_truth": 0.857
+  },
+  "middle": {
+   "n": 100,
+   "accuracy": 0.9,
+   "mean_conf": 0.875,
+   "mean_p_truth": 0.831
+  },
+  "end": {
+   "n": 100,
+   "accuracy": 0.9,
+   "mean_conf": 0.884,
+   "mean_p_truth": 0.849
+  }
+ }
+}

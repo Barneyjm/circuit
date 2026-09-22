@@ -687,3 +687,41 @@ every size. Jev's latency is flat across a 38x range of option count while ours 
 big card where 900 tokens of prefill hide under the network round trip, and also with
 options not being read in context at all; the probe cannot tell those apart. Both models
 grow overconfident with size (conf above p(truth) by .07 for Jev and .05 for ours at 151).
+
+## Four more probes, both models (2026-09-22, overnight)
+
+Same scripts run against `jev-latest` and against circuit-1.7b v1.1 on the Mac. Jev's
+floor of 3.7% flips from repeating an identical request applies to every Jev number here.
+
+**Does it read the rubric?** (`probe_rubric.py`) Each option's description is rotated onto
+the next option's name, so the description-reader and the name-reader disagree. Water
+calls, 100 items, share following the description / the name: Jev .95 / .02, ours .93 /
+.01. With names replaced by `opt_1..opt_k` both hold (.95, .92); with descriptions removed
+both fall (.87, .80). Both models read the criteria you write. When name and description
+conflict Jev's confidence drops (.97 to .93 on water calls, .87 to .60 on the DIY tool
+question): it notices. Ours drops less.
+
+**Text that has nothing to do with the question** (`probe_distractor.py`, 356 items, a
+paragraph about a library and a walking group). Flip rate with it appended / prepended:
+Jev .051 / .090, ours .076 / .171. Prepended filler is worse for both, and much worse for
+ours: mean probability shift .152 against Jev's .096. Ours loses no accuracy on average
+(.680 to .688), so the flips are churn on near-ties, but a state that begins with
+irrelevant material moves our numbers by a tenth.
+
+**Where the evidence sits** (`probe_position.py`, the call transcript among five filler
+paragraphs, about 900 tokens). Jev: .98 / .98 / .98 / .97 alone / start / middle / end.
+Ours: .93 / .93 / .90 / .90. No lost-in-the-middle for Jev at this length; a 3-point dip
+for ours once the transcript is not first.
+
+**The image and audio circuits** (`eval_permutations.py --media`, own grid evals, 4 orders).
+circuit-vl-4b: 3.6% flips on 140 items at 99% accuracy, all in classify and the
+deliberately ambiguous cells. circuit-audio-7b: 11.7% on 240 items, 22% on count questions
+and 75% on the ambiguous ones. Same affliction as the text models, same fix available: the
+mask and positions in `s1proto/parallel.py` touch only the option spans, which sit after
+the image or clip.
+
+Taken together with the earlier probes: the hosted model is more robust than ours to
+everything except option order, where after tonight's training neither has an edge on us,
+and it reads a rubric as well as it is claimed to. Its weaknesses are nondeterminism, two
+decimals, and confidence on items people disagree about. Ours are distractibility and
+calibration off distribution, both of which are training data, not architecture.
