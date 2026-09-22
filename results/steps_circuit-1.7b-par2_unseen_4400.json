@@ -1,0 +1,94 @@
+{
+ "model": "lora:4400",
+ "data": "data/unseen_eval.jsonl",
+ "temps": {
+  "noul": 1.0,
+  "choice": 1.0,
+  "score": 1.0
+ },
+ "fitted": null,
+ "permutations": 1,
+ "debias": false,
+ "timing": {
+  "device": "cuda",
+  "items": 1200,
+  "passes": 1,
+  "seconds": 32.9,
+  "ms_per_item": 27.4,
+  "input_tokens": 260461,
+  "tokens_per_s": 7915.6,
+  "batch": 16
+ },
+ "metrics": {
+  "all": {
+   "n": 1200,
+   "kl_to_ref": 0.7724,
+   "brier": 0.3466,
+   "accuracy": 0.7217,
+   "ece": 0.17,
+   "sel_acc_90": 0.7509,
+   "agree_jev": 0.7217,
+   "mean_conf": 0.8917
+  },
+  "type:noul": {
+   "n": 600,
+   "kl_to_ref": 0.5812,
+   "brier": 0.3268,
+   "accuracy": 0.7983,
+   "ece": 0.1377,
+   "sel_acc_90": 0.8259,
+   "agree_jev": 0.7983,
+   "mean_conf": 0.9331
+  },
+  "family:bfcl_relevance (heldout)": {
+   "n": 300,
+   "kl_to_ref": 0.633,
+   "brier": 0.328,
+   "accuracy": 0.81,
+   "ece": 0.1516,
+   "sel_acc_90": 0.8481,
+   "agree_jev": 0.81,
+   "mean_conf": 0.9584
+  },
+  "family:halueval_qa (heldout)": {
+   "n": 300,
+   "kl_to_ref": 0.5294,
+   "brier": 0.3257,
+   "accuracy": 0.7867,
+   "ece": 0.1255,
+   "sel_acc_90": 0.8111,
+   "agree_jev": 0.7867,
+   "mean_conf": 0.9079
+  },
+  "type:choice": {
+   "n": 600,
+   "kl_to_ref": 0.9636,
+   "brier": 0.3663,
+   "accuracy": 0.645,
+   "ece": 0.2062,
+   "sel_acc_90": 0.6741,
+   "agree_jev": 0.645,
+   "mean_conf": 0.8502
+  },
+  "family:chaosnli (heldout)": {
+   "n": 300,
+   "kl_to_ref": 0.7655,
+   "brier": 0.3521,
+   "accuracy": 0.5433,
+   "ece": 0.3021,
+   "sel_acc_90": 0.5556,
+   "agree_jev": 0.5433,
+   "mean_conf": 0.8415
+  },
+  "family:hwu64 (heldout)": {
+   "n": 300,
+   "kl_to_ref": 1.1617,
+   "brier": 0.3805,
+   "accuracy": 0.7467,
+   "ece": 0.1174,
+   "sel_acc_90": 0.8,
+   "agree_jev": 0.7467,
+   "mean_conf": 0.8589
+  }
+ }
+}

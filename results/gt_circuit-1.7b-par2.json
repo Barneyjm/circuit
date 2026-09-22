@@ -1,0 +1,114 @@
+{
+ "model": "lora:circuit-1.7b-par2",
+ "data": "data/grounded_tools_eval.jsonl",
+ "temps": {
+  "noul": 1.75,
+  "choice": 2.5,
+  "score": 0.4
+ },
+ "fitted": null,
+ "permutations": 1,
+ "debias": false,
+ "timing": {
+  "device": "cuda",
+  "items": 600,
+  "passes": 1,
+  "seconds": 16.4,
+  "ms_per_item": 27.4,
+  "input_tokens": 92066,
+  "tokens_per_s": 5609.3,
+  "batch": 16
+ },
+ "metrics": {
+  "all": {
+   "n": 600,
+   "kl_to_ref": 0.3249,
+   "brier": 0.1646,
+   "accuracy": 0.895,
+   "ece": 0.0375,
+   "sel_acc_90": 0.9296,
+   "agree_jev": 0.895,
+   "mean_conf": 0.9233
+  },
+  "type:noul": {
+   "n": 401,
+   "kl_to_ref": 0.2663,
+   "brier": 0.132,
+   "accuracy": 0.9277,
+   "ece": 0.0456,
+   "sel_acc_90": 0.9446,
+   "agree_jev": 0.9277,
+   "mean_conf": 0.9666
+  },
+  "family:tool_relevance (heldout)": {
+   "n": 100,
+   "kl_to_ref": 0.2214,
+   "brier": 0.0944,
+   "accuracy": 0.95,
+   "ece": 0.0481,
+   "sel_acc_90": 0.9667,
+   "agree_jev": 0.95,
+   "mean_conf": 0.9818
+  },
+  "family:claim_support (heldout)": {
+   "n": 100,
+   "kl_to_ref": 0.2624,
+   "brier": 0.153,
+   "accuracy": 0.91,
+   "ece": 0.0381,
+   "sel_acc_90": 0.9333,
+   "agree_jev": 0.91,
+   "mean_conf": 0.9326
+  },
+  "family:tool_call_check (heldout)": {
+   "n": 100,
+   "kl_to_ref": 0.2106,
+   "brier": 0.1089,
+   "accuracy": 0.94,
+   "ece": 0.0463,
+   "sel_acc_90": 0.9444,
+   "agree_jev": 0.94,
+   "mean_conf": 0.9731
+  },
+  "type:choice": {
+   "n": 199,
+   "kl_to_ref": 0.4429,
+   "brier": 0.2303,
+   "accuracy": 0.8291,
+   "ece": 0.0509,
+   "sel_acc_90": 0.8771,
+   "agree_jev": 0.8291,
+   "mean_conf": 0.8361
+  },
+  "family:tool_choice (heldout)": {
+   "n": 100,
+   "kl_to_ref": 0.2291,
+   "brier": 0.0863,
+   "accuracy": 0.94,
+   "ece": 0.0311,
+   "sel_acc_90": 0.9667,
+   "agree_jev": 0.94,
+   "mean_conf": 0.9611
+  },
+  "family:answer_support (heldout)": {
+   "n": 101,
+   "kl_to_ref": 0.3698,
+   "brier": 0.1714,
+   "accuracy": 0.9109,
+   "ece": 0.0787,
+   "sel_acc_90": 0.9231,
+   "agree_jev": 0.9109,
+   "mean_conf": 0.9789
+  },
+  "family:claim_status (heldout)": {
+   "n": 99,
+   "kl_to_ref": 0.6589,
+   "brier": 0.3758,
+   "accuracy": 0.7172,
+   "ece": 0.0927,
+   "sel_acc_90": 0.7528,
+   "agree_jev": 0.7172,
+   "mean_conf": 0.7098
+  }
+ }
+}
