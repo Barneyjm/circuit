@@ -1,0 +1,63 @@
+{
+ "model": "lora:circuit-vl-4b-par",
+ "data": "data/vision/unseen/eval.jsonl",
+ "timing": {
+  "device": "mps",
+  "items": 300,
+  "ms_per_item": 910.7,
+  "batch": 1,
+  "note": "pointer head"
+ },
+ "metrics": {
+  "all": {
+   "n": 300,
+   "kl_to_ref": 0.3004,
+   "brier": 0.1577,
+   "accuracy": 0.9067,
+   "ece": 0.069,
+   "sel_acc_90": 0.9407,
+   "agree_jev": 0.9067,
+   "mean_conf": 0.9695
+  },
+  "type:noul": {
+   "n": 300,
+   "kl_to_ref": 0.3004,
+   "brier": 0.1577,
+   "accuracy": 0.9067,
+   "ece": 0.069,
+   "sel_acc_90": 0.9407,
+   "agree_jev": 0.9067,
+   "mean_conf": 0.9695
+  },
+  "family:pope_random (heldout)": {
+   "n": 100,
+   "kl_to_ref": 0.4018,
+   "brier": 0.1883,
+   "accuracy": 0.9,
+   "ece": 0.0997,
+   "sel_acc_90": 0.9111,
+   "agree_jev": 0.9,
+   "mean_conf": 0.9759
+  },
+  "family:pope_popular (heldout)": {
+   "n": 100,
+   "kl_to_ref": 0.3266,
+   "brier": 0.1885,
+   "accuracy": 0.89,
+   "ece": 0.0931,
+   "sel_acc_90": 0.9333,
+   "agree_jev": 0.89,
+   "mean_conf": 0.9727
+  },
+  "family:pope_adversarial (heldout)": {
+   "n": 100,
+   "kl_to_ref": 0.1727,
+   "brier": 0.0964,
+   "accuracy": 0.93,
+   "ece": 0.0476,
+   "sel_acc_90": 0.9667,
+   "agree_jev": 0.93,
+   "mean_conf": 0.9597
+  }
+ }
+}

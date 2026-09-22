@@ -1,0 +1,67 @@
+{
+ "model": "lora:runs/circuit-vl-4b-par",
+ "k": 4,
+ "per_family": 100,
+ "results": {
+  "all": {
+   "n": 140,
+   "could_not_run": 0,
+   "flip": 0.0,
+   "tv": 0.0002,
+   "acc_as_written": 0.9929,
+   "acc_reversed": 0.9929,
+   "acc_min": 0.9929,
+   "acc_max": 0.9929
+  },
+  "grid:ambiguous": {
+   "n": 8,
+   "could_not_run": 0,
+   "flip": 0.0,
+   "tv": 0.0012,
+   "acc_as_written": 0.875,
+   "acc_reversed": 0.875,
+   "acc_min": 0.875,
+   "acc_max": 0.875
+  },
+  "grid:classify": {
+   "n": 59,
+   "could_not_run": 0,
+   "flip": 0.0,
+   "tv": 0.0002,
+   "acc_as_written": 1.0,
+   "acc_reversed": 1.0,
+   "acc_min": 1.0,
+   "acc_max": 1.0
+  },
+  "grid:compare": {
+   "n": 28,
+   "could_not_run": 0,
+   "flip": 0.0,
+   "tv": 0.0001,
+   "acc_as_written": 1.0,
+   "acc_reversed": 1.0,
+   "acc_min": 1.0,
+   "acc_max": 1.0
+  },
+  "grid:extract": {
+   "n": 20,
+   "could_not_run": 0,
+   "flip": 0.0,
+   "tv": 0.0,
+   "acc_as_written": 1.0,
+   "acc_reversed": 1.0,
+   "acc_min": 1.0,
+   "acc_max": 1.0
+  },
+  "grid:read": {
+   "n": 25,
+   "could_not_run": 0,
+   "flip": 0.0,
+   "tv": 0.0,
+   "acc_as_written": 1.0,
+   "acc_reversed": 1.0,
+   "acc_min": 1.0,
+   "acc_max": 1.0
+  }
+ }
+}

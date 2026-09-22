@@ -1,0 +1,273 @@
+{
+ "model": "lora:circuit-audio-7b-par",
+ "data": "data/audio/grid/eval.jsonl",
+ "timing": {
+  "device": "mps",
+  "items": 420,
+  "ms_per_item": 1230.4,
+  "batch": 1,
+  "note": "pointer head"
+ },
+ "metrics": {
+  "all": {
+   "n": 420,
+   "kl_to_ref": 0.2021,
+   "brier": 0.0825,
+   "accuracy": 0.8976,
+   "ece": 0.0496,
+   "sel_acc_90": 0.9577,
+   "agree_jev": 0.8976,
+   "mean_conf": 0.9424
+  },
+  "type:noul": {
+   "n": 180,
+   "kl_to_ref": 0.2538,
+   "brier": 0.0996,
+   "accuracy": 0.8944,
+   "ece": 0.0657,
+   "sel_acc_90": 0.9506,
+   "agree_jev": 0.8944,
+   "mean_conf": 0.957
+  },
+  "family:negation/list (heldout)": {
+   "n": 27,
+   "kl_to_ref": 0.0,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 1.0
+  },
+  "family:consistency/call (heldout)": {
+   "n": 29,
+   "kl_to_ref": 0.0,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 1.0
+  },
+  "type:choice": {
+   "n": 240,
+   "kl_to_ref": 0.1633,
+   "brier": 0.0696,
+   "accuracy": 0.9,
+   "ece": 0.0505,
+   "sel_acc_90": 0.9583,
+   "agree_jev": 0.9,
+   "mean_conf": 0.9315
+  },
+  "family:extract/digits (heldout)": {
+   "n": 27,
+   "kl_to_ref": 0.3472,
+   "brier": 0.1541,
+   "accuracy": 0.9259,
+   "ece": 0.0942,
+   "sel_acc_90": 0.9583,
+   "agree_jev": 0.9259,
+   "mean_conf": 0.9372
+  },
+  "family:count/sounds (heldout)": {
+   "n": 25,
+   "kl_to_ref": 0.2781,
+   "brier": 0.2007,
+   "accuracy": 0.84,
+   "ece": 0.1239,
+   "sel_acc_90": 0.9091,
+   "agree_jev": 0.84,
+   "mean_conf": 0.9151
+  },
+  "family:order/speech (heldout)": {
+   "n": 27,
+   "kl_to_ref": 0.8602,
+   "brier": 0.2936,
+   "accuracy": 0.8148,
+   "ece": 0.1609,
+   "sel_acc_90": 0.9167,
+   "agree_jev": 0.8148,
+   "mean_conf": 0.9757
+  },
+  "family:count/list (heldout)": {
+   "n": 29,
+   "kl_to_ref": 0.3312,
+   "brier": 0.1914,
+   "accuracy": 0.8966,
+   "ece": 0.1105,
+   "sel_acc_90": 0.9615,
+   "agree_jev": 0.8966,
+   "mean_conf": 0.9739
+  },
+  "family:classify/call (heldout)": {
+   "n": 29,
+   "kl_to_ref": 0.0,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 1.0
+  },
+  "family:compare/numbers (heldout)": {
+   "n": 28,
+   "kl_to_ref": 0.7217,
+   "brier": 0.3186,
+   "accuracy": 0.8214,
+   "ece": 0.156,
+   "sel_acc_90": 0.84,
+   "agree_jev": 0.8214,
+   "mean_conf": 0.9574
+  },
+  "family:mention/speech (heldout)": {
+   "n": 26,
+   "kl_to_ref": 0.0089,
+   "brier": 0.0025,
+   "accuracy": 1.0,
+   "ece": 0.0082,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 0.9918
+  },
+  "family:ambiguous/extract (heldout)": {
+   "n": 7,
+   "kl_to_ref": 0.0211,
+   "brier": 0.0103,
+   "accuracy": 0.0,
+   "ece": 0.2954,
+   "sel_acc_90": 0.0,
+   "agree_jev": 0.0,
+   "mean_conf": 0.2954
+  },
+  "family:extract/call (heldout)": {
+   "n": 28,
+   "kl_to_ref": 0.0,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 1.0
+  },
+  "family:extract/numbers (heldout)": {
+   "n": 28,
+   "kl_to_ref": 0.0003,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0003,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 0.9997
+  },
+  "family:classify/sounds (heldout)": {
+   "n": 27,
+   "kl_to_ref": 0.0,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 1.0
+  },
+  "family:ambiguous/count (heldout)": {
+   "n": 6,
+   "kl_to_ref": 0.1147,
+   "brier": 0.0618,
+   "accuracy": 0.6667,
+   "ece": 0.3459,
+   "sel_acc_90": 0.8,
+   "agree_jev": 0.6667,
+   "mean_conf": 0.3208
+  },
+  "family:which/speech (heldout)": {
+   "n": 27,
+   "kl_to_ref": 0.0,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 1.0
+  },
+  "family:negation/call (heldout)": {
+   "n": 28,
+   "kl_to_ref": 0.0003,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0003,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 0.9997
+  },
+  "family:ambiguous/which (heldout)": {
+   "n": 3,
+   "kl_to_ref": 0.0121,
+   "brier": 0.0056,
+   "accuracy": 0.3333,
+   "ece": 0.044,
+   "sel_acc_90": 0.3333,
+   "agree_jev": 0.3333,
+   "mean_conf": 0.2894
+  },
+  "family:ambiguous/mention (heldout)": {
+   "n": 4,
+   "kl_to_ref": 0.0035,
+   "brier": 0.0034,
+   "accuracy": 0.25,
+   "ece": 0.2887,
+   "sel_acc_90": 0.25,
+   "agree_jev": 0.25,
+   "mean_conf": 0.5387
+  },
+  "family:ambiguous/negation (heldout)": {
+   "n": 5,
+   "kl_to_ref": 0.0777,
+   "brier": 0.0592,
+   "accuracy": 0.4,
+   "ece": 0.2908,
+   "sel_acc_90": 0.25,
+   "agree_jev": 0.4,
+   "mean_conf": 0.6306
+  },
+  "family:ambiguous/compare (heldout)": {
+   "n": 2,
+   "kl_to_ref": 0.7876,
+   "brier": 0.3406,
+   "accuracy": 1.0,
+   "ece": 0.0941,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 0.9059
+  },
+  "family:ambiguous/classify (heldout)": {
+   "n": 4,
+   "kl_to_ref": 3.0951,
+   "brier": 0.378,
+   "accuracy": 0.0,
+   "ece": 0.821,
+   "sel_acc_90": 0.0,
+   "agree_jev": 0.0,
+   "mean_conf": 0.821
+  },
+  "family:ambiguous/order (heldout)": {
+   "n": 3,
+   "kl_to_ref": 0.0086,
+   "brier": 0.0085,
+   "accuracy": 0.3333,
+   "ece": 0.2303,
+   "sel_acc_90": 0.3333,
+   "agree_jev": 0.3333,
+   "mean_conf": 0.5636
+  },
+  "family:ambiguous/consistency (heldout)": {
+   "n": 1,
+   "kl_to_ref": 0.0016,
+   "brier": 0.0016,
+   "accuracy": 0.0,
+   "ece": 0.5279,
+   "sel_acc_90": 0.0,
+   "agree_jev": 0.0,
+   "mean_conf": 0.5279
+  }
+ }
+}

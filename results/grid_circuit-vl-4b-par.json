@@ -1,0 +1,263 @@
+{
+ "model": "lora:circuit-vl-4b-par",
+ "data": "data/vision/grid/eval.jsonl",
+ "timing": {
+  "device": "mps",
+  "items": 390,
+  "ms_per_item": 759.4,
+  "batch": 1,
+  "note": "pointer head"
+ },
+ "metrics": {
+  "all": {
+   "n": 390,
+   "kl_to_ref": 0.0687,
+   "brier": 0.0428,
+   "accuracy": 0.9667,
+   "ece": 0.0209,
+   "sel_acc_90": 1.0,
+   "agree_jev": 0.9667,
+   "mean_conf": 0.9794
+  },
+  "type:choice": {
+   "n": 140,
+   "kl_to_ref": 0.0102,
+   "brier": 0.0049,
+   "accuracy": 0.9929,
+   "ece": 0.0165,
+   "sel_acc_90": 1.0,
+   "agree_jev": 0.9929,
+   "mean_conf": 0.9802
+  },
+  "family:classify/table (heldout)": {
+   "n": 6,
+   "kl_to_ref": 0.0,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 1.0
+  },
+  "family:extract/receipt (heldout)": {
+   "n": 30,
+   "kl_to_ref": 0.0,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 1.0
+  },
+  "type:noul": {
+   "n": 190,
+   "kl_to_ref": 0.0969,
+   "brier": 0.0646,
+   "accuracy": 0.9474,
+   "ece": 0.0323,
+   "sel_acc_90": 0.9942,
+   "agree_jev": 0.9474,
+   "mean_conf": 0.9739
+  },
+  "family:consistency/receipt (heldout)": {
+   "n": 30,
+   "kl_to_ref": 0.0,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 1.0
+  },
+  "type:score": {
+   "n": 60,
+   "kl_to_ref": 0.1163,
+   "brier": 0.0624,
+   "accuracy": 0.9667,
+   "ece": 0.0338,
+   "sel_acc_90": 1.0,
+   "agree_jev": 0.9667,
+   "mean_conf": 0.9952
+  },
+  "family:count/table (heldout)": {
+   "n": 30,
+   "kl_to_ref": 0.1018,
+   "brier": 0.0609,
+   "accuracy": 0.9667,
+   "ece": 0.0357,
+   "sel_acc_90": 1.0,
+   "agree_jev": 0.9667,
+   "mean_conf": 0.992
+  },
+  "family:count/scene (heldout)": {
+   "n": 30,
+   "kl_to_ref": 0.1308,
+   "brier": 0.064,
+   "accuracy": 0.9667,
+   "ece": 0.0319,
+   "sel_acc_90": 1.0,
+   "agree_jev": 0.9667,
+   "mean_conf": 0.9985
+  },
+  "family:classify/photo (heldout)": {
+   "n": 29,
+   "kl_to_ref": 0.0463,
+   "brier": 0.0225,
+   "accuracy": 1.0,
+   "ece": 0.0387,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 0.9613
+  },
+  "family:present/photo (heldout)": {
+   "n": 29,
+   "kl_to_ref": 0.3054,
+   "brier": 0.1947,
+   "accuracy": 0.8276,
+   "ece": 0.1307,
+   "sel_acc_90": 0.9231,
+   "agree_jev": 0.8276,
+   "mean_conf": 0.9257
+  },
+  "family:compare/chart (heldout)": {
+   "n": 28,
+   "kl_to_ref": 0.0013,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0013,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 0.9987
+  },
+  "family:consistency/form (heldout)": {
+   "n": 30,
+   "kl_to_ref": 0.0,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 1.0
+  },
+  "family:negation/form (heldout)": {
+   "n": 30,
+   "kl_to_ref": 0.0001,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0001,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 0.9999
+  },
+  "family:negation/photo (heldout)": {
+   "n": 28,
+   "kl_to_ref": 0.2906,
+   "brier": 0.1957,
+   "accuracy": 0.8929,
+   "ece": 0.1354,
+   "sel_acc_90": 0.88,
+   "agree_jev": 0.8929,
+   "mean_conf": 0.9496
+  },
+  "family:read/form (heldout)": {
+   "n": 25,
+   "kl_to_ref": 0.0,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 1.0
+  },
+  "family:negation/scene (heldout)": {
+   "n": 30,
+   "kl_to_ref": 0.0402,
+   "brier": 0.0324,
+   "accuracy": 0.9667,
+   "ece": 0.0237,
+   "sel_acc_90": 1.0,
+   "agree_jev": 0.9667,
+   "mean_conf": 0.9895
+  },
+  "family:ambiguous/compare (heldout)": {
+   "n": 2,
+   "kl_to_ref": 0.0202,
+   "brier": 0.0143,
+   "accuracy": 1.0,
+   "ece": 0.4418,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 0.5582
+  },
+  "family:classify/receipt (heldout)": {
+   "n": 9,
+   "kl_to_ref": 0.0,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 1.0
+  },
+  "family:classify/form (heldout)": {
+   "n": 10,
+   "kl_to_ref": 0.0,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 1.0
+  },
+  "family:ambiguous/read (heldout)": {
+   "n": 5,
+   "kl_to_ref": 0.0006,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0006,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 0.9994
+  },
+  "family:classify/chart (heldout)": {
+   "n": 5,
+   "kl_to_ref": 0.0,
+   "brier": 0.0,
+   "accuracy": 1.0,
+   "ece": 0.0,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 1.0
+  },
+  "family:ambiguous/negation (heldout)": {
+   "n": 2,
+   "kl_to_ref": 0.1,
+   "brier": 0.0903,
+   "accuracy": 1.0,
+   "ece": 0.2884,
+   "sel_acc_90": 1.0,
+   "agree_jev": 1.0,
+   "mean_conf": 0.7116
+  },
+  "family:ambiguous/classify (heldout)": {
+   "n": 1,
+   "kl_to_ref": 0.0027,
+   "brier": 0.0013,
+   "accuracy": 0.0,
+   "ece": 0.2721,
+   "sel_acc_90": 0.0,
+   "agree_jev": 0.0,
+   "mean_conf": 0.2721
+  },
+  "family:ambiguous/present (heldout)": {
+   "n": 1,
+   "kl_to_ref": 0.0,
+   "brier": 0.0,
+   "accuracy": 0.0,
+   "ece": 0.5012,
+   "sel_acc_90": 0.0,
+   "agree_jev": 0.0,
+   "mean_conf": 0.5012
+  }
+ }
+}

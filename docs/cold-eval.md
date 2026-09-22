@@ -798,3 +798,24 @@ stable on three-way NLI (1 to 2%) and unstable wherever the list is long: 71% on
 64-way intents, 35% on ticket queues, 21% on water calls where accuracy is .90 as
 written and .82 reversed. Fast, open, and the answer depends on the order more than
 anything else measured here.
+
+## The image and audio circuits, options side by side (2026-09-22)
+
+Same mask, wrapped around the positions each multimodal model gives its media (Qwen3-VL's
+3-D rope index included). One A40, both trained at once, $0.44 plus a $0.12 false start;
+the driver lost its collection because the job named two runs, and the ten-minute backup
+loop had both kept checkpoints. Evaluated on the Mac with the mask applied; the pod's own
+evals ran without it, a bug in the media eval scripts now fixed.
+
+| | flips (own grid, 4 orders) | grid acc / ECE | POPE acc / ECE |
+|---|---|---|---|
+| circuit-vl-4b v1.1 | 3.6% | .964 / .023 | .923 / .049 |
+| circuit-vl-4b side by side | **0.0%** (140 items) | .967 / .021 | .907 / .069 |
+| circuit-audio-7b v1.1 | 11.7% | .888 / .047 | |
+| circuit-audio-7b side by side | **2.9%** (240 items) | .898 / .050 | |
+
+Vision: zero flips, accuracy level. Audio: 11.7% to 2.9%, accuracy up a point. The seven
+remaining audio flips are six of the twenty deliberately ambiguous items (labelled 50/50,
+so any answer is a tie) and one count question; the mean shift across all 240 is .002.
+Neither media model gave anything up. Weights: `runs/circuit-vl-4b-par`,
+`runs/circuit-audio-7b-par`. Not published.
