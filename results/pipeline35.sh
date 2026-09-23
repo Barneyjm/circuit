@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # circuit v2: the v1.2 mix + the hard tier + multi and locate questions, at 4,096 tokens and
-# 2 epochs (the v1.2 recipe's count; pipeline34 ran 1 and lost ground on the v1 sets).
+# 1 epoch, as pipeline34 (v1.3), so the new types are the only difference.
 # BASE / N pick the model (default 1.7B). Staged, not in git:
 #   STAGE="data/hard_tier_train.jsonl data/hard_tier_eval.jsonl data/v2_types_train.jsonl data/v2_types_eval.jsonl data/unseen_eval.jsonl data/grid_eval.jsonl data/hf_eval.jsonl data/cmdiy_eval.jsonl"
 set -u
@@ -16,7 +16,7 @@ done
 cat data/publish_train_v2.jsonl data/hard_tier_train.jsonl data/v2_types_train.jsonl > data/v2_mix_train.jsonl
 echo "mix rows: $(wc -l < data/v2_mix_train.jsonl)"
 echo "=== train $N"
-uv run python -u scripts/train_lora.py $BASE data/v2_mix_train.jsonl --out runs/$N --head pointer --epochs 2 --batch 4 --micro 2 --max-length 4096 --eval-every 800 --grad-checkpoint --parallel-options --wandb s1proto --run-name $N 2>&1 | grep --line-buffered -E "train=|step [0-9]+000/|val:|kept step|done in|View run|Traceback|Error"
+uv run python -u scripts/train_lora.py $BASE data/v2_mix_train.jsonl --out runs/$N --head pointer --epochs 1 --batch 4 --micro 2 --max-length 4096 --eval-every 400 --grad-checkpoint --parallel-options --wandb s1proto --run-name $N 2>&1 | grep --line-buffered -E "train=|step [0-9]+000/|val:|kept step|done in|View run|Traceback|Error"
 [ -f runs/$N/head.pt ] || { echo "!!! $N did not train"; exit 2; }
 echo "=== permutations $N"; uv run python scripts/eval_permutations.py lora:runs/$N --batch 4 --out results/perm_$N.json 2>&1 | grep -E "^  all|Traceback|Error"
 for pair in "v2_types_eval v2" "hard_tier_eval hard" "unseen_eval unseen" "grounded_tools_eval gt" "grid_eval grid" "hf_eval hf" "water_calls water" "cmdiy_eval cmdiy"; do

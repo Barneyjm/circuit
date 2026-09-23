@@ -16,6 +16,13 @@ were several.
   squad_locate    SQuAD 2.0  a passage as sentences -> the answer's sentence, or none  CC BY-SA 4.0
   cuad_multi      CUAD       a contract stretch -> which of six provisions it has      CC BY 4.0
   goemo_multi     GoEmotions a Reddit comment -> which of 28 emotions, share of raters Apache-2.0
+  sharc_asknext   ShARC      rules + situation -> the follow-up that settles it, or none CC BY-SA 3.0
+
+sharc_asknext is a plain `choice`: the follow-up ShARC's annotators asked next, against
+questions already asked (asking again learns nothing), follow-ups from other rules pages,
+and "nothing more is needed". The page's other unasked follow-ups are left out: ShARC
+records one order of asking, and on many pages several of them are equally good next
+questions, so they would be wrong labels, not hard negatives.
 
 About one row in six of each locate source has its answer removed (the supporting
 paragraphs, passages or clause are not in the state), so "none" is learned from the same
@@ -157,6 +164,53 @@ def sharc_locate(split, n, rng, heldout):
             (uncovered if irrelevant else covered).append(it)
     k = min(len(uncovered), n // NONE_EVERY)
     return covered[: n - k] + uncovered[:k]
+
+
+ASK_NONE = "nothing more is needed; it can be answered now"
+
+
+def sharc_asknext(split, n, rng, heldout):
+    d = load_dataset("UCLNLP/sharc", revision="refs/convert/parquet", split=split)
+    pages, followups = collections.defaultdict(set), collections.defaultdict(set)
+    for r in d:
+        pages[r["source_url"]].add(r["snippet"])
+        if r["answer"] not in ("Yes", "No", "Irrelevant"):
+            followups[r["source_url"]].add(r["answer"].strip())
+    rows = list(d)
+    rng.shuffle(rows)
+    ask, settled, seen = [], [], set()
+    for r in rows:
+        url = r["source_url"]
+        if r["answer"] == "Irrelevant" or len(followups[url]) < 2:
+            continue
+        history = _lit(r["history"]) or []
+        key = (url, r["question"], r["scenario"], json.dumps(history, sort_keys=True, default=str))
+        if key in seen:
+            continue
+        seen.add(key)
+        rules = sorted(pages[url])
+        rng.shuffle(rules)
+        if sum(map(len, rules)) > MAX_CHARS:
+            continue
+        gold = ASK_NONE if r["answer"] in ("Yes", "No") else r["answer"].strip()
+        asked = [h["follow_up_question"].strip() for h in history]
+        others = [u for u in followups if u != url]
+        elsewhere = [q for u in rng.sample(others, 3) for q in rng.sample(sorted(followups[u]), 1)]
+        opts = list(dict.fromkeys([*([gold] if gold != ASK_NONE else []), *asked, *elsewhere]))
+        rng.shuffle(opts)
+        opts.append(ASK_NONE)
+        if len(opts) < 3:
+            continue
+        facts = [f"Asked: {h['follow_up_question']} Answered: {h['follow_up_answer']}" for h in history]
+        state = {"policy": "\n\n".join(rules), "question": r["question"], "situation": r["scenario"] or "(none given)", "already_established": facts}
+        q = {
+            "type": "choice",
+            "instructions": "To answer this person's `question` under `policy`, what should they be asked next?",
+            "criteria": {o: None for o in opts},
+        }
+        (settled if gold == ASK_NONE else ask).append(item("sharc_asknext", "choice", state, q, {o: float(o == gold) for o in opts}, heldout))
+    k = min(len(settled), n // 5)
+    return ask[: n - k] + settled[:k]
 
 
 # ---------------------------------------------------------------- CUAD
@@ -333,6 +387,7 @@ def main() -> None:
         (squad_locate, "train", "validation", 1000, 100),
         (cuad_multi, "train", "test", 1000, 100),
         (goemo_multi, "train", "eval", 2000, 200),
+        (sharc_asknext, "train", "validation", 1000, 100),
     ]
     for path, which, heldout in ((args.train, 0, False), (args.eval, 1, True)):
         rng = random.Random(args.seed + which)
