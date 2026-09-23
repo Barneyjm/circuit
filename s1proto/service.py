@@ -11,6 +11,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any
 
+from decision_circuits import __version__ as _dc_version
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import JSONResponse
 
@@ -355,6 +356,9 @@ def create_app(scorer: ScorerProtocol | None = None, temperatures: dict[str, flo
             except (KeyError, ValueError) as e:
                 raise HTTPException(status_code=422, detail=f"gates: {e}") from e
             body["gates"] = {k: v.model_dump() for k, v in gate_results.items()}
+            # For raw-HTTP callers: the decision-circuits SDK never sends gates (it evaluates its
+            # own), so this names the engine that did, and a version mismatch is visible.
+            body["gates_engine"] = f"decision-circuits {_dc_version}"
         if req.explain:
             with telemetry.span("s1.explain"):
                 explanations, extra = build_explanations(req, app.state.scorer, app.state.temperatures, answers, text_state_of(req))

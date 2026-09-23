@@ -107,6 +107,7 @@ def test_service_returns_gates_only_when_requested():
         )
         body = r.json()
         assert r.status_code == 200 and set(body["gates"]) == {"route", "rush"}
+        assert body["gates_engine"].startswith("decision-circuits ")
         assert body["gates"]["route"]["value"] in {"billing", "technical", "sales"}
         assert isinstance(body["gates"]["rush"]["value"], bool)
         bad = c.post("/v1/systemone", json={**base, "gates": {"x": {"op": "argmax", "input": "nope"}}}, headers={"Authorization": "Bearer x"})
