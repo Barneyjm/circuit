@@ -98,6 +98,15 @@ wide mix's `snli` wording; 2Wiki paragraphs with the answer swapped for another 
 same relation everywhere it appears, and with a paragraph no hop uses removed. Rows carry a
 `group`; `eval_set.py` reports the share of groups answered entirely right.
 
+## Injection groups (`scripts/build_injections.py`)
+
+Hard-tier items with an instruction planted in the state (in a document, in the person's own
+words, or as a field of its own) pushing a wrong option; the label does not change, since the
+planted text is addressed to the model, not about the case. Train rows are the injected copies
+only (the clean items are already hard-tier rows); the eval keeps each clean item beside two
+attacks, in phrasings the train rows never use, and `eval_set.py` reports how often the planted
+text hijacked or flipped the answer. Derived from the hard tier's sources; no new licence.
+
 ## The earlier real-data set (`data/hf_train.jsonl`)
 
 | source | verdict | basis |
