@@ -35,7 +35,8 @@ def test_operators_compile_and_evaluate():
 
     r = c.evaluate(ANSWERS)
     assert set(r) == {"redact", "human", "route", "vote", "checked", "tier", "bill_and_hot"}  # helpers hidden
-    assert r["redact"]["value"] is True and r["redact"]["p"] == pytest.approx(0.92 * 0.90, abs=1e-6)
+    # `Q("pii") >= 0.7` inside the expression is a decision (decision-circuits 0.5.2): pii 0.92 passes, so it counts as 1
+    assert r["redact"]["value"] is True and r["redact"]["p"] == pytest.approx(1.0 * 0.90, abs=1e-6)
     assert r["human"]["value"] is True and r["human"]["p"] > 0.99
     assert r["route"]["value"] == "billing"
     assert r["vote"]["value"] == "billing"
