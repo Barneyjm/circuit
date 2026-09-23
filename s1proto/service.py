@@ -14,7 +14,7 @@ from typing import Any
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import JSONResponse
 
-from s1proto import __version__
+from s1proto import __version__, telemetry
 from s1proto.batching import Batcher
 from s1proto.circuits import Gate, evaluate_gates
 from s1proto.media import load_media, split_media_state
@@ -207,8 +207,12 @@ def explained_option(q: Question, prompt: Prompt, answer: Any) -> tuple[str, flo
 def create_app(scorer: ScorerProtocol | None = None, temperatures: dict[str, float] | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        telemetry.setup()
         if app.state.scorer is None:
-            app.state.scorer = load_scorer(os.environ.get("S1_MODEL"))
+            with telemetry.span("s1.load_model", **{"s1.model": os.environ.get("S1_MODEL")}) as sp:
+                t0 = time.perf_counter()
+                app.state.scorer = load_scorer(os.environ.get("S1_MODEL"))
+                sp.set_attribute("s1.load_seconds", round(time.perf_counter() - t0, 2))
         # Opt-in: batching trades a reproducible answer for throughput, because a
         # bf16 batched pass reduces differently than a single-row one (~0.01 on a
         # probability). See s1proto/batching.py.
@@ -272,14 +276,35 @@ def create_app(scorer: ScorerProtocol | None = None, temperatures: dict[str, flo
         expected = os.environ.get("S1_API_KEY")
         if expected and authorization[7:].strip() != expected:
             raise HTTPException(status_code=401, detail="invalid api key")
+        split = split_media_state(req.state)
+        attrs = {
+            "gen_ai.operation.name": "systemone",
+            "gen_ai.request.model": req.model,
+            "gen_ai.response.model": getattr(app.state.scorer, "name", None),
+            "s1.questions": list(req.questions),
+            "s1.question_types": [q.type for q in req.questions.values()],
+            "s1.gates": len(req.gates or {}),
+            **telemetry.state_attrs(req.state, split),
+        }
+        with telemetry.span("s1.systemone", headers=request.headers, **attrs) as sp:
+            resp = queued(req, sp)
+            sp.set_attribute("gen_ai.response.id", resp.headers.get("x-request-id", ""))
+            sp.set_attribute("gen_ai.usage.input_tokens", int(resp.headers.get("x-s1-input-tokens", "0")))
+            return resp
+
+    def queued(req: SystemOneRequest, sp: Any) -> Any:
         if not take_slot():
+            sp.set_attribute("s1.busy", True)
             raise HTTPException(
                 status_code=503,
                 detail=f"at capacity: {app.state.max_inflight} questions already in flight",
                 headers={"x-s1-busy": "1", "retry-after": "1"},
             )
         try:
-            if not app.state.device_slots.acquire(timeout=app.state.queue_wait_s):
+            with telemetry.span("s1.queue"):
+                got = app.state.device_slots.acquire(timeout=app.state.queue_wait_s)
+            if not got:
+                sp.set_attribute("s1.busy", True)
                 raise HTTPException(
                     status_code=503,
                     detail=f"waited {app.state.queue_wait_s:g}s for the device and it is still busy",
@@ -307,7 +332,17 @@ def create_app(scorer: ScorerProtocol | None = None, temperatures: dict[str, flo
             if n > cap:
                 raise HTTPException(status_code=422, detail=f"question {qid!r}: {n} options exceeds this model's cap of {cap}")
         t0 = time.perf_counter()
-        answers, tokens = build_answers(req, app.state.scorer, app.state.temperatures)
+        sc = app.state.scorer
+        with telemetry.span(
+            "s1.score",
+            **{
+                "s1.prompts": len(req.questions),
+                "s1.prefix_cache": getattr(sc, "prefix_cache", None),
+                "s1.parallel_options": getattr(sc, "parallel_options", None),
+            },
+        ) as sp:
+            answers, tokens = build_answers(req, sc, app.state.temperatures)
+            sp.set_attribute("gen_ai.usage.input_tokens", tokens)
         resp = SystemOneResponse(model=app.state.scorer.name, answers=answers, usage=Usage(input_tokens=tokens, output_tokens=0))
         body = resp.model_dump()
         if req.gates:
@@ -315,16 +350,22 @@ def create_app(scorer: ScorerProtocol | None = None, temperatures: dict[str, flo
             # model never sees them. Only present in the response when asked
             # for, so the TypeSafe SDK's response parser is unaffected.
             try:
-                gate_results = evaluate_gates({k: Gate.model_validate(v) for k, v in req.gates.items()}, body["answers"])
+                with telemetry.span("s1.gates", **{"s1.gates": list(req.gates)}):
+                    gate_results = evaluate_gates({k: Gate.model_validate(v) for k, v in req.gates.items()}, body["answers"])
             except (KeyError, ValueError) as e:
                 raise HTTPException(status_code=422, detail=f"gates: {e}") from e
             body["gates"] = {k: v.model_dump() for k, v in gate_results.items()}
         if req.explain:
-            explanations, extra = build_explanations(req, app.state.scorer, app.state.temperatures, answers, text_state_of(req))
+            with telemetry.span("s1.explain"):
+                explanations, extra = build_explanations(req, app.state.scorer, app.state.temperatures, answers, text_state_of(req))
             if explanations:
                 body["explanations"] = explanations
                 body["usage"]["input_tokens"] += extra
-        headers = {"x-s1-latency-ms": f"{(time.perf_counter() - t0) * 1000:.1f}", "x-request-id": body["request_id"]}
+        headers = {
+            "x-s1-latency-ms": f"{(time.perf_counter() - t0) * 1000:.1f}",
+            "x-request-id": body["request_id"],
+            "x-s1-input-tokens": str(body["usage"]["input_tokens"]),
+        }
         return JSONResponse(content=body, headers=headers)
 
     return app

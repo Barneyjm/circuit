@@ -26,6 +26,14 @@ dependencies = [
     "wandb>=0.30.0",
 ]
 
+[project.optional-dependencies]
+# spans per request, exported over OTLP when OTEL_EXPORTER_OTLP_ENDPOINT is set; see s1proto/telemetry.py
+otel = [
+    "opentelemetry-api>=1.20",
+    "opentelemetry-sdk>=1.20",
+    "opentelemetry-exporter-otlp-proto-http>=1.20",
+]
+
 [dependency-groups]
 audio = [
     "kokoro>=0.9.4",
@@ -36,6 +44,7 @@ deploy = [
 ]
 dev = [
     "hypothesis>=6.168.0",
+    "opentelemetry-sdk>=1.20",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
     "ruff>=0.16.8",

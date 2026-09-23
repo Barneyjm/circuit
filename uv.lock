@@ -3341,6 +3341,13 @@ dependencies = [
     { name = "wandb" },
 ]
 
+[package.optional-dependencies]
+otel = [
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-exporter-otlp-proto-http" },
+    { name = "opentelemetry-sdk" },
+]
+
 [package.dev-dependencies]
 audio = [
     { name = "kokoro" },
@@ -3351,6 +3358,7 @@ deploy = [
 ]
 dev = [
     { name = "hypothesis" },
+    { name = "opentelemetry-sdk" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "ruff" },
@@ -3367,6 +3375,9 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "librosa", specifier = ">=1.0.0" },
     { name = "numpy", specifier = ">=2.5.3" },
+    { name = "opentelemetry-api", marker = "extra == 'otel'", specifier = ">=1.20" },
+    { name = "opentelemetry-exporter-otlp-proto-http", marker = "extra == 'otel'", specifier = ">=1.20" },
+    { name = "opentelemetry-sdk", marker = "extra == 'otel'", specifier = ">=1.20" },
     { name = "peft", specifier = ">=0.21.0" },
     { name = "pillow", specifier = ">=12.3.0" },
     { name = "pydantic", specifier = ">=2.13.5" },
@@ -3379,6 +3390,7 @@ requires-dist = [
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.53.0" },
     { name = "wandb", specifier = ">=0.30.0" },
 ]
+provides-extras = ["otel"]
 
 [package.metadata.requires-dev]
 audio = [
@@ -3388,6 +3400,7 @@ audio = [
 deploy = [{ name = "modal", specifier = ">=1.5.5" }]
 dev = [
     { name = "hypothesis", specifier = ">=6.168.0" },
+    { name = "opentelemetry-sdk", specifier = ">=1.20" },
     { name = "pytest", specifier = ">=9.1.1" },
     { name = "pytest-asyncio", specifier = ">=1.4.0" },
     { name = "ruff", specifier = ">=0.16.8" },

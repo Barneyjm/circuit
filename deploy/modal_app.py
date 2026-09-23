@@ -30,7 +30,11 @@ image = (
         "fastapi[standard]>=0.141",
         "pydantic>=2.13",
         "numpy",
-        "decision-circuits>=0.5.0",
+        "decision-circuits>=0.5.1",
+        # s1proto/telemetry.py: off until OTEL_EXPORTER_OTLP_ENDPOINT is set (a Modal secret)
+        "opentelemetry-api>=1.20",
+        "opentelemetry-sdk>=1.20",
+        "opentelemetry-exporter-otlp-proto-http>=1.20",
         "pillow",
         "soundfile",
         "librosa",
@@ -38,8 +42,13 @@ image = (
     .env({"HF_HOME": "/vol/hf", "HF_HUB_ENABLE_HF_TRANSFER": "0"})
     .add_local_python_source("s1proto")
 )
-# Deploy-time environment becomes the container's: set S1_API_KEY to require it on every call.
-secret = modal.Secret.from_dict({k: v for k in ("S1_API_KEY",) if (v := os.environ.get(k))})
+# Deploy-time environment becomes the container's. S1_API_KEY is required on every call; a
+# deploy without it would serve anyone who has the URL, so it refuses unless told otherwise
+# (S1_ALLOW_OPEN=1). The OTEL_* settings turn on tracing (s1proto/telemetry.py).
+if modal.is_local() and not os.environ.get("S1_API_KEY") and os.environ.get("S1_ALLOW_OPEN") != "1":
+    raise SystemExit("S1_API_KEY is not set: the endpoints would accept any key. Run with the .env loaded (set -a; . ./.env).")
+PASSED = ("S1_API_KEY", "OTEL_EXPORTER_OTLP_ENDPOINT", "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "OTEL_EXPORTER_OTLP_HEADERS", "OTEL_SERVICE_NAME")
+secret = modal.Secret.from_dict({k: v for k in PASSED if (v := os.environ.get(k))})
 
 # The spend ceiling, in containers. One GPU answers about 4 questions a second on a
 # 300-token state, so a screening run that reads thousands of items wants several.
