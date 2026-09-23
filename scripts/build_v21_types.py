@@ -222,7 +222,8 @@ def cuad_match(split, n, rng, heldout):
 def musique_match(split, n, rng, heldout):
     """A multi-hop question's steps against its 20 paragraphs; one question in five loses a
     step's supporting paragraph, and that step matches none. A step that refers to an earlier
-    step's answer ("#1") gets that answer written in."""
+    step's answer ("#1") gets that answer written in. Questions with a step in MuSiQue's
+    "entity >> relation" notation (two in three) are skipped, so items read as questions."""
     rows = list(load_dataset("dgslibisey/MuSiQue", split=split))
     rng.shuffle(rows)
     out = []
@@ -233,6 +234,8 @@ def musique_match(split, n, rng, heldout):
             continue
         paras = _lit(r["paragraphs"])
         steps = _lit(r["question_decomposition"])
+        if any(">>" in st["question"] for st in steps):
+            continue  # MuSiQue's "entity >> relation" lookup notation: no caller writes items like that
         drop = steps[rng.randrange(len(steps))]["paragraph_support_idx"] if i % NONE_EVERY == 0 else None
         keep = [p for p in paras if p["idx"] != drop]
         if sum(len(p["paragraph_text"]) + len(p["title"]) for p in keep) > MAX_CHARS:
