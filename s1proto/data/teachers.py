@@ -75,7 +75,6 @@ class JevTeacher:
         self.client = httpx.AsyncClient(timeout=30.0, headers={"Authorization": f"Bearer {self.api_key}"})
 
     async def distribution(self, state: Any, question: dict[str, Any]) -> dict[str, float]:
-        keys = option_keys(question)
         body = {"state": state, "model": self.model, "questions": {"q": question}}
         async with self.sem:
             for attempt in range(4):
@@ -91,7 +90,11 @@ class JevTeacher:
         if question["type"] == "noul":
             p = float(a["noul"])
             return {"yes": p, "no": 1.0 - p}
-        return normalize(a["probabilities"], keys)
+        if question["type"] == "multi":  # independent per option: not a distribution to normalize
+            return {k: float(a["probabilities"][k]) for k in option_keys(question)}
+        if question["type"] == "locate":  # the top candidates the server returns, and "none"; the rest are 0
+            return {**{x["path"]: float(x["probability"]) for x in a["located"]}, "none": float(a["none"])}
+        return normalize(a["probabilities"], option_keys(question))
 
     async def aclose(self) -> None:
         await self.client.aclose()

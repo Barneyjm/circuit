@@ -47,7 +47,7 @@ secret = modal.Secret.from_dict({k: v for k in ("S1_API_KEY",) if (v := os.envir
 # case, not the usual one. S1_MAX_CONTAINERS at deploy time overrides it.
 MAX_CONTAINERS = int(os.environ.get("S1_MAX_CONTAINERS", "6"))
 MODELS = {
-    "circuit-1.7b": {"repo": "jbarney/circuit-1.7b", "gpu": "L4", "revision": "v1.3"},
+    "circuit-1.7b": {"repo": "jbarney/circuit-1.7b", "gpu": "L4", "revision": "v2.0"},
     "circuit-8b": {"repo": "jbarney/circuit-8b", "gpu": "L40S", "revision": "v1.2"},
     "circuit-vl-4b": {"repo": "jbarney/circuit-vl-4b", "gpu": "L4", "revision": "v1.2"},
     "circuit-audio-7b": {"repo": "jbarney/circuit-audio-7b", "gpu": "L40S", "revision": "v1.2"},
