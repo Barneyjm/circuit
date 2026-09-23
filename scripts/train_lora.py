@@ -370,6 +370,19 @@ def main() -> None:
     if args.limit:
         rng.shuffle(items)
         items = items[: args.limit]
+    # A locate prompt cut to fit loses candidates and cannot be scored; drop those up front
+    # rather than fail on the batch that meets one.
+    if args.head == "pointer" and args.modality == "text":
+        tok_ = AutoTokenizer.from_pretrained(args.model)
+        before = len(items)
+        items = [
+            it
+            for it in items
+            if it["question"]["type"] != "locate"
+            or len(tok_(render(it["state"], parse_question(it["question"]), layout="pointer").text).input_ids) <= args.max_length
+        ]
+        if len(items) < before:
+            print(f"dropped {before - len(items)} locate items longer than --max-length {args.max_length}", flush=True)
     # family-stratified validation split
     by_fam: dict[str, list[dict]] = {}
     for it in items:

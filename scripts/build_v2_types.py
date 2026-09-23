@@ -50,6 +50,7 @@ from build_hf_eval import item
 
 from s1proto.template import locate_candidates
 
+MAX_TOKENS = 4000  # rendered prompt, Qwen3 tokenizer; training runs at 4,096
 SENTENCE = re.compile(r"(?<=[.!?;])\s+(?=[A-Z(\"'0-9])")
 NONE_EVERY = 6
 
@@ -396,6 +397,17 @@ def main() -> None:
             got = build(tr if which == 0 else ev, ntr if which == 0 else nev, rng, heldout)
             print(f"{'train' if which == 0 else 'eval'} {build.__name__:15s} {len(got)}", flush=True)
             rows += got
+        # A truncated locate prompt loses candidates, and a truncated anything loses state;
+        # measure the rendered prompt, not the characters.
+        from transformers import AutoTokenizer
+
+        from s1proto.schema import parse_question
+        from s1proto.template import render
+
+        tok = AutoTokenizer.from_pretrained("Qwen/Qwen3-1.7B-Base")
+        before = len(rows)
+        rows = [r for r in rows if len(tok(render(r["state"], parse_question(r["question"]), layout="pointer").text).input_ids) <= MAX_TOKENS]
+        print(f"dropped {before - len(rows)} rows over {MAX_TOKENS} tokens")
         rng.shuffle(rows)
         with open(path, "w") as f:
             for r in rows:
