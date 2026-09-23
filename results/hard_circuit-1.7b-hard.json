@@ -1,0 +1,104 @@
+{
+ "model": "lora:circuit-1.7b-hard",
+ "data": "data/hard_tier_eval.jsonl",
+ "temps": {
+  "noul": 1.5,
+  "choice": 1.75,
+  "score": 1.0
+ },
+ "fitted": null,
+ "permutations": 1,
+ "debias": false,
+ "timing": {
+  "device": "mps",
+  "items": 650,
+  "passes": 1,
+  "seconds": 1492.4,
+  "ms_per_item": 2296.0,
+  "input_tokens": 873609,
+  "tokens_per_s": 585.4,
+  "batch": 4
+ },
+ "metrics": {
+  "all": {
+   "n": 650,
+   "kl_to_ref": 0.4398,
+   "brier": 0.2507,
+   "accuracy": 0.82,
+   "ece": 0.0285,
+   "sel_acc_90": 0.8564,
+   "agree_jev": 0.82,
+   "mean_conf": 0.824
+  },
+  "type:choice": {
+   "n": 450,
+   "kl_to_ref": 0.5324,
+   "brier": 0.2978,
+   "accuracy": 0.7867,
+   "ece": 0.0345,
+   "sel_acc_90": 0.8198,
+   "agree_jev": 0.7867,
+   "mean_conf": 0.7775
+  },
+  "family:musique_hops (heldout)": {
+   "n": 150,
+   "kl_to_ref": 0.5708,
+   "brier": 0.3457,
+   "accuracy": 0.74,
+   "ece": 0.0759,
+   "sel_acc_90": 0.7704,
+   "agree_jev": 0.74,
+   "mean_conf": 0.7967
+  },
+  "type:noul": {
+   "n": 200,
+   "kl_to_ref": 0.2314,
+   "brier": 0.1447,
+   "accuracy": 0.895,
+   "ece": 0.038,
+   "sel_acc_90": 0.9389,
+   "agree_jev": 0.895,
+   "mean_conf": 0.9286
+  },
+  "family:wiki2_hops (heldout)": {
+   "n": 100,
+   "kl_to_ref": 0.2015,
+   "brier": 0.1294,
+   "accuracy": 0.91,
+   "ece": 0.0561,
+   "sel_acc_90": 0.9556,
+   "agree_jev": 0.91,
+   "mean_conf": 0.9613
+  },
+  "family:maud_deal (heldout)": {
+   "n": 150,
+   "kl_to_ref": 0.4582,
+   "brier": 0.2237,
+   "accuracy": 0.8333,
+   "ece": 0.0769,
+   "sel_acc_90": 0.8889,
+   "agree_jev": 0.8333,
+   "mean_conf": 0.8112
+  },
+  "family:cuad_clause (heldout)": {
+   "n": 100,
+   "kl_to_ref": 0.2613,
+   "brier": 0.16,
+   "accuracy": 0.88,
+   "ece": 0.0342,
+   "sel_acc_90": 0.9333,
+   "agree_jev": 0.88,
+   "mean_conf": 0.8958
+  },
+  "family:sharc_policy (heldout)": {
+   "n": 150,
+   "kl_to_ref": 0.5681,
+   "brier": 0.3241,
+   "accuracy": 0.7867,
+   "ece": 0.0795,
+   "sel_acc_90": 0.8148,
+   "agree_jev": 0.7867,
+   "mean_conf": 0.7246
+  }
+ }
+}
