@@ -879,3 +879,27 @@ a routing decision or temporal arithmetic, the 8B is level with Jev or ahead (te
 
 This is the public subset only. The official score needs the 303 held-out and judge items,
 which the maintainers run themselves on a submitted endpoint.
+
+## circuit-1.7b v1.3: long documents and multi-hop reading (added 2026-09-22)
+
+v1.2's mix plus 6,300 items from MAUD, ShARC (whole rules pages), CUAD, MuSiQue and
+2WikiMultihopQA (`scripts/build_hard_tier.py`), trained at 4,096 tokens for 1 epoch on one
+A40 (`results/pipeline34_1.7b.sh`, $1.54). Every number below was measured through the
+hosted endpoint (`scripts/score_endpoint.py`, `scripts/eval_permutations.py --url`).
+
+| | circuit-1.7b v1.2 | **circuit-1.7b v1.3** | circuit-8b v1.2 | Jev |
+|---|---|---|---|---|
+| hard-tier eval, 650 held-out rows of the five sources | .591 | **.822** / ECE .040 | .607 | .749 |
+| unseen families, 1,200 | .722 / ECE .147 | **.733 / .120** | | |
+| water calls, 100 | .850 | **.900** | | |
+| order set, 981: accuracy / flips | **.729** / 0.5% | .706 / 0.9% | | |
+
+Per hard-tier family (v1.2 / v1.3 / Jev): MuSiQue .440 / .747 / .593, MAUD .547 / .833 /
+.700, ShARC .553 / .787 / .747, 2Wiki .750 / .910 / .890, CUAD .780 / .880 / .920. The
+hard-tier rows come from the same five sources as the new training data (held-out splits),
+so this shows the skill can be learned, not that v1.3 beats Jev on long documents in
+general; JevBench's hard tier is the out-of-distribution check.
+
+The order-set drop is in small in-house production families (chat-classifier tier 30
+items, MCP pick 14, search-intent lead 30); every public held-out family held or improved.
+1 epoch against v1.2's 2 is the suspected cause and pipeline35 runs 2.

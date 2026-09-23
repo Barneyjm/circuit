@@ -1,0 +1,37 @@
+{
+ "bfcl_relevance": {
+  "acc": 0.8267,
+  "ece": 0.1013,
+  "brier": 0.2647,
+  "n": 300,
+  "errors": 0
+ },
+ "chaosnli": {
+  "acc": 0.5367,
+  "ece": 0.2746,
+  "brier": 0.3114,
+  "n": 300,
+  "errors": 0
+ },
+ "halueval_qa": {
+  "acc": 0.8133,
+  "ece": 0.0905,
+  "brier": 0.282,
+  "n": 300,
+  "errors": 0
+ },
+ "hwu64": {
+  "acc": 0.7533,
+  "ece": 0.0621,
+  "brier": 0.356,
+  "n": 300,
+  "errors": 0
+ },
+ "all": {
+  "acc": 0.7325,
+  "ece": 0.1196,
+  "brier": 0.3035,
+  "n": 1200,
+  "errors": 0
+ }
+}

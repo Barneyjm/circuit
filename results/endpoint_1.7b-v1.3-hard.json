@@ -1,0 +1,44 @@
+{
+ "cuad_clause": {
+  "acc": 0.88,
+  "ece": 0.0364,
+  "brier": 0.1579,
+  "n": 100,
+  "errors": 0
+ },
+ "maud_deal": {
+  "acc": 0.8333,
+  "ece": 0.088,
+  "brier": 0.2232,
+  "n": 150,
+  "errors": 0
+ },
+ "musique_hops": {
+  "acc": 0.7467,
+  "ece": 0.0819,
+  "brier": 0.344,
+  "n": 150,
+  "errors": 0
+ },
+ "sharc_policy": {
+  "acc": 0.7867,
+  "ece": 0.0913,
+  "brier": 0.3218,
+  "n": 150,
+  "errors": 0
+ },
+ "wiki2_hops": {
+  "acc": 0.91,
+  "ece": 0.0564,
+  "brier": 0.1292,
+  "n": 100,
+  "errors": 0
+ },
+ "all": {
+  "acc": 0.8215,
+  "ece": 0.0398,
+  "brier": 0.2493,
+  "n": 650,
+  "errors": 0
+ }
+}
