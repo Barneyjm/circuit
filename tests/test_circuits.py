@@ -123,6 +123,7 @@ def test_categorical_gate_and_score_level_references():
         },
         ANSWERS,
     )
-    assert r["is_billing"].value is True and r["is_billing"].p == pytest.approx(0.65)
+    # majority reads vote shares (decision-circuits 0.5.3): both paraphrases voted billing
+    assert r["is_billing"].value is True and r["is_billing"].p == pytest.approx(1.0)
     assert r["crit"].value is True and r["crit"].p == pytest.approx(0.5)
-    assert r["both"].value is True and r["both"].p == pytest.approx(0.65 * 0.5)
+    assert r["both"].value is True and r["both"].p == pytest.approx(1.0 * 0.5)

@@ -838,11 +838,11 @@ wheels = [
 
 [[package]]
 name = "decision-circuits"
-version = "0.5.2"
+version = "0.5.3"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/e0/8f/cb7cc557e35495a403ba89e6fc84ddc99ed4978feaf23be7fd7d284c0342/decision_circuits-0.5.2.tar.gz", hash = "sha256:1392425c23dd280cb07de8811fc71f0be9e194847514be7de5b4256b95b18475", size = 58005, upload-time = "2026-09-23T14:58:09.114Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/88/fd/5ea4f62e9ee138c6277ecc6a89fb9034d466f5b2f936d8eef4566c56c8ff/decision_circuits-0.5.3.tar.gz", hash = "sha256:c0534a285ee9b590b593932f67f128f101a8ecd6a32355caaf8866be1dc0b702", size = 60758, upload-time = "2026-09-23T15:18:13.393Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/95/48/529daada65292c4b0b88a69ef983271920f40dc7406c1230b6d2725f862f/decision_circuits-0.5.2-py3-none-any.whl", hash = "sha256:bc0b5a3a1f2aa80c4b897aaec0952b4fec45217f443bc55f1c1d080b09bfbea6", size = 53509, upload-time = "2026-09-23T14:58:07.934Z" },
+    { url = "https://files.pythonhosted.org/packages/26/da/6e24a2e8467b2e1e2a9efa99814fd3f6053bfe89e42f3581f51a5c424689/decision_circuits-0.5.3-py3-none-any.whl", hash = "sha256:d2f2b27d7fa850e0ac6b5f6f8ed36d1b71e9ed67f9fb9cc2281f90adbcec5cae", size = 53971, upload-time = "2026-09-23T15:18:11.821Z" },
 ]
 
 [[package]]
@@ -3369,7 +3369,7 @@ dev = [
 requires-dist = [
     { name = "accelerate", specifier = ">=1.15.0" },
     { name = "datasets", specifier = ">=5.0.1" },
-    { name = "decision-circuits", specifier = ">=0.5.2" },
+    { name = "decision-circuits", specifier = ">=0.5.3" },
     { name = "fastapi", specifier = ">=0.141.1" },
     { name = "google-genai", specifier = ">=2.24.0" },
     { name = "httpx", specifier = ">=0.28.1" },

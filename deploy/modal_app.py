@@ -30,7 +30,7 @@ image = (
         "fastapi[standard]>=0.141",
         "pydantic>=2.13",
         "numpy",
-        "decision-circuits>=0.5.2",
+        "decision-circuits>=0.5.3",
         # s1proto/telemetry.py: off until OTEL_EXPORTER_OTLP_ENDPOINT is set (a Modal secret)
         "opentelemetry-api>=1.20",
         "opentelemetry-sdk>=1.20",
