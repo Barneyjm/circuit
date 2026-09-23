@@ -57,7 +57,10 @@ secret = modal.Secret.from_dict({k: v for k in PASSED if (v := os.environ.get(k)
 MAX_CONTAINERS = int(os.environ.get("S1_MAX_CONTAINERS", "6"))
 MODELS = {
     "circuit-1.7b": {"repo": "jbarney/circuit-1.7b", "gpu": "L4", "revision": "v2.0"},
-    "circuit-8b": {"repo": "jbarney/circuit-8b", "gpu": "L40S", "revision": "v1.2"},
+    # Batching across requests, mixed lengths: about 2x the throughput on long bulk traffic
+    # for ~0.01 of drift on a probability (s1proto/batching.py). The 1.7b stays unbatched and
+    # bit-reproducible; the 8b is the bulk-tagging model.
+    "circuit-8b": {"repo": "jbarney/circuit-8b", "gpu": "L40S", "revision": "v1.2", "env": {"S1_BATCH_MAX": "32", "S1_BATCH_UNIFORM": "0"}},
     "circuit-vl-4b": {"repo": "jbarney/circuit-vl-4b", "gpu": "L4", "revision": "v1.2"},
     "circuit-audio-7b": {"repo": "jbarney/circuit-audio-7b", "gpu": "L40S", "revision": "v1.2"},
 }
@@ -66,6 +69,8 @@ MODELS = {
 def build(name: str):
     """Fetch the run from the Hub into the volume (adapter/, head.pt, config.json), then the base it names."""
     from huggingface_hub import snapshot_download
+
+    os.environ.update(MODELS[name].get("env", {}))  # one model per container, so its settings are the container's
 
     # A container fetches on every cold start, so an unpinned repo changes the served model
     # the moment new weights are pushed. Pin a tag; changing it here is the release.
@@ -104,7 +109,7 @@ class Circuit17B:
 @app.cls(
     image=image, gpu=MODELS["circuit-8b"]["gpu"], volumes={"/vol": weights}, secrets=[secret], scaledown_window=120, max_containers=MAX_CONTAINERS, timeout=900
 )
-@modal.concurrent(max_inputs=8)
+@modal.concurrent(max_inputs=32)  # enough requests in the container at once for S1_BATCH_MAX to fill
 class Circuit8B:
     @modal.enter()
     def load(self) -> None:
