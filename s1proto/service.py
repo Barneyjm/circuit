@@ -44,7 +44,7 @@ from s1proto.schema import (
     confidence_from_probabilities,
 )
 from s1proto.scorer import ScorerProtocol, load_scorer
-from s1proto.template import Prompt, locate_candidates, render
+from s1proto.template import V2_KINDS, Prompt, locate_candidates, render
 
 # Per-question-type temperature. 1.0 = raw logits (Phase 1). Phase 2
 # fits these on a validation split and writes them to S1_TEMPERATURES
@@ -295,7 +295,10 @@ def create_app(scorer: ScorerProtocol | None = None, temperatures: dict[str, flo
     def answer(req: SystemOneRequest) -> Any:
         cap = getattr(app.state.scorer, "max_options", 255)
         supported = getattr(app.state.scorer, "question_types", ("noul", "choice", "score"))
+        media = split_media_state(req.state) is not None
         for qid, q in req.questions.items():
+            if media and q.type in V2_KINDS:  # they point into, order or pair text; images and audio come later if at all
+                raise HTTPException(status_code=422, detail=f"question {qid!r}: {q.type} questions take text states only")
             if q.type not in supported:
                 raise HTTPException(status_code=422, detail=f"question {qid!r}: model {app.state.scorer.name} does not answer {q.type} questions")
             if isinstance(q, LocateQuestion):

@@ -55,6 +55,8 @@ use. Non-commercial and unclear sources are **eval-only** under
 | esci_rank, esci_match (v2.1 types) | tasksource/esci (Amazon Shopping Queries) | ok | Apache 2.0; annotators' E/S/C/I labels |
 | stackx_rank (v2.1 types) | HuggingFaceH4/stack-exchange-preferences | ok | CC BY-SA 4.0; answer text and vote scores only, no author fields |
 | cuad_match, musique_match (v2.1 types) | as the hard tier | ok | as the hard tier |
+| cf_snli (counterfactuals) | acmi-lab/counterfactually-augmented-data, NLI half | ok | Apache 2.0 edits of SNLI (CC BY-SA 4.0); the IMDb half is not used, its reviews carry no licence |
+| cf_wiki2 (counterfactuals) | xanhho/2WikiMultihopQA | ok | Apache-2.0; edits are code (answer swapped, unused paragraph removed) |
 
 ## Hard tier (`scripts/build_hard_tier.py`)
 
@@ -86,6 +88,15 @@ Amazon's annotators, and Stack Exchange answers graded by votes, eval on sites t
 never saw. Match: ESCI searches against their exact products with other searches'
 substitutes as hard negatives, CUAD clause types against a contract's clauses, and MuSiQue
 question steps against their paragraphs. Human or code labels throughout; no teacher output.
+
+## Counterfactual groups (`scripts/build_counterfactuals.py`)
+
+One item in several versions that differ only in the fact that decides it, so the answer has
+to move with that fact and stay put when anything else changes. SNLI pairs with Kaushik et
+al.'s four human edits each (premise or hypothesis rewritten to each other label), in the
+wide mix's `snli` wording; 2Wiki paragraphs with the answer swapped for another answer of the
+same relation everywhere it appears, and with a paragraph no hop uses removed. Rows carry a
+`group`; `eval_set.py` reports the share of groups answered entirely right.
 
 ## The earlier real-data set (`data/hf_train.jsonl`)
 

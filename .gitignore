@@ -43,4 +43,6 @@ data/hard_tier_*.jsonl
 data/hard_mix_train.jsonl
 data/v2_types_*.jsonl
 data/v21_types_*.jsonl
+data/v21_mix_train.jsonl
+data/cf_*.jsonl
 data/v2_mix_train.jsonl

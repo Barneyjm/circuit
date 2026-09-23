@@ -133,3 +133,11 @@ def test_api_refuses_rank_on_a_model_without_it():
     with _client(("noul", "choice", "score", "multi", "locate")) as c:
         r = c.post("/v1/systemone", json=body, headers=AUTH)
     assert r.status_code == 422 and "rank" in r.text
+
+
+def test_v2_questions_refuse_image_and_audio_states():
+    img = "data:image/png;base64,iVBORw0KGgo="
+    body = {"state": {"image": img}, "model": "fake", "questions": {"o": {"type": "rank", "instructions": "?", "criteria": {"a": None, "b": None}}}}
+    with _client(("noul", "choice", "score", "multi", "locate", "rank", "match")) as c:
+        r = c.post("/v1/systemone", json=body, headers=AUTH)
+    assert r.status_code == 422 and "text states only" in r.text

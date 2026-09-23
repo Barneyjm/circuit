@@ -246,7 +246,30 @@ def summarize(items: list[dict], preds: list[list[float]]) -> dict:
             "mean_conf": round(sum(confs) / n, 4),
         }
 
-    return {g: metrics(idx) for g, idx in groups.items()}
+    out = {g: metrics(idx) for g, idx in groups.items()}
+    cf = counterfactual_groups(items, preds)
+    if cf:
+        out["counterfactual_groups"] = cf
+    return out
+
+
+def counterfactual_groups(items: list[dict], preds: list[list[float]]) -> dict:
+    """Rows sharing a `group` are one item with the deciding fact changed. Per family: the
+    share of groups the model gets entirely right, next to the share of rows. A model that
+    reads a cue rather than the fact gets rows right and groups wrong."""
+    by: dict[str, dict[str, list[bool]]] = defaultdict(lambda: defaultdict(list))
+    for it, p in zip(items, preds, strict=True):
+        if it.get("group") and it["kind"] in ("noul", "choice", "score"):
+            ref = [it["ref"][k] for k in option_keys(it["question"])]
+            by[it["family"]][it["group"]].append(max(range(len(p)), key=p.__getitem__) == max(range(len(ref)), key=ref.__getitem__))
+    return {
+        fam: {
+            "groups": len(gs),
+            "all_correct": round(sum(all(v) for v in gs.values()) / len(gs), 4),
+            "rows_correct": round(sum(sum(v) for v in gs.values()) / sum(len(v) for v in gs.values()), 4),
+        }
+        for fam, gs in by.items()
+    }
 
 
 def fit_temperatures(per_item, items, fit_idx: list[int]) -> dict[str, float]:
