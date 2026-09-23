@@ -45,16 +45,43 @@ class PointerHead(torch.nn.Module):
     product, softmax over the options. Order-invariant, no option cap,
     and options interact only through the softmax."""
 
-    def __init__(self, hidden: int, dim: int = HEAD_DIM):
+    # v2 question types each get their own query; keys are shared. multi's logits are read
+    # through a sigmoid, one per option, so it also gets a bias (a softmax needs none).
+    V2_KINDS = ("multi", "locate")
+
+    def __init__(self, hidden: int, dim: int = HEAD_DIM, v2: bool = False):
         super().__init__()
         self.q = torch.nn.Linear(hidden, dim, bias=False)
         self.k = torch.nn.Linear(hidden, dim, bias=False)
         self.scale = dim**-0.5
+        if v2:
+            self.q_multi = torch.nn.Linear(hidden, dim, bias=False)
+            self.q_locate = torch.nn.Linear(hidden, dim, bias=False)
+            self.multi_bias = torch.nn.Parameter(torch.zeros(()))
 
-    def forward(self, h_decide: torch.Tensor, h_opts: torch.Tensor, n_options: torch.Tensor) -> torch.Tensor:
-        q = self.q(h_decide).unsqueeze(1)  # [B, 1, d]
+    @property
+    def v2(self) -> bool:
+        return hasattr(self, "q_multi")
+
+    def query(self, h_decide: torch.Tensor, kinds: list[str] | None = None) -> torch.Tensor:
+        q = self.q(h_decide)
+        if kinds and self.v2:
+            for kind in self.V2_KINDS:
+                rows = [i for i, k in enumerate(kinds) if k == kind]
+                if rows:
+                    idx = torch.tensor(rows, device=q.device)
+                    q = q.index_copy(0, idx, getattr(self, f"q_{kind}")(h_decide[idx]))
+        return q
+
+    def forward(self, h_decide: torch.Tensor, h_opts: torch.Tensor, n_options: torch.Tensor, kinds: list[str] | None = None) -> torch.Tensor:
+        if kinds and not self.v2 and any(k in self.V2_KINDS for k in kinds):
+            raise ValueError("this head predates multi and locate questions")
+        q = self.query(h_decide, kinds).unsqueeze(1)  # [B, 1, d]
         k = self.k(h_opts)  # [B, maxn, d]
         logits = (q * k).sum(-1) * self.scale  # [B, maxn]
+        if kinds and self.v2:
+            multi = torch.tensor([k == "multi" for k in kinds], device=logits.device).unsqueeze(1)
+            logits = logits + multi * self.multi_bias
         mask = torch.arange(logits.shape[-1], device=logits.device).unsqueeze(0) >= n_options.unsqueeze(1)
         return logits.masked_fill(mask, float("-inf"))
 
@@ -247,12 +274,12 @@ def hidden_states(model, enc, modality: str = "text"):
     return body(**inputs, use_cache=False).last_hidden_state
 
 
-def head_logits(head, hs, nopts, opt_pos, dec_pos):
+def head_logits(head, hs, nopts, opt_pos, dec_pos, kinds: list[str] | None = None):
     """Apply either head at the decide position. Slot: linear over 256
     slots. Pointer: decide token against each option's closing delimiter."""
     h_dec = hs[torch.arange(hs.shape[0], device=hs.device), dec_pos].float()
     if isinstance(head, PointerHead):
         idx = opt_pos.unsqueeze(-1).expand(-1, -1, hs.shape[-1])
         h_opts = torch.gather(hs, 1, idx).float()
-        return head(h_dec, h_opts, nopts)
+        return head(h_dec, h_opts, nopts, kinds)
     return head(h_dec, nopts)

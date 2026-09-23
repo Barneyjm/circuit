@@ -35,18 +35,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from s1proto.data.teachers import option_keys
-from s1proto.schema import ChoiceQuestion, NoulQuestion, ScoreQuestion
-from s1proto.scorer import load_scorer, softmax
+from s1proto.data.teachers import item_keys, option_keys
+from s1proto.schema import parse_question
+from s1proto.scorer import load_scorer, readout, softmax
 from s1proto.service import parse_temperatures
 from s1proto.template import render
 
 CONTENT_FREE = ["N/A", "", "[MASK]"]
 T_GRID = [0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.15, 1.3, 1.5, 1.75, 2.0, 2.5, 3.0]
-
-
-def parse_question(q: dict):
-    return {"noul": NoulQuestion, "choice": ChoiceQuestion, "score": ScoreQuestion}[q["type"]].model_validate(q)
 
 
 def kl(p: list[float], q: list[float]) -> float:
@@ -66,11 +62,12 @@ def ece15(confs, correct, bins=15):
 
 
 def permuted_question(q: dict, rng: random.Random) -> tuple[dict, list[str]]:
-    """Choice only: shuffle option order. Score levels are ordered by
-    meaning and Noul is fixed yes/no, so those keep their order."""
+    """Choice and multi: shuffle option order. Score levels are ordered by meaning,
+    Noul is fixed yes/no, and locate's candidates are the state itself, so those keep
+    their order."""
+    if q["type"] not in ("choice", "multi"):
+        raise ValueError("only choice and multi options can be reordered")
     keys = option_keys(q)
-    if q["type"] != "choice":
-        return q, keys
     order = keys[:]
     rng.shuffle(order)
     return {**q, "criteria": {k: q["criteria"][k] for k in order}}, order
@@ -86,8 +83,8 @@ def collect_logits(scorer, items: list[dict], permutations: int, debias: bool, b
         prompts, meta = [], []
         for i, it in enumerate(items):
             q = it["question"]
-            keys = option_keys(q)
-            qp, order = permuted_question(q, rng) if perm > 0 else (q, keys)
+            keys = item_keys(it)
+            qp, order = permuted_question(q, rng) if perm > 0 and q["type"] in ("choice", "multi") else (q, keys)
             prompts.append(render(it["state"], parse_question(qp), layout=getattr(scorer, "layout", "letters")))
             meta.append((i, keys, order, qp))
         priors: dict[str, list[float]] = {}
@@ -113,8 +110,8 @@ def collect_logits(scorer, items: list[dict], permutations: int, debias: bool, b
 def probs_from_logits(per_item, items, temps) -> list[list[float]]:
     out = []
     for vecs, it in zip(per_item, items, strict=True):
-        t = temps[it["kind"]]
-        ps = [softmax([x / t for x in v]) for v in vecs]
+        t = temps.get(it["kind"], 1.0)
+        ps = [readout(v, it["kind"], t) for v in vecs]
         out.append([sum(p[j] for p in ps) / len(ps) for j in range(len(ps[0]))])
     return out
 
@@ -127,6 +124,45 @@ def summarize(items: list[dict], preds: list[list[float]]) -> dict:
         groups[f"family:{it['family']}" + (" (heldout)" if it.get("heldout") else "")].append(i)
 
     def metrics(idx: list[int]) -> dict:
+        v2 = {k: [i for i in idx if items[i]["kind"] == k] for k in ("multi", "locate")}
+        idx = [i for i in idx if items[i]["kind"] not in v2]
+        out = {k: v2_metrics(k, v) for k, v in v2.items() if v}
+        if not idx:  # a v2-only group: its headline numbers are the v2 type's own
+            return next(iter(out.values()))
+        return {**one_answer(idx), **out}
+
+    def v2_metrics(kind: str, idx: list[int]) -> dict:
+        confs, correct, briers, hits, top3 = [], [], [], [], []
+        tp = fp = fn = 0
+        for i in idx:
+            it, p = items[i], preds[i]
+            ref = [it["ref"].get(k, 0.0) for k in item_keys(it)]
+            briers.append(sum((a - b) ** 2 for a, b in zip(p, ref, strict=True)) / (len(p) if kind == "multi" else 1))
+            if kind == "multi":
+                pred, gold = [x >= 0.5 for x in p], [x >= 0.5 for x in ref]
+                confs += [max(x, 1 - x) for x in p]
+                correct += [a == b for a, b in zip(pred, gold, strict=True)]
+                hits.append(pred == gold)
+                tp += sum(a and b for a, b in zip(pred, gold, strict=True))
+                fp += sum(a and not b for a, b in zip(pred, gold, strict=True))
+                fn += sum(b and not a for a, b in zip(pred, gold, strict=True))
+            else:
+                order = sorted(range(len(p)), key=lambda j: -p[j])
+                confs.append(p[order[0]])
+                correct.append(ref[order[0]] > 0)
+                hits.append(ref[order[0]] > 0)
+                top3.append(any(ref[j] > 0 for j in order[:3]))
+        n = len(idx)
+        out = {"n": n, "accuracy": round(sum(hits) / n, 4), "ece": round(ece15(confs, correct), 4), "brier": round(sum(briers) / n, 4)}
+        if kind == "multi":
+            out["f1"] = round(2 * tp / max(1, 2 * tp + fp + fn), 4)
+            out["accuracy_note"] = "exact set; ece and f1 are per option"
+        else:
+            out["top3"] = round(sum(top3) / n, 4)
+            out["accuracy_note"] = "top pick is a gold candidate"
+        return out
+
+    def one_answer(idx: list[int]) -> dict:
         kls, briers, confs, correct, agree = [], [], [], [], []
         for i in idx:
             it = items[i]
@@ -220,7 +256,9 @@ def main() -> None:
     try:
         tok = scorer.tokenizer
         for it in items:
-            n_tokens += len(tok.encode(render(it["state"], parse_question(it["question"])).text, add_special_tokens=False))
+            n_tokens += len(
+                tok.encode(render(it["state"], parse_question(it["question"]), layout=getattr(scorer, "layout", "letters")).text, add_special_tokens=False)
+            )
     except AttributeError:
         n_tokens = 0
     timing = {
@@ -268,7 +306,12 @@ def main() -> None:
     print("families:")
     for k, v in summary.items():
         if k.startswith("family:"):
-            print(f"  {k:<44} n={v['n']:<4} acc={v['accuracy']:.3f} ece={v['ece']:.3f} kl={v['kl_to_ref']:.3f} agree_jev={v['agree_jev']:.3f}")
+            extra = (
+                f"kl={v['kl_to_ref']:.3f} agree_jev={v['agree_jev']:.3f}"
+                if "kl_to_ref" in v
+                else f"brier={v['brier']:.3f} " + " ".join(f"{m}={v[m]:.3f}" for m in ("f1", "top3") if m in v)
+            )
+            print(f"  {k:<44} n={v['n']:<4} acc={v['accuracy']:.3f} ece={v['ece']:.3f} {extra}")
     if args.out:
         Path(args.out).parent.mkdir(parents=True, exist_ok=True)
         json.dump(result, open(args.out, "w"), indent=1)

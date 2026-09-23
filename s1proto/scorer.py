@@ -60,6 +60,14 @@ def softmax(xs: list[float]) -> list[float]:
     return [e / z for e in es]
 
 
+def readout(logits: list[float], kind: str, temperature: float = 1.0) -> list[float]:
+    """Probabilities from a question's logits: one independent sigmoid per option for
+    multi (they need not sum to 1), a softmax over the options for every other type."""
+    if kind == "multi":
+        return [1.0 / (1.0 + math.exp(-x / temperature)) for x in logits]
+    return softmax([x / temperature for x in logits])
+
+
 @dataclass
 class FakeScorer:
     """Hash-seeded, deterministic per prompt text. Produces a peaked but
@@ -67,6 +75,8 @@ class FakeScorer:
 
     name: str = "fake"
     max_options: int = 255
+    layout: str = "letters"  # "pointer" to render multi and locate questions
+    question_types: tuple[str, ...] = ("noul", "choice", "score")
 
     def score(self, prompts: list[Prompt], temperatures: list[float] | None = None) -> list[ScoreResult]:
         out = []
@@ -74,8 +84,7 @@ class FakeScorer:
             h = hashlib.sha256(p.text.encode("utf-8")).digest()
             logits = [((h[j % 32] / 255.0) * 4.0 - 2.0) for j in range(p.n_options)]
             t = (temperatures or [1.0] * len(prompts))[i]
-            probs = softmax([x / t for x in logits])
-            out.append(ScoreResult(probabilities=probs, logits=logits, input_tokens=max(1, len(p.text) // 4)))
+            out.append(ScoreResult(probabilities=readout(logits, p.kind, t), logits=logits, input_tokens=max(1, len(p.text) // 4)))
         return out
 
 
@@ -252,6 +261,7 @@ class LoRAScorer:
             self.model.to(self.device).eval()
         self.head_kind = cfg.get("head", "slot")
         self.layout = cfg.get("layout", "letters")
+        self.question_types: tuple[str, ...] = ("noul", "choice", "score")
         state = torch.load(os.path.join(self.run_dir, "head.pt"), map_location="cpu")
         if self.head_kind == "pointer":
             dim = cfg.get("head_dim", 256)
@@ -262,12 +272,23 @@ class LoRAScorer:
             self.q.to(self.device).eval()
             self.k.to(self.device).eval()
             self.scale = dim**-0.5
+            # v2 heads: a query each for multi and locate, and multi's sigmoid bias
+            self.queries: dict[str, Any] = {}
+            self.multi_bias = 0.0
+            if "q_multi.weight" in state:
+                for kind in ("multi", "locate"):
+                    lin = torch.nn.Linear(cfg["hidden"], dim, bias=False)
+                    lin.load_state_dict({"weight": state[f"q_{kind}.weight"]})
+                    self.queries[kind] = lin.to(self.device).eval()
+                self.multi_bias = float(state["multi_bias"])
+                self.question_types = (*self.question_types, "multi", "locate")
             self.max_options = 255  # the API cap; the head itself has none
             if cfg.get("pointer_tokens"):
                 T.use_pointer_tokens(*cfg["pointer_tokens"])
             self.opt_end_id = self.tokenizer.convert_tokens_to_ids(T.OPT_END)
             self.opt_start_id = self.tokenizer.convert_tokens_to_ids(T.OPT_START)
             self.decide_id = self.tokenizer.convert_tokens_to_ids(T.DECIDE)
+            self.locate_id = self.tokenizer.convert_tokens_to_ids(T.LOCATE_MARK)
         else:
             self.head = torch.nn.Linear(cfg["hidden"], cfg["head_size"])
             self.head.load_state_dict({k.replace("proj.", ""): v for k, v in state.items()})
@@ -290,19 +311,22 @@ class LoRAScorer:
         self.load_seconds = time.perf_counter() - t0
 
     def _head_logits(self, hs, h_last, ids, prompts, offset: int = 0):
-        """Pointer: the decide token against each option's closing delimiter.
-        Slot: a linear map at the decide position. `offset` shifts delimiter
-        positions when `ids` holds only the tail of the sequence."""
+        """Pointer: the decide token against each option's closing delimiter (for locate,
+        against every candidate's mark and then the "none" option). Slot: a linear map at
+        the decide position. `offset` shifts positions when `ids` holds only the tail."""
         if self.head_kind != "pointer":
             return self.head(h_last).cpu()
-        q = self.q(h_last)
         rows = []
         for i, p in enumerate(prompts):
-            pos = (ids[i] == self.opt_end_id).nonzero(as_tuple=True)[0]
+            keyed = ids[i] == self.opt_end_id
+            if p.kind == "locate":
+                keyed = keyed | (ids[i] == self.locate_id)
+            pos = keyed.nonzero(as_tuple=True)[0]
             if len(pos) != p.n_options:
                 raise ValueError(f"found {len(pos)} option delimiters for {p.n_options} options; render with layout='pointer' and check truncation")
-            k = self.k(hs[i, pos + offset, :].float())
-            rows.append(((q[i] * k).sum(-1) * self.scale).cpu())
+            q = self.queries.get(p.kind, self.q)(h_last[i])
+            logit = (q * self.k(hs[i, pos + offset, :].float())).sum(-1) * self.scale
+            rows.append((logit + self.multi_bias if p.kind == "multi" else logit).cpu())
         return rows
 
     def _score_shared_prefix(self, prompts: list[Prompt], temperatures: list[float] | None) -> list[ScoreResult]:
@@ -342,8 +366,7 @@ class LoRAScorer:
         results = []
         for i, p in enumerate(prompts):
             raw = logits[i][: p.n_options].tolist()
-            probs = softmax([x / temps[i] for x in raw])
-            results.append(ScoreResult(probabilities=probs, logits=raw, input_tokens=len(prefix_ids) + len(tails[i])))
+            results.append(ScoreResult(probabilities=readout(raw, p.kind, temps[i]), logits=raw, input_tokens=len(prefix_ids) + len(tails[i])))
         return results
 
     def score(self, prompts: list[Prompt], temperatures: list[float] | None = None, media: list[Any] | None = None) -> list[ScoreResult]:
@@ -389,24 +412,12 @@ class LoRAScorer:
                 )
             hs = decoder(input_ids=ids, attention_mask=attn, position_ids=position_ids, use_cache=False).last_hidden_state
             h_last = hs[:, -1, :].float()
-            if self.head_kind == "pointer":
-                q = self.q(h_last)  # [B, d]
-                rows = []
-                for i, p in enumerate(prompts):
-                    pos = (ids[i] == self.opt_end_id).nonzero(as_tuple=True)[0]
-                    if len(pos) != p.n_options:
-                        raise ValueError(f"found {len(pos)} option delimiters for {p.n_options} options; render with layout='pointer' and check truncation")
-                    k = self.k(hs[i, pos, :].float())  # [n, d]
-                    rows.append(((q[i] * k).sum(-1) * self.scale).cpu())
-                logits = rows
-            else:
-                logits = self.head(h_last).cpu()
+            logits = self._head_logits(hs, h_last, ids, prompts)
         lengths = mask.sum(dim=1).tolist()
         results = []
         for i, p in enumerate(prompts):
             raw = logits[i][: p.n_options].tolist()
-            probs = softmax([x / temps[i] for x in raw])
-            results.append(ScoreResult(probabilities=probs, logits=raw, input_tokens=int(lengths[i])))
+            results.append(ScoreResult(probabilities=readout(raw, p.kind, temps[i]), logits=raw, input_tokens=int(lengths[i])))
         return results
 
 

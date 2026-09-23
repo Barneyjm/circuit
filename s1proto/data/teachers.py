@@ -32,9 +32,22 @@ def option_keys(question: dict[str, Any]) -> list[str]:
     kind = question["type"]
     if kind == "noul":
         return ["yes", "no"]
-    if kind == "choice":
+    if kind in ("choice", "multi"):
         return list(question["criteria"].keys())
+    if kind == "locate":
+        raise ValueError("locate options come from the state; use template.locate_candidates")
     return [str(i) for i in range(len(question["criteria"]))]
+
+
+def item_keys(item: dict[str, Any]) -> list[str]:
+    """What each position a pointer head scores means for a JSONL row: the options, or
+    for locate the state's candidates and then "none". A locate ref names only the
+    candidates it puts mass on; the rest are 0."""
+    if item["question"]["type"] == "locate":
+        from s1proto.template import locate_candidates
+
+        return [p for p, _ in locate_candidates(item["state"])] + ["none"]
+    return option_keys(item["question"])
 
 
 def normalize(raw: dict[str, float], keys: list[str]) -> dict[str, float]:

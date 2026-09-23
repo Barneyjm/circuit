@@ -49,6 +49,9 @@ use. Non-commercial and unclear sources are **eval-only** under
 | cuad_clause (hard tier) | theatticusproject/cuad-qa | ok | CC BY 4.0 |
 | musique_hops (hard tier) | dgslibisey/MuSiQue | ok | CC BY 4.0 |
 | wiki2_hops (hard tier) | xanhho/2WikiMultihopQA | ok | Apache 2.0 |
+| musique_locate, wiki2_locate, sharc_locate, cuad_locate, cuad_multi (v2 types) | as the hard tier | ok | as the hard tier |
+| squad_locate (v2 types) | rajpurkar/squad_v2 | ok | CC BY-SA 4.0 |
+| goemo_multi (v2 types) | google-research-datasets/go_emotions | ok | Apache 2.0 (card); Reddit comments |
 
 ## Hard tier (`scripts/build_hard_tier.py`)
 
@@ -62,6 +65,15 @@ The built JSONL is not committed; rebuild it with the script (fixed seeds).
 - cuad_clause: CUAD contracts cut into 13k-character windows, noul "does this part contain a {clause} provision?", half positive.
 - musique_hops: MuSiQue answerable questions, choice of supported / wrong (an intermediate hop's answer is proposed) / not enough information (one hop's paragraph removed).
 - wiki2_hops: 2WikiMultihopQA, noul on the gold answer or a flipped one.
+
+## v2 question types (`scripts/build_v2_types.py`)
+
+Rows for `locate` (point at the part of the state that answers, or none) and `multi`
+(every option that applies, each with its own probability). Built from the hard-tier
+sources plus SQuAD 2.0 and GoEmotions; GoEmotions keeps the share of raters per emotion
+as the reference, so `multi` is trained against soft labels where they exist. About one
+locate row in six has its answer removed from the state. Not committed; rebuild with the
+script.
 
 ## The earlier real-data set (`data/hf_train.jsonl`)
 

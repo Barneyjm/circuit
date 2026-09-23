@@ -19,11 +19,12 @@ the model could be biased by (label letters, option order, the word
 from __future__ import annotations
 
 import json
+import re
 import string
 from dataclasses import dataclass
 from typing import Any
 
-from s1proto.schema import ChoiceQuestion, NoulQuestion, ScoreQuestion
+from s1proto.schema import ChoiceQuestion, LocateQuestion, MultiQuestion, NoulQuestion, ScoreQuestion
 
 # A..Z are single tokens and are what the label-token scorer reads
 # (Phase 1, 26-option cap). Beyond 26 the labels are two letters; only a
@@ -64,6 +65,16 @@ _RESERVED_EXTRA = (
     "<|vision_end|>",
 )
 RESERVED = (OPT_START, OPT_END, DECIDE, *_RESERVED_EXTRA)
+# `locate` marks the end of every candidate in the state with this token; the head reads
+# the hidden state there, as it reads an option's closing delimiter. Text models only.
+LOCATE_MARK = "<|object_ref_end|>"
+MAX_LOCATE_CANDIDATES = 512
+_SENTINEL = "\ue000"  # private-use; stands in for LOCATE_MARK until the state is sanitized
+_SENTENCE = re.compile(r"(?<=[.!?])\s+")
+
+CHOICE_LEAD = "Question (pick exactly one option):"
+MULTI_LEAD = "Question (pick every option that applies; none may apply):"
+LOCATE_LEAD = "Question (point to the part of the input that answers this, or none):"
 
 
 def pointer_tokens_for(tokenizer) -> tuple[str, str, str]:
@@ -105,7 +116,7 @@ class Prompt:
     prefix: str = ""
     tail: str = ""
     layout: str = "letters"
-    kind: str = "choice"  # noul | choice | score, so a scorer can apply a per-type temperature
+    kind: str = "choice"  # noul | choice | score | multi | locate: temperature and readout differ by type
 
 
 def render_state(state: Any) -> str:
@@ -170,7 +181,7 @@ def render_noul(state: Any, q: NoulQuestion, layout: str = "letters") -> Prompt:
 def render_choice(state: Any, q: ChoiceQuestion, layout: str = "letters") -> Prompt:
     names = list(q.criteria.keys())
     options = [(name, render_text(q.criteria[name])) for name in names]
-    prefix, tail = _assemble(state, q.instructions, options, lead="Question (pick exactly one option):", layout=layout)
+    prefix, tail = _assemble(state, q.instructions, options, lead=CHOICE_LEAD, layout=layout)
     return Prompt(text=prefix + tail, n_options=len(names), option_keys=tuple(names), prefix=prefix, tail=tail, layout=layout)
 
 
@@ -190,9 +201,78 @@ def render_score(state: Any, q: ScoreQuestion, layout: str = "letters") -> Promp
     )
 
 
-def render(state: Any, q: NoulQuestion | ChoiceQuestion | ScoreQuestion, layout: str = "letters") -> Prompt:
+def render_multi(state: Any, q: MultiQuestion, layout: str = "pointer") -> Prompt:
+    if layout != "pointer":
+        raise ValueError("multi needs a pointer-layout model")
+    names = list(q.criteria.keys())
+    options = [(name, render_text(q.criteria[name])) for name in names]
+    prefix, tail = _assemble(state, q.instructions, options, lead=MULTI_LEAD, layout=layout)
+    return Prompt(text=prefix + tail, n_options=len(names), option_keys=tuple(names), prefix=prefix, tail=tail, layout=layout, kind="multi")
+
+
+def locate_candidates(state: Any) -> list[tuple[str, str]]:
+    """(path, text) for every candidate a locate question can point at, in reading order:
+    each non-empty string value of a JSON state, or each sentence of a plain-text one."""
+    if isinstance(state, str):
+        return [(f"sentence[{i}]", t) for i, t in enumerate(x for x in _SENTENCE.split(state.strip()) if x.strip())]
+    out: list[tuple[str, str]] = []
+
+    def walk(v: Any, path: str) -> None:
+        if isinstance(v, str):
+            if v.strip():
+                out.append((path or "state", v))
+        elif isinstance(v, dict):
+            for k, x in v.items():
+                walk(x, f"{path}.{k}" if path else str(k))
+        elif isinstance(v, list):
+            for i, x in enumerate(v):
+                walk(x, f"{path}[{i}]")
+
+    walk(state, "")
+    return out
+
+
+def _marked_state(state: Any) -> str:
+    """The state rendered as usual with LOCATE_MARK after each candidate."""
+    if isinstance(state, str):
+        body = " ".join(t.replace(_SENTINEL, "") + _SENTINEL for _, t in locate_candidates(state))
+    else:
+
+        def mark(v: Any) -> Any:
+            if isinstance(v, str):
+                return v.replace(_SENTINEL, "") + _SENTINEL if v.strip() else v
+            if isinstance(v, dict):
+                return {k: mark(x) for k, x in v.items()}
+            if isinstance(v, list):
+                return [mark(x) for x in v]
+            return v
+
+        body = json.dumps(mark(state), ensure_ascii=False, indent=2)
+    return sanitize(body).replace(_SENTINEL, LOCATE_MARK)
+
+
+def render_locate(state: Any, q: LocateQuestion, layout: str = "pointer") -> Prompt:
+    if layout != "pointer":
+        raise ValueError("locate needs a pointer-layout model")
+    cands = locate_candidates(state)
+    if not cands:
+        raise ValueError("locate needs a state with text in it")
+    if len(cands) > MAX_LOCATE_CANDIDATES:
+        raise ValueError(f"locate supports at most {MAX_LOCATE_CANDIDATES} candidates, the state has {len(cands)}")
+    prefix = f"{_marked_state(state)}\n\n"
+    none = render_text(q.criteria) or "the input does not say"
+    tail = f"{LOCATE_LEAD}\n{sanitize(render_text(q.instructions))}\n{_pointer_block([('none', none)])}\n{DECIDE}"
+    keys = tuple(p for p, _ in cands) + ("none",)
+    return Prompt(text=prefix + tail, n_options=len(keys), option_keys=keys, prefix=prefix, tail=tail, layout=layout, kind="locate")
+
+
+def render(state: Any, q: NoulQuestion | ChoiceQuestion | ScoreQuestion | MultiQuestion | LocateQuestion, layout: str = "letters") -> Prompt:
     if isinstance(q, NoulQuestion):
         return render_noul(state, q, layout)
     if isinstance(q, ChoiceQuestion):
         return render_choice(state, q, layout)
+    if isinstance(q, MultiQuestion):
+        return render_multi(state, q, layout)
+    if isinstance(q, LocateQuestion):
+        return render_locate(state, q, layout)
     return render_score(state, q, layout)

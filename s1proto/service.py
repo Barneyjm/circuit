@@ -21,6 +21,11 @@ from s1proto.schema import (
     ChoiceAnswer,
     ChoiceQuestion,
     Explanation,
+    LocateAnswer,
+    Located,
+    LocateQuestion,
+    MultiAnswer,
+    MultiQuestion,
     NoulAnswer,
     NoulQuestion,
     Question,
@@ -33,12 +38,12 @@ from s1proto.schema import (
     confidence_from_probabilities,
 )
 from s1proto.scorer import ScorerProtocol, load_scorer
-from s1proto.template import Prompt, render
+from s1proto.template import Prompt, locate_candidates, render
 
 # Per-question-type temperature. 1.0 = raw logits (Phase 1). Phase 2
 # fits these on a validation split and writes them to S1_TEMPERATURES
 # as "noul=1.3,choice=1.1,score=0.9".
-DEFAULT_TEMPERATURES = {"noul": 1.0, "choice": 1.0, "score": 1.0}
+DEFAULT_TEMPERATURES = {"noul": 1.0, "choice": 1.0, "score": 1.0, "multi": 1.0, "locate": 1.0}
 
 
 def parse_temperatures(spec: str | None) -> dict[str, float]:
@@ -63,7 +68,10 @@ def build_answers(req: SystemOneRequest, scorer: ScorerProtocol, temps: dict[str
     ids = list(req.questions.keys())
     split = split_media_state(req.state)  # {"image"|"audio": spec, "text"?: ...} or a plain text/JSON state
     text_state = split[0] if split else req.state
-    prompts = [render(text_state, req.questions[i], layout=getattr(scorer, "layout", "letters")) for i in ids]
+    try:
+        prompts = [render(text_state, req.questions[i], layout=getattr(scorer, "layout", "letters")) for i in ids]
+    except ValueError as e:  # a locate state with no text, or too many candidates
+        raise HTTPException(status_code=422, detail=str(e)) from e
     temperatures = [temps[req.questions[i].type] for i in ids]
     if split:
         _, modality, spec = split
@@ -95,6 +103,15 @@ def build_answers(req: SystemOneRequest, scorer: ScorerProtocol, temps: dict[str
             expected = sum(i * pr for i, pr in enumerate(probs))
             legend = {str(i): level for i, level in enumerate(q.criteria)}
             answers[qid] = ScoreAnswer(score=expected, legend=legend, probabilities=dist, confidence=confidence_from_probabilities(probs))
+        elif isinstance(q, MultiQuestion):
+            dist = dict(zip(p.option_keys, probs, strict=True))
+            selected = sorted((k for k, v in dist.items() if v >= 0.5), key=lambda k: -dist[k])
+            answers[qid] = MultiAnswer(selected=selected, probabilities=dist)
+        elif isinstance(q, LocateQuestion):
+            texts = dict(locate_candidates(text_state))
+            ranked = sorted(zip(p.option_keys[:-1], probs[:-1], strict=True), key=lambda kv: -kv[1])[:3]
+            located = [Located(path=k, text=texts[k], probability=v) for k, v in ranked]
+            answers[qid] = LocateAnswer(located=located, none=probs[-1], confidence=confidence_from_probabilities(probs))
     return answers, total_tokens
 
 
@@ -116,10 +133,13 @@ def build_explanations(
     spec = req.explain
     if not isinstance(text_state, str):
         raise HTTPException(status_code=422, detail="explain: only a text state can be segmented")
-    qids = spec.questions or list(req.questions.keys())
+    qids = spec.questions or [q for q in req.questions if req.questions[q].type != "locate"]
     unknown = [q for q in qids if q not in req.questions]
     if unknown:
         raise HTTPException(status_code=422, detail=f"explain: no such question {unknown[0]!r}")
+    if any(req.questions[q].type == "locate" for q in qids):
+        # removing a segment removes one of locate's candidates, so there is no fixed answer to compare
+        raise HTTPException(status_code=422, detail="explain: locate questions already point at the text; explain the others")
     segments = segment_state(text_state, spec.unit, spec.max_segments)
     if len(segments) < 2:
         return {}, 0
@@ -253,7 +273,12 @@ def create_app(scorer: ScorerProtocol | None = None, temperatures: dict[str, flo
 
     def answer(req: SystemOneRequest) -> Any:
         cap = getattr(app.state.scorer, "max_options", 255)
+        supported = getattr(app.state.scorer, "question_types", ("noul", "choice", "score"))
         for qid, q in req.questions.items():
+            if q.type not in supported:
+                raise HTTPException(status_code=422, detail=f"question {qid!r}: model {app.state.scorer.name} does not answer {q.type} questions")
+            if isinstance(q, LocateQuestion):
+                continue  # candidates come from the state; render_locate enforces its own cap
             n = 2 if isinstance(q, NoulQuestion) else len(q.criteria)
             if n > cap:
                 raise HTTPException(status_code=422, detail=f"question {qid!r}: {n} options exceeds this model's cap of {cap}")

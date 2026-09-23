@@ -20,6 +20,17 @@ JSONValue = str | int | float | bool | None | list[Any] | dict[str, Any]
 MAX_CHOICE_OPTIONS = 255
 
 
+def _check_options(v: dict[str, JSONValue], kind: str) -> dict[str, JSONValue]:
+    if len(v) < 2:
+        raise ValueError(f"{kind} needs at least 2 options")
+    if len(v) > MAX_CHOICE_OPTIONS:
+        raise ValueError(f"{kind} supports at most {MAX_CHOICE_OPTIONS} options")
+    for k in v:
+        if not k or not k.strip():
+            raise ValueError("option names must be non-empty")
+    return v
+
+
 class NoulCriteria(BaseModel):
     true: str | None = None
     false: str | None = None
@@ -39,14 +50,7 @@ class ChoiceQuestion(BaseModel):
     @field_validator("criteria")
     @classmethod
     def _at_least_two(cls, v: dict[str, JSONValue]) -> dict[str, JSONValue]:
-        if len(v) < 2:
-            raise ValueError("choice needs at least 2 options")
-        if len(v) > MAX_CHOICE_OPTIONS:
-            raise ValueError(f"choice supports at most {MAX_CHOICE_OPTIONS} options")
-        for k in v:
-            if not k or not k.strip():
-                raise ValueError("option names must be non-empty")
-        return v
+        return _check_options(v, "choice")
 
 
 class ScoreQuestion(BaseModel):
@@ -55,7 +59,46 @@ class ScoreQuestion(BaseModel):
     criteria: list[JSONValue] = Field(min_length=2)
 
 
-Question = Annotated[NoulQuestion | ChoiceQuestion | ScoreQuestion, Field(discriminator="type")]
+class MultiQuestion(BaseModel):
+    """Every option that applies, each with its own probability. None may apply, or all.
+    Extension over the TypeSafe schema (circuit v2 models)."""
+
+    type: Literal["multi"]
+    instructions: JSONValue
+    criteria: dict[str, JSONValue]
+
+    @field_validator("criteria")
+    @classmethod
+    def _options(cls, v: dict[str, JSONValue]) -> dict[str, JSONValue]:
+        return _check_options(v, "multi")
+
+
+class LocateQuestion(BaseModel):
+    """Which part of the state answers the instructions. Candidates are the state's string
+    values (a list of strings gives one candidate per element; a plain-text state is split
+    into sentences), plus "none" when the state does not say. `criteria` optionally
+    describes what "none" means. Extension over the TypeSafe schema (circuit v2 models)."""
+
+    type: Literal["locate"]
+    instructions: JSONValue
+    criteria: str | None = None
+
+
+Question = Annotated[NoulQuestion | ChoiceQuestion | ScoreQuestion | MultiQuestion | LocateQuestion, Field(discriminator="type")]
+
+
+QUESTION_MODELS: dict[str, type[BaseModel]] = {
+    "noul": NoulQuestion,
+    "choice": ChoiceQuestion,
+    "score": ScoreQuestion,
+    "multi": MultiQuestion,
+    "locate": LocateQuestion,
+}
+
+
+def parse_question(q: dict[str, Any]) -> BaseModel:
+    """A question dict (as stored in a JSONL row) as its validated model."""
+    return QUESTION_MODELS[q["type"]].model_validate(q)
 
 
 class Explain(BaseModel):
@@ -135,7 +178,26 @@ class ScoreAnswer(BaseModel):
     confidence: float = Field(ge=0.0, le=1.0)
 
 
-Answer = NoulAnswer | ChoiceAnswer | ScoreAnswer
+class MultiAnswer(BaseModel):
+    type: Literal["multi"] = "multi"
+    selected: list[str]  # options at probability 0.5 or above, most likely first
+    probabilities: dict[str, float]  # independent per option; they need not sum to 1
+
+
+class Located(BaseModel):
+    path: str  # where in the state, e.g. "paragraphs[3]" or "sentence[2]"
+    text: str
+    probability: float = Field(ge=0.0, le=1.0)
+
+
+class LocateAnswer(BaseModel):
+    type: Literal["locate"] = "locate"
+    located: list[Located]  # most likely first, up to three
+    none: float = Field(ge=0.0, le=1.0)  # probability that the state does not answer it
+    confidence: float = Field(ge=0.0, le=1.0)
+
+
+Answer = NoulAnswer | ChoiceAnswer | ScoreAnswer | MultiAnswer | LocateAnswer
 
 
 class Usage(BaseModel):

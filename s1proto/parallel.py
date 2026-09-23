@@ -14,7 +14,7 @@ order is a sum over a set, so the decide token's state, the option states the he
 and the probabilities are the same under any ordering, up to the order floating point
 adds them in. Still one forward pass.
 
-Only `choice` is encoded this way. A score's levels are ordered by meaning and a noul's
+Only `choice` and `multi` are encoded this way. A score's levels are ordered by meaning and a noul's
 two options are always yes then no, so there is no order to be robust to.
 """
 
@@ -22,11 +22,12 @@ from __future__ import annotations
 
 import torch
 
-CHOICE_LEAD = "Question (pick exactly one option):"
-
 
 def is_choice(text: str) -> bool:
-    return CHOICE_LEAD in text
+    """Choice and multi: unordered options, so both are encoded side by side."""
+    from .template import CHOICE_LEAD, MULTI_LEAD
+
+    return CHOICE_LEAD in text or MULTI_LEAD in text
 
 
 def option_spans(input_ids: torch.Tensor, rows: list[bool], start_id: int, decide_id: int) -> list[list[tuple[int, int]] | None]:

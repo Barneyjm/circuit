@@ -34,7 +34,7 @@ import torch
 import torch.nn.functional as F
 
 from s1proto import template as T
-from s1proto.data.teachers import option_keys
+from s1proto.data.teachers import item_keys
 from s1proto.media import (
     CAPTION,
     HEAD_DIM,
@@ -48,24 +48,22 @@ from s1proto.media import (
     load_media,
 )
 from s1proto.parallel import is_choice, parallel_inputs
-from s1proto.schema import ChoiceQuestion, NoulQuestion, ScoreQuestion
+from s1proto.schema import parse_question
 from s1proto.template import render
 
-
-def parse_question(q: dict):
-    return {"noul": NoulQuestion, "choice": ChoiceQuestion, "score": ScoreQuestion}[q["type"]].model_validate(q)
+V2_KINDS = ("multi", "locate")
 
 
 def shuffled(item: dict, rng: random.Random) -> tuple[dict, list[float]]:
     """Return (question with shuffled options, ref in shown order)."""
     q = item["question"]
-    keys = option_keys(q)
-    if q["type"] == "choice":
+    keys = item_keys(item)
+    if q["type"] in ("choice", "multi"):
         order = keys[:]
         rng.shuffle(order)
         q = {**q, "criteria": {k: q["criteria"][k] for k in order}}
         keys = order
-    return q, [item["ref"][k] for k in keys]
+    return q, [item["ref"].get(k, 0.0) for k in keys]
 
 
 def ece15(confs, correct, bins=15):
@@ -91,7 +89,7 @@ def build_batch(tok, items, rng, device, max_length: int, train: bool, layout: s
     modality = modality or ("vision" if proc is not None else "text")
     texts, refs, nopts, media = [], [], [], []
     for it in items:
-        q, ref = shuffled(it, rng) if train else (it["question"], [it["ref"][k] for k in option_keys(it["question"])])
+        q, ref = shuffled(it, rng) if train else (it["question"], [it["ref"].get(k, 0.0) for k in item_keys(it)])
         if modality in ("vision", "audio"):  # the image or clip is the state; any text rides along as a caption
             key = "image" if modality == "vision" else "audio"
             p = render(it["state"].get("text") or CAPTION[modality], parse_question(q), layout=layout)
@@ -114,8 +112,12 @@ def build_batch(tok, items, rng, device, max_length: int, train: bool, layout: s
     dec_pos = torch.full((len(items),), ids.shape[1] - 1, dtype=torch.long)
     if layout == "pointer":
         end_id, dec_id = tok.convert_tokens_to_ids(T.OPT_END), tok.convert_tokens_to_ids(T.DECIDE)
+        loc_id = tok.convert_tokens_to_ids(T.LOCATE_MARK)
         for i in range(len(items)):
-            pos = (ids[i] == end_id).nonzero(as_tuple=True)[0]
+            keyed = ids[i] == end_id
+            if items[i]["question"]["type"] == "locate":
+                keyed = keyed | (ids[i] == loc_id)  # every candidate's mark, then the "none" option
+            pos = keyed.nonzero(as_tuple=True)[0]
             if len(pos) != nopts[i]:
                 raise ValueError(f"item {items[i].get('id')}: found {len(pos)} option delimiters for {nopts[i]} options (truncated? raise --max-length)")
             opt_pos[i, : nopts[i]] = pos
@@ -145,6 +147,32 @@ def soft_ce(logits: torch.Tensor, ref: torch.Tensor, nopts: torch.Tensor) -> tor
     return -(ref * logp).sum(dim=-1).mean()
 
 
+def multi_bce(logits: torch.Tensor, ref: torch.Tensor, nopts: torch.Tensor) -> torch.Tensor:
+    """Binary cross-entropy per option (each option's own probability of applying),
+    averaged over a row's real options, then over rows."""
+    logits = logits[:, : ref.shape[1]]
+    real = torch.arange(ref.shape[1], device=ref.device).unsqueeze(0) < nopts.unsqueeze(1)
+    per = F.binary_cross_entropy_with_logits(torch.where(real, logits, torch.zeros_like(logits)), ref, reduction="none")
+    return ((per * real).sum(-1) / real.sum(-1)).mean()
+
+
+def mixed_loss(logits: torch.Tensor, ref: torch.Tensor, nopts: torch.Tensor, kinds: list[str]) -> torch.Tensor:
+    """Softmax cross-entropy for one-answer types, per-option BCE for multi; a mean over rows."""
+    multi = [i for i, k in enumerate(kinds) if k == "multi"]
+    if not multi:
+        return soft_ce(logits, ref, nopts)
+    one = [i for i, k in enumerate(kinds) if k != "multi"]
+    loss = multi_bce(logits[multi], ref[multi], nopts[multi]) * len(multi)
+    if one:
+        loss = loss + soft_ce(logits[one], ref[one], nopts[one]) * len(one)
+    return loss / len(kinds)
+
+
+def readout(logits: torch.Tensor, kind: str) -> torch.Tensor:
+    """Probabilities from one row's logits: independent sigmoids for multi, else a softmax."""
+    return torch.sigmoid(logits) if kind == "multi" else torch.softmax(logits, dim=-1)
+
+
 def pick_checkpoint(history: list[dict], acc_floor: float) -> dict:
     """The best-calibrated checkpoint among those that are also accurate.
 
@@ -163,17 +191,35 @@ def evaluate(model, head, tok, items, device, batch, max_length, layout="letters
     model.eval()
     head.eval()
     confs, correct, kls, kinds, raw = [], [], [], [], []
+    # v2 types, kept apart so accuracy and ECE stay comparable with v1 runs
+    multi = {"confs": [], "correct": [], "exact": [], "tp": 0, "fp": 0, "fn": 0}
+    locate = {"confs": [], "correct": [], "top3": []}
     rng = random.Random(0)
     for s in range(0, len(items), batch):
         chunk = items[s : s + batch]
         enc, ref, nopts, opt_pos, dec_pos = build_batch(
             tok, chunk, rng, device, max_length, train=False, layout=layout, proc=proc, image_root=image_root, modality=modality
         )
-        logits = head_logits(head, hidden_states(model, enc, modality), nopts, opt_pos, dec_pos)[:, : ref.shape[1]]
-        p = torch.softmax(logits, dim=-1)
+        bk = [it["question"]["type"] for it in chunk]
+        logits = head_logits(head, hidden_states(model, enc, modality), nopts, opt_pos, dec_pos, bk)[:, : ref.shape[1]]
         for i in range(len(chunk)):
             n = int(nopts[i])
-            pi, ri = p[i, :n], ref[i, :n]
+            pi, ri = readout(logits[i, :n].float(), bk[i]), ref[i, :n]
+            if bk[i] == "multi":
+                pred, gold = pi >= 0.5, ri >= 0.5
+                multi["confs"] += torch.maximum(pi, 1 - pi).tolist()
+                multi["correct"] += (pred == gold).tolist()
+                multi["exact"].append(bool((pred == gold).all()))
+                multi["tp"] += int((pred & gold).sum())
+                multi["fp"] += int((pred & ~gold).sum())
+                multi["fn"] += int((~pred & gold).sum())
+                continue
+            if bk[i] == "locate":
+                top = pi.argsort(descending=True)[:3]
+                locate["confs"].append(float(pi.max()))
+                locate["correct"].append(bool(ri[top[0]] > 0))
+                locate["top3"].append(bool((ri[top] > 0).any()))
+                continue
             confs.append(float(pi.max()))
             correct.append(bool(pi.argmax() == ri.argmax()))
             kls.append(float((ri * (torch.log(ri + 1e-9) - torch.log(pi + 1e-9))).sum()))
@@ -190,6 +236,14 @@ def evaluate(model, head, tok, items, device, batch, max_length, layout="letters
         if len(idx) >= 50:
             by_type[kind] = ece15([confs[i] for i in idx], [correct[i] for i in idx])
     out = {"ece": ece15(confs, correct), "accuracy": sum(correct) / len(correct), "kl": sum(kls) / len(kls), "ece_by_type": by_type}
+    if len(multi["exact"]) >= 50:
+        by_type["multi"] = ece15(multi["confs"], multi["correct"])  # per option
+        tp, fp, fn = multi["tp"], multi["fp"], multi["fn"]
+        out["multi"] = {"n": len(multi["exact"]), "exact_set": sum(multi["exact"]) / len(multi["exact"]), "f1": 2 * tp / max(1, 2 * tp + fp + fn)}
+    if len(locate["correct"]) >= 50:
+        by_type["locate"] = ece15(locate["confs"], locate["correct"])
+        k = len(locate["correct"])
+        out["locate"] = {"n": k, "top1": sum(locate["correct"]) / k, "top3": sum(locate["top3"]) / k}
     if by_type:
         out["ece_worst"] = max(by_type.values())
     out["_raw"] = (raw, kinds)  # for fit_temperatures; stripped before anything is written
@@ -387,7 +441,10 @@ def main() -> None:
     model = get_peft_model(base, lcfg)
     model.print_trainable_parameters()
     hidden = getattr(base.config, "hidden_size", None) or base.config.get_text_config().hidden_size  # VL configs nest the LM config
-    head = (PointerHead(hidden) if args.head == "pointer" else SlotHead(hidden)).to(device)
+    v2 = any(it["question"]["type"] in V2_KINDS for it in items)
+    if v2 and (args.head != "pointer" or args.modality != "text"):
+        raise SystemExit("multi and locate questions need --head pointer on a text model")
+    head = (PointerHead(hidden, v2=v2) if args.head == "pointer" else SlotHead(hidden)).to(device)
     layout = "pointer" if args.head == "pointer" else "letters"
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -467,9 +524,10 @@ def main() -> None:
                     if fill:
                         enc["input_ids"] = F.pad(enc["input_ids"], (0, fill), value=tok.pad_token_id)
                         enc["attention_mask"] = F.pad(enc["attention_mask"], (0, fill), value=1)
-                logits = head_logits(head, hidden_states(model, enc, args.modality), nopts, opt_pos, dec_pos)
+                kinds = [it["question"]["type"] for it in part]
+                logits = head_logits(head, hidden_states(model, enc, args.modality), nopts, opt_pos, dec_pos, kinds)
                 # weighted so the accumulated gradient is the mean over the whole batch
-                loss = soft_ce(logits, ref, nopts) * len(part) / len(chunk)
+                loss = mixed_loss(logits, ref, nopts, kinds) * len(part) / len(chunk)
                 loss.backward()
                 batch_loss += loss.item()
             torch.nn.utils.clip_grad_norm_([p for g in params for p in g["params"]], 1.0)
@@ -491,12 +549,20 @@ def main() -> None:
             if step % args.eval_every == 0 or step == total_steps:
                 m = evaluate(model, head, tok, val, device, args.batch, args.max_length, layout, proc, image_root, args.modality)
                 print(
-                    f"  val: ece={m['ece']:.4f} acc={m['accuracy']:.4f} kl={m['kl']:.4f} by_type={ {k: round(v, 4) for k, v in m['ece_by_type'].items()} }",
+                    f"  val: ece={m['ece']:.4f} acc={m['accuracy']:.4f} kl={m['kl']:.4f} by_type={ {k: round(v, 4) for k, v in m['ece_by_type'].items()} }"
+                    + "".join(f" {k}={ {kk: round(vv, 4) for kk, vv in m[k].items()} }" for k in V2_KINDS if k in m),
                     flush=True,
                 )
                 if wb:
+                    v2m = {f"val/{k}_{kk}": vv for k in V2_KINDS if k in m for kk, vv in m[k].items() if kk != "n"}
                     wb.log(
-                        {"val/ece": m["ece"], "val/accuracy": m["accuracy"], "val/kl": m["kl"], **{f"val/ece_{k}": v for k, v in m["ece_by_type"].items()}},
+                        {
+                            "val/ece": m["ece"],
+                            "val/accuracy": m["accuracy"],
+                            "val/kl": m["kl"],
+                            **{f"val/ece_{k}": v for k, v in m["ece_by_type"].items()},
+                            **v2m,
+                        },
                         step=step,
                     )
                 # always keep the latest state for resume
@@ -536,6 +602,7 @@ def main() -> None:
                         "modality": args.modality,
                         "pointer_tokens": pointer_tokens,
                         "parallel_options": bool(args.parallel_options),
+                        "question_types": ["noul", "choice", "score", *(V2_KINDS if v2 else ())],
                         "temperatures": temperatures,
                         "best": best,
                         "history": history,
