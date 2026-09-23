@@ -52,6 +52,9 @@ use. Non-commercial and unclear sources are **eval-only** under
 | musique_locate, wiki2_locate, sharc_locate, cuad_locate, cuad_multi (v2 types) | as the hard tier | ok | as the hard tier |
 | squad_locate (v2 types) | rajpurkar/squad_v2 | ok | CC BY-SA 4.0 |
 | goemo_multi (v2 types) | google-research-datasets/go_emotions | ok | Apache 2.0 (card); Reddit comments |
+| esci_rank, esci_match (v2.1 types) | tasksource/esci (Amazon Shopping Queries) | ok | Apache 2.0; annotators' E/S/C/I labels |
+| stackx_rank (v2.1 types) | HuggingFaceH4/stack-exchange-preferences | ok | CC BY-SA 4.0; answer text and vote scores only, no author fields |
+| cuad_match, musique_match (v2.1 types) | as the hard tier | ok | as the hard tier |
 
 ## Hard tier (`scripts/build_hard_tier.py`)
 
@@ -74,6 +77,15 @@ sources plus SQuAD 2.0 and GoEmotions; GoEmotions keeps the share of raters per 
 as the reference, so `multi` is trained against soft labels where they exist. About one
 locate row in six has its answer removed from the state. Not committed; rebuild with the
 script.
+
+## v2.1 question types (`scripts/build_v21_types.py`)
+
+`rank` (order the options; the reference is a grade per option) and `match` (pair each item
+with an option or "none"). Rank: ESCI shopping searches with their products graded by
+Amazon's annotators, and Stack Exchange answers graded by votes, eval on sites the train rows
+never saw. Match: ESCI searches against their exact products with other searches'
+substitutes as hard negatives, CUAD clause types against a contract's clauses, and MuSiQue
+question steps against their paragraphs. Human or code labels throughout; no teacher output.
 
 ## The earlier real-data set (`data/hf_train.jsonl`)
 

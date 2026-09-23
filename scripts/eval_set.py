@@ -102,16 +102,23 @@ def collect_logits(scorer, items: list[dict], permutations: int, debias: bool, b
                 if debias:
                     pr = priors[json.dumps(qp, sort_keys=True)]
                     logits = [x - y for x, y in zip(logits, pr, strict=True)]
+                if it_kind(items[i]) == "match":  # never permuted: one row of option logits per item, in order
+                    per_item[i].append(logits)
+                    continue
                 by_key = dict(zip(order, logits, strict=True))
                 per_item[i].append([by_key[k] for k in keys])
     return per_item
+
+
+def it_kind(it: dict) -> str:
+    return it["question"]["type"]
 
 
 def probs_from_logits(per_item, items, temps) -> list[list[float]]:
     out = []
     for vecs, it in zip(per_item, items, strict=True):
         t = temps.get(it["kind"], 1.0)
-        ps = [readout(v, it["kind"], t) for v in vecs]
+        ps = [readout(v, it["kind"], t, len(item_keys(it))) for v in vecs]
         out.append([sum(p[j] for p in ps) / len(ps) for j in range(len(ps[0]))])
     return out
 
@@ -124,7 +131,7 @@ def summarize(items: list[dict], preds: list[list[float]]) -> dict:
         groups[f"family:{it['family']}" + (" (heldout)" if it.get("heldout") else "")].append(i)
 
     def metrics(idx: list[int]) -> dict:
-        v2 = {k: [i for i in idx if items[i]["kind"] == k] for k in ("multi", "locate")}
+        v2 = {k: [i for i in idx if items[i]["kind"] == k] for k in ("multi", "locate", "rank", "match")}
         idx = [i for i in idx if items[i]["kind"] not in v2]
         out = {k: v2_metrics(k, v) for k, v in v2.items() if v}
         if not idx:  # a v2-only group: its headline numbers are the v2 type's own
@@ -132,6 +139,8 @@ def summarize(items: list[dict], preds: list[list[float]]) -> dict:
         return {**one_answer(idx), **out}
 
     def v2_metrics(kind: str, idx: list[int]) -> dict:
+        if kind in ("rank", "match"):
+            return (rank_metrics if kind == "rank" else match_metrics)(idx)
         confs, correct, briers, hits, top3 = [], [], [], [], []
         tp = fp = fn = 0
         for i in idx:
@@ -161,6 +170,51 @@ def summarize(items: list[dict], preds: list[list[float]]) -> dict:
             out["top3"] = round(sum(top3) / n, 4)
             out["accuracy_note"] = "top pick is a gold candidate"
         return out
+
+    def rank_metrics(idx: list[int]) -> dict:
+        """Per pair of differently graded options: is the better one more likely first, and how
+        calibrated is P(a above b) = p_a / (p_a + p_b). Top1: the first pick has the top grade."""
+        confs, correct, top1 = [], [], []
+        for i in idx:
+            grade, p = [items[i]["ref"].get(k, 0.0) for k in item_keys(items[i])], preds[i]
+            for a in range(len(p)):
+                for b in range(len(p)):
+                    if grade[a] > grade[b]:
+                        pab = p[a] / max(p[a] + p[b], 1e-12)
+                        confs.append(max(pab, 1 - pab))
+                        correct.append(pab > 0.5)
+            top1.append(grade[max(range(len(p)), key=p.__getitem__)] == max(grade))
+        n = len(idx)
+        return {
+            "n": n,
+            "accuracy": round(sum(top1) / n, 4),
+            "pair_acc": round(sum(correct) / max(1, len(correct)), 4),
+            "ece": round(ece15(confs, correct), 4),
+            "accuracy_note": "top pick has the top grade; ece is per pair",
+        }
+
+    def match_metrics(idx: list[int]) -> dict:
+        confs, correct, none_hits = [], [], []
+        for i in idx:
+            it, p = items[i], preds[i]
+            keys = item_keys(it)
+            for r, name in enumerate(it["question"]["items"]):
+                row = p[r * len(keys) : (r + 1) * len(keys)]
+                gold = it["ref"][name]
+                pick = keys[max(range(len(row)), key=row.__getitem__)]
+                confs.append(max(row))
+                correct.append(gold.get(pick, 0.0) >= 0.5)
+                if gold.get("none", 0.0) >= 0.5:
+                    none_hits.append(correct[-1])
+        n = len(correct)
+        return {
+            "n": len(idx),
+            "items": n,
+            "accuracy": round(sum(correct) / n, 4),
+            "accuracy_none": round(sum(none_hits) / max(1, len(none_hits)), 4),
+            "ece": round(ece15(confs, correct), 4),
+            "accuracy_note": "per item; ece per item",
+        }
 
     def one_answer(idx: list[int]) -> dict:
         kls, briers, confs, correct, agree = [], [], [], [], []
@@ -309,7 +363,7 @@ def main() -> None:
             extra = (
                 f"kl={v['kl_to_ref']:.3f} agree_jev={v['agree_jev']:.3f}"
                 if "kl_to_ref" in v
-                else f"brier={v['brier']:.3f} " + " ".join(f"{m}={v[m]:.3f}" for m in ("f1", "top3") if m in v)
+                else " ".join(f"{m}={v[m]:.3f}" for m in ("brier", "f1", "top3", "pair_acc", "accuracy_none") if m in v)
             )
             print(f"  {k:<44} n={v['n']:<4} acc={v['accuracy']:.3f} ece={v['ece']:.3f} {extra}")
     if args.out:

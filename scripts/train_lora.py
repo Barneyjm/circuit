@@ -51,19 +51,30 @@ from s1proto.parallel import is_choice, parallel_inputs
 from s1proto.schema import parse_question
 from s1proto.template import render
 
-V2_KINDS = ("multi", "locate")
+V2_KINDS = PointerHead.V2_KINDS
 
 
-def shuffled(item: dict, rng: random.Random) -> tuple[dict, list[float]]:
-    """Return (question with shuffled options, ref in shown order)."""
+def ref_rows(item: dict, q: dict) -> list[list[float]]:
+    """The reference in the order `q` shows its options: one row, or for match one row per
+    item (ref is {item: {option or "none": p}}). A rank's ref is a grade per option."""
+    keys = item_keys({**item, "question": q})
+    if q["type"] == "match":
+        return [[item["ref"][name].get(k, 0.0) for k in keys] for name in q["items"]]
+    return [[item["ref"].get(k, 0.0) for k in keys]]
+
+
+def shuffled(item: dict, rng: random.Random) -> tuple[dict, list[list[float]]]:
+    """Return (question with shuffled options, and items for match; ref rows in shown order)."""
     q = item["question"]
-    keys = item_keys(item)
-    if q["type"] in ("choice", "multi"):
-        order = keys[:]
+    if q["type"] in ("choice", "multi", "rank", "match"):
+        order = list(q["criteria"])
         rng.shuffle(order)
         q = {**q, "criteria": {k: q["criteria"][k] for k in order}}
-        keys = order
-    return q, [item["ref"].get(k, 0.0) for k in keys]
+    if q["type"] == "match":
+        names = list(q["items"])
+        rng.shuffle(names)
+        q = {**q, "items": {k: q["items"][k] for k in names}}
+    return q, ref_rows(item, q)
 
 
 def ece15(confs, correct, bins=15):
@@ -81,15 +92,17 @@ PARALLEL_OPTIONS: torch.dtype | None = None  # set by --parallel-options to the 
 
 
 def build_batch(tok, items, rng, device, max_length: int, train: bool, layout: str = "letters", proc=None, image_root=None, modality: str | None = None):
-    """Returns (enc, ref, nopts, opt_pos, dec_pos). `enc` holds the model
+    """Returns (enc, ref, nopts, opt_pos, dec_pos, src). `enc` holds the model
     inputs (input_ids, attention_mask, and for vision pixel_values and
-    image_grid_thw). `opt_pos` [B, maxn] is each option's closing
-    delimiter (pointer layout); `dec_pos` [B] is the decide token, which
-    is the last token for text and found by id under a chat template."""
+    image_grid_thw). The rest are per scored row: one per item, except a match
+    question, which gives one row per item it lists. `src` [R] is each row's
+    sequence; `opt_pos` [R, maxn] each option's closing delimiter (pointer
+    layout); `dec_pos` [R] where the query is read: the decide token (the last
+    token for text, found by id under a chat template), or a match item's close."""
     modality = modality or ("vision" if proc is not None else "text")
-    texts, refs, nopts, media = [], [], [], []
+    texts, refs, media = [], [], []
     for it in items:
-        q, ref = shuffled(it, rng) if train else (it["question"], [it["ref"].get(k, 0.0) for k in item_keys(it)])
+        q, ref = shuffled(it, rng) if train else (it["question"], ref_rows(it, it["question"]))
         if modality in ("vision", "audio"):  # the image or clip is the state; any text rides along as a caption
             key = "image" if modality == "vision" else "audio"
             p = render(it["state"].get("text") or CAPTION[modality], parse_question(q), layout=layout)
@@ -98,46 +111,56 @@ def build_batch(tok, items, rng, device, max_length: int, train: bool, layout: s
         else:
             texts.append(render(it["state"], parse_question(q), layout=layout).text)
         refs.append(ref)
-        nopts.append(len(ref))
+    src = [i for i, r in enumerate(refs) for _ in r]
+    nopts = [len(row) for r in refs for row in r]
     if modality in ("vision", "audio"):
         enc = encode(proc, texts, media, modality)
     else:
         enc = tok(texts, return_tensors="pt", padding=True, truncation=True, max_length=max_length)
     ids = enc["input_ids"]
     maxn = max(nopts)
-    ref_t = torch.zeros((len(items), maxn))
-    for i, r in enumerate(refs):
-        ref_t[i, : len(r)] = torch.tensor(r)
-    opt_pos = torch.zeros((len(items), maxn), dtype=torch.long)
-    dec_pos = torch.full((len(items),), ids.shape[1] - 1, dtype=torch.long)
+    ref_t = torch.zeros((len(src), maxn))
+    for r, row in enumerate(row for rr in refs for row in rr):
+        ref_t[r, : len(row)] = torch.tensor(row)
+    opt_pos = torch.zeros((len(src), maxn), dtype=torch.long)
+    dec_pos = torch.full((len(src),), ids.shape[1] - 1, dtype=torch.long)
     if layout == "pointer":
         end_id, dec_id = tok.convert_tokens_to_ids(T.OPT_END), tok.convert_tokens_to_ids(T.DECIDE)
-        loc_id = tok.convert_tokens_to_ids(T.LOCATE_MARK)
+        loc_id, item_id = tok.convert_tokens_to_ids(T.LOCATE_MARK), tok.convert_tokens_to_ids(T.ITEM_END)
+        r = 0
         for i in range(len(items)):
             keyed = ids[i] == end_id
             if items[i]["question"]["type"] == "locate":
                 keyed = keyed | (ids[i] == loc_id)  # every candidate's mark, then the "none" option
             pos = keyed.nonzero(as_tuple=True)[0]
-            if len(pos) != nopts[i]:
-                raise ValueError(f"item {items[i].get('id')}: found {len(pos)} option delimiters for {nopts[i]} options (truncated? raise --max-length)")
-            opt_pos[i, : nopts[i]] = pos
+            if len(pos) != nopts[r]:
+                raise ValueError(f"item {items[i].get('id')}: found {len(pos)} option delimiters for {nopts[r]} options (truncated? raise --max-length)")
             dpos = (ids[i] == dec_id).nonzero(as_tuple=True)[0]
             if len(dpos) == 0:
                 raise ValueError(f"item {items[i].get('id')}: no decide token")
-            dec_pos[i] = dpos[-1]
+            queries = dpos[-1:]
+            if items[i]["question"]["type"] == "match":
+                queries = (ids[i] == item_id).nonzero(as_tuple=True)[0]
+                if len(queries) != len(refs[i]):
+                    raise ValueError(f"item {items[i].get('id')}: found {len(queries)} item marks for {len(refs[i])} items")
+            for qpos in queries:
+                opt_pos[r, : nopts[r]] = pos
+                dec_pos[r] = qpos
+                r += 1
     parallel = None
     if PARALLEL_OPTIONS and layout == "pointer":
         start_id = tok.convert_tokens_to_ids(T.OPT_START)
         rows = [is_choice(t) for t in texts]
         if modality == "text":
-            mask4d, position_ids = parallel_inputs(ids, enc["attention_mask"], rows, start_id, dec_id, PARALLEL_OPTIONS)
+            stop_id = tok.convert_tokens_to_ids(T.ITEM_START)
+            mask4d, position_ids = parallel_inputs(ids, enc["attention_mask"], rows, start_id, dec_id, PARALLEL_OPTIONS, stop_id)
             enc = {"input_ids": ids, "attention_mask": mask4d, "position_ids": position_ids}
         else:
             parallel = (rows, start_id, dec_id)  # hidden_states builds the mask around the media positions
     enc = {k: v.to(device) for k, v in enc.items() if hasattr(v, "to")}
     if parallel:
         enc["parallel"] = parallel
-    return enc, ref_t.to(device), torch.tensor(nopts, device=device), opt_pos.to(device), dec_pos.to(device)
+    return enc, ref_t.to(device), torch.tensor(nopts, device=device), opt_pos.to(device), dec_pos.to(device), torch.tensor(src, device=device)
 
 
 def soft_ce(logits: torch.Tensor, ref: torch.Tensor, nopts: torch.Tensor) -> torch.Tensor:
@@ -156,16 +179,31 @@ def multi_bce(logits: torch.Tensor, ref: torch.Tensor, nopts: torch.Tensor) -> t
     return ((per * real).sum(-1) / real.sum(-1)).mean()
 
 
+def rank_nll(logits: torch.Tensor, grade: torch.Tensor, nopts: torch.Tensor) -> torch.Tensor:
+    """Plackett-Luce negative log-likelihood of the reference order, ties by grade kept
+    unordered (Breslow): each option above the row's lowest grade is picked out of itself and
+    every option graded no higher. Averaged over those picks, then over rows."""
+    n = grade.shape[1]
+    s = logits[:, :n]
+    real = torch.arange(n, device=grade.device).unsqueeze(0) < nopts.unsqueeze(1)
+    g = grade.masked_fill(~real, float("inf"))
+    low = g.min(-1, keepdim=True).values
+    pool = (grade.unsqueeze(1) <= grade.unsqueeze(2)) & real.unsqueeze(1)  # [B, x, y]: y graded no higher than x
+    lse = torch.logsumexp(s.unsqueeze(1).masked_fill(~pool, float("-inf")), dim=-1)
+    pick = real & (grade > low)
+    per = torch.where(pick, lse - s, torch.zeros_like(s))
+    return (per.sum(-1) / pick.sum(-1).clamp(min=1)).mean()
+
+
+LOSSES = {"multi": multi_bce, "rank": rank_nll}  # every other type: soft_ce over its options
+
+
 def mixed_loss(logits: torch.Tensor, ref: torch.Tensor, nopts: torch.Tensor, kinds: list[str]) -> torch.Tensor:
-    """Softmax cross-entropy for one-answer types, per-option BCE for multi; a mean over rows."""
-    multi = [i for i, k in enumerate(kinds) if k == "multi"]
-    if not multi:
-        return soft_ce(logits, ref, nopts)
-    one = [i for i, k in enumerate(kinds) if k != "multi"]
-    loss = multi_bce(logits[multi], ref[multi], nopts[multi]) * len(multi)
-    if one:
-        loss = loss + soft_ce(logits[one], ref[one], nopts[one]) * len(one)
-    return loss / len(kinds)
+    """Each row's type's loss (softmax cross-entropy unless LOSSES says otherwise); a mean over rows."""
+    groups: dict = {}
+    for i, k in enumerate(kinds):
+        groups.setdefault(LOSSES.get(k, soft_ce), []).append(i)
+    return sum(fn(logits[rows], ref[rows], nopts[rows]) * len(rows) for fn, rows in groups.items()) / len(kinds)
 
 
 def readout(logits: torch.Tensor, kind: str) -> torch.Tensor:
@@ -194,15 +232,17 @@ def evaluate(model, head, tok, items, device, batch, max_length, layout="letters
     # v2 types, kept apart so accuracy and ECE stay comparable with v1 runs
     multi = {"confs": [], "correct": [], "exact": [], "tp": 0, "fp": 0, "fn": 0}
     locate = {"confs": [], "correct": [], "top3": []}
+    rank = {"confs": [], "correct": [], "top1": []}  # confs/correct per pair of differently graded options
+    match = {"confs": [], "correct": [], "none_confs": [], "none_correct": []}
     rng = random.Random(0)
     for s in range(0, len(items), batch):
         chunk = items[s : s + batch]
-        enc, ref, nopts, opt_pos, dec_pos = build_batch(
+        enc, ref, nopts, opt_pos, dec_pos, src = build_batch(
             tok, chunk, rng, device, max_length, train=False, layout=layout, proc=proc, image_root=image_root, modality=modality
         )
-        bk = [it["question"]["type"] for it in chunk]
-        logits = head_logits(head, hidden_states(model, enc, modality), nopts, opt_pos, dec_pos, bk)[:, : ref.shape[1]]
-        for i in range(len(chunk)):
+        bk = [chunk[j]["question"]["type"] for j in src.tolist()]
+        logits = head_logits(head, hidden_states(model, enc, modality), nopts, opt_pos, dec_pos, bk, src)[:, : ref.shape[1]]
+        for i, j in enumerate(src.tolist()):
             n = int(nopts[i])
             pi, ri = readout(logits[i, :n].float(), bk[i]), ref[i, :n]
             if bk[i] == "multi":
@@ -220,10 +260,23 @@ def evaluate(model, head, tok, items, device, batch, max_length, layout="letters
                 locate["correct"].append(bool(ri[top[0]] > 0))
                 locate["top3"].append(bool((ri[top] > 0).any()))
                 continue
+            if bk[i] == "rank":
+                si = logits[i, :n].float()
+                above = ri.unsqueeze(1) > ri.unsqueeze(0)  # [a, b]: a graded above b
+                pair = torch.sigmoid(si.unsqueeze(1) - si.unsqueeze(0))[above]  # P(a first of the two) under Plackett-Luce
+                rank["confs"] += torch.maximum(pair, 1 - pair).tolist()
+                rank["correct"] += (pair > 0.5).tolist()
+                rank["top1"].append(bool(ri[pi.argmax()] == ri.max()))
+                continue
+            if bk[i] == "match":
+                key = "none_" if ri[n - 1] >= 0.5 else ""  # the last option is "none"
+                match[key + "confs"].append(float(pi.max()))
+                match[key + "correct"].append(bool(pi.argmax() == ri.argmax()))
+                continue
             confs.append(float(pi.max()))
             correct.append(bool(pi.argmax() == ri.argmax()))
             kls.append(float((ri * (torch.log(ri + 1e-9) - torch.log(pi + 1e-9))).sum()))
-            kinds.append(chunk[i]["kind"])
+            kinds.append(chunk[j]["kind"])
             raw.append((logits[i, :n].float().cpu().tolist(), ri.cpu().tolist()))
     model.train()
     head.train()
@@ -235,7 +288,8 @@ def evaluate(model, head, tok, items, device, batch, max_length, layout="letters
         idx = [i for i, k in enumerate(kinds) if k == kind]
         if len(idx) >= 50:
             by_type[kind] = ece15([confs[i] for i in idx], [correct[i] for i in idx])
-    out = {"ece": ece15(confs, correct), "accuracy": sum(correct) / len(correct), "kl": sum(kls) / len(kls), "ece_by_type": by_type}
+    n1 = max(1, len(correct))  # a split of only v2 types has no one-answer rows
+    out = {"ece": ece15(confs, correct) if confs else 0.0, "accuracy": sum(correct) / n1, "kl": sum(kls) / n1, "ece_by_type": by_type}
     if len(multi["exact"]) >= 50:
         by_type["multi"] = ece15(multi["confs"], multi["correct"])  # per option
         tp, fp, fn = multi["tp"], multi["fp"], multi["fn"]
@@ -244,6 +298,18 @@ def evaluate(model, head, tok, items, device, batch, max_length, layout="letters
         by_type["locate"] = ece15(locate["confs"], locate["correct"])
         k = len(locate["correct"])
         out["locate"] = {"n": k, "top1": sum(locate["correct"]) / k, "top3": sum(locate["top3"]) / k}
+    if len(rank["top1"]) >= 50:
+        by_type["rank"] = ece15(rank["confs"], rank["correct"])  # per pair
+        out["rank"] = {"n": len(rank["top1"]), "pair_acc": sum(rank["correct"]) / max(1, len(rank["correct"])), "top1": sum(rank["top1"]) / len(rank["top1"])}
+    rows = len(match["correct"]) + len(match["none_correct"])
+    if rows >= 50:
+        by_type["match"] = ece15(match["confs"] + match["none_confs"], match["correct"] + match["none_correct"])  # per item
+        out["match"] = {
+            "n": rows,
+            "acc": (sum(match["correct"]) + sum(match["none_correct"])) / rows,
+            "acc_matched": sum(match["correct"]) / max(1, len(match["correct"])),
+            "acc_none": sum(match["none_correct"]) / max(1, len(match["none_correct"])),
+        }
     if by_type:
         out["ece_worst"] = max(by_type.values())
     out["_raw"] = (raw, kinds)  # for fit_temperatures; stripped before anything is written
@@ -454,10 +520,10 @@ def main() -> None:
     model = get_peft_model(base, lcfg)
     model.print_trainable_parameters()
     hidden = getattr(base.config, "hidden_size", None) or base.config.get_text_config().hidden_size  # VL configs nest the LM config
-    v2 = any(it["question"]["type"] in V2_KINDS for it in items)
+    v2 = tuple(k for k in V2_KINDS if any(it["question"]["type"] == k for it in items))
     if v2 and (args.head != "pointer" or args.modality != "text"):
-        raise SystemExit("multi and locate questions need --head pointer on a text model")
-    head = (PointerHead(hidden, v2=v2) if args.head == "pointer" else SlotHead(hidden)).to(device)
+        raise SystemExit(f"{', '.join(v2)} questions need --head pointer on a text model")
+    head = (PointerHead(hidden, kinds=v2) if args.head == "pointer" else SlotHead(hidden)).to(device)
     layout = "pointer" if args.head == "pointer" else "letters"
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -522,7 +588,7 @@ def main() -> None:
             batch_loss = 0.0
             for m in range(0, len(chunk), micro):
                 part = chunk[m : m + micro]
-                enc, ref, nopts, opt_pos, dec_pos = build_batch(
+                enc, ref, nopts, opt_pos, dec_pos, src = build_batch(
                     tok, part, rng, device, args.max_length, train=True, layout=layout, proc=proc, image_root=image_root, modality=args.modality
                 )
                 if (
@@ -537,8 +603,8 @@ def main() -> None:
                     if fill:
                         enc["input_ids"] = F.pad(enc["input_ids"], (0, fill), value=tok.pad_token_id)
                         enc["attention_mask"] = F.pad(enc["attention_mask"], (0, fill), value=1)
-                kinds = [it["question"]["type"] for it in part]
-                logits = head_logits(head, hidden_states(model, enc, args.modality), nopts, opt_pos, dec_pos, kinds)
+                kinds = [part[j]["question"]["type"] for j in src.tolist()]
+                logits = head_logits(head, hidden_states(model, enc, args.modality), nopts, opt_pos, dec_pos, kinds, src)
                 # weighted so the accumulated gradient is the mean over the whole batch
                 loss = mixed_loss(logits, ref, nopts, kinds) * len(part) / len(chunk)
                 loss.backward()
@@ -615,7 +681,7 @@ def main() -> None:
                         "modality": args.modality,
                         "pointer_tokens": pointer_tokens,
                         "parallel_options": bool(args.parallel_options),
-                        "question_types": ["noul", "choice", "score", *(V2_KINDS if v2 else ())],
+                        "question_types": ["noul", "choice", "score", *v2],
                         "temperatures": temperatures,
                         "best": best,
                         "history": history,

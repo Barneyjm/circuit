@@ -84,7 +84,57 @@ class LocateQuestion(BaseModel):
     criteria: str | None = None
 
 
-Question = Annotated[NoulQuestion | ChoiceQuestion | ScoreQuestion | MultiQuestion | LocateQuestion, Field(discriminator="type")]
+class RankQuestion(BaseModel):
+    """Order the options, best first, by the instructions. Extension over the TypeSafe
+    schema (circuit v2.1 models)."""
+
+    type: Literal["rank"]
+    instructions: JSONValue
+    criteria: dict[str, JSONValue]
+
+    @field_validator("criteria")
+    @classmethod
+    def _options(cls, v: dict[str, JSONValue]) -> dict[str, JSONValue]:
+        return _check_options(v, "rank")
+
+
+MAX_MATCH_ITEMS = 64
+
+
+class MatchQuestion(BaseModel):
+    """Match each of `items` to one option in `criteria`, or to "none". Items are answered
+    independently, so two items may match the same option. `none` optionally describes what
+    no match means. Extension over the TypeSafe schema (circuit v2.1 models)."""
+
+    type: Literal["match"]
+    instructions: JSONValue
+    items: dict[str, JSONValue]
+    criteria: dict[str, JSONValue]
+    none: str | None = None
+
+    @field_validator("items")
+    @classmethod
+    def _items(cls, v: dict[str, JSONValue]) -> dict[str, JSONValue]:
+        if not v:
+            raise ValueError("match needs at least 1 item")
+        if len(v) > MAX_MATCH_ITEMS:
+            raise ValueError(f"match supports at most {MAX_MATCH_ITEMS} items")
+        if any(not k or not k.strip() for k in v):
+            raise ValueError("item names must be non-empty")
+        return v
+
+    @field_validator("criteria")
+    @classmethod
+    def _options(cls, v: dict[str, JSONValue]) -> dict[str, JSONValue]:
+        if not v:
+            raise ValueError("match needs at least 1 option")
+        if "none" in v:
+            raise ValueError('"none" is reserved for no match; describe it with the `none` field')
+        _check_options({**v, "none": None}, "match")  # "none" counts toward the cap
+        return v
+
+
+Question = Annotated[NoulQuestion | ChoiceQuestion | ScoreQuestion | MultiQuestion | LocateQuestion | RankQuestion | MatchQuestion, Field(discriminator="type")]
 
 
 QUESTION_MODELS: dict[str, type[BaseModel]] = {
@@ -93,6 +143,8 @@ QUESTION_MODELS: dict[str, type[BaseModel]] = {
     "score": ScoreQuestion,
     "multi": MultiQuestion,
     "locate": LocateQuestion,
+    "rank": RankQuestion,
+    "match": MatchQuestion,
 }
 
 
@@ -197,7 +249,25 @@ class LocateAnswer(BaseModel):
     confidence: float = Field(ge=0.0, le=1.0)
 
 
-Answer = NoulAnswer | ChoiceAnswer | ScoreAnswer | MultiAnswer | LocateAnswer
+class RankAnswer(BaseModel):
+    type: Literal["rank"] = "rank"
+    order: list[str]  # best first
+    probabilities: dict[str, float]  # of being ranked first; sums to 1
+    above: list[float]  # P(order[i] ranks above order[i + 1]), one per adjacent pair
+
+
+class Matched(BaseModel):
+    match: str  # an option, or "none"
+    probabilities: dict[str, float]  # over the options and "none"; sums to 1
+    confidence: float = Field(ge=0.0, le=1.0)
+
+
+class MatchAnswer(BaseModel):
+    type: Literal["match"] = "match"
+    matches: dict[str, Matched]  # one per item
+
+
+Answer = NoulAnswer | ChoiceAnswer | ScoreAnswer | MultiAnswer | LocateAnswer | RankAnswer | MatchAnswer
 
 
 class Usage(BaseModel):

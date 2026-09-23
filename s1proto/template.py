@@ -24,7 +24,7 @@ import string
 from dataclasses import dataclass
 from typing import Any
 
-from s1proto.schema import ChoiceQuestion, LocateQuestion, MultiQuestion, NoulQuestion, ScoreQuestion
+from s1proto.schema import ChoiceQuestion, LocateQuestion, MatchQuestion, MultiQuestion, NoulQuestion, RankQuestion, ScoreQuestion
 
 # A..Z are single tokens and are what the label-token scorer reads
 # (Phase 1, 26-option cap). Beyond 26 the labels are two letters; only a
@@ -69,12 +69,20 @@ RESERVED = (OPT_START, OPT_END, DECIDE, *_RESERVED_EXTRA)
 # the hidden state there, as it reads an option's closing delimiter. Text models only.
 LOCATE_MARK = "<|object_ref_end|>"
 MAX_LOCATE_CANDIDATES = 512
+# `match` writes its items after the options, each wrapped in these; the head reads one query
+# per item, at its closing token. After the options so each item has read all of them.
+ITEM_START = "<|quad_start|>"
+ITEM_END = "<|quad_end|>"
 _SENTINEL = "\ue000"  # private-use; stands in for LOCATE_MARK until the state is sanitized
 _SENTENCE = re.compile(r"(?<=[.!?])\s+")
 
 CHOICE_LEAD = "Question (pick exactly one option):"
 MULTI_LEAD = "Question (pick every option that applies; none may apply):"
 LOCATE_LEAD = "Question (point to the part of the input that answers this, or none):"
+# Question types past noul/choice/score, each read with its own query in a v2 head.
+V2_KINDS = ("multi", "locate", "rank", "match")
+RANK_LEAD = "Question (order the options, best first):"
+MATCH_LEAD = "Question (match each item below to one option, or none):"
 
 
 def pointer_tokens_for(tokenizer) -> tuple[str, str, str]:
@@ -116,7 +124,13 @@ class Prompt:
     prefix: str = ""
     tail: str = ""
     layout: str = "letters"
-    kind: str = "choice"  # noul | choice | score | multi | locate: temperature and readout differ by type
+    kind: str = "choice"  # noul | choice | score | multi | locate | rank | match: temperature and readout differ by type
+    item_keys: tuple[str, ...] = ()  # match: one row of option logits per item
+
+    @property
+    def n_logits(self) -> int:
+        """Logits the head returns: one per option, or for match one per option per item."""
+        return self.n_options * max(1, len(self.item_keys))
 
 
 def render_state(state: Any) -> str:
@@ -210,6 +224,27 @@ def render_multi(state: Any, q: MultiQuestion, layout: str = "pointer") -> Promp
     return Prompt(text=prefix + tail, n_options=len(names), option_keys=tuple(names), prefix=prefix, tail=tail, layout=layout, kind="multi")
 
 
+def render_rank(state: Any, q: RankQuestion, layout: str = "pointer") -> Prompt:
+    if layout != "pointer":
+        raise ValueError("rank needs a pointer-layout model")
+    names = list(q.criteria.keys())
+    options = [(name, render_text(q.criteria[name])) for name in names]
+    prefix, tail = _assemble(state, q.instructions, options, lead=RANK_LEAD, layout=layout)
+    return Prompt(text=prefix + tail, n_options=len(names), option_keys=tuple(names), prefix=prefix, tail=tail, layout=layout, kind="rank")
+
+
+def render_match(state: Any, q: MatchQuestion, layout: str = "pointer") -> Prompt:
+    if layout != "pointer":
+        raise ValueError("match needs a pointer-layout model")
+    names = list(q.criteria.keys())
+    options = [(name, render_text(q.criteria[name])) for name in names] + [("none", render_text(q.none) or "no option matches")]
+    items = "\n".join(f"{ITEM_START}{sanitize(f'{k} — {render_text(v)}' if render_text(v) else k)}{ITEM_END}" for k, v in q.items.items())
+    prefix, tail = _assemble(state, q.instructions, options, lead=MATCH_LEAD, layout=layout)
+    tail = tail.removesuffix(DECIDE) + f"Items:\n{items}\n{DECIDE}"
+    keys = (*names, "none")
+    return Prompt(text=prefix + tail, n_options=len(keys), option_keys=keys, prefix=prefix, tail=tail, layout=layout, kind="match", item_keys=tuple(q.items))
+
+
 def locate_candidates(state: Any) -> list[tuple[str, str]]:
     """(path, text) for every candidate a locate question can point at, in reading order:
     each non-empty string value of a JSON state, or each sentence of a plain-text one."""
@@ -266,7 +301,9 @@ def render_locate(state: Any, q: LocateQuestion, layout: str = "pointer") -> Pro
     return Prompt(text=prefix + tail, n_options=len(keys), option_keys=keys, prefix=prefix, tail=tail, layout=layout, kind="locate")
 
 
-def render(state: Any, q: NoulQuestion | ChoiceQuestion | ScoreQuestion | MultiQuestion | LocateQuestion, layout: str = "letters") -> Prompt:
+def render(
+    state: Any, q: NoulQuestion | ChoiceQuestion | ScoreQuestion | MultiQuestion | LocateQuestion | RankQuestion | MatchQuestion, layout: str = "letters"
+) -> Prompt:
     if isinstance(q, NoulQuestion):
         return render_noul(state, q, layout)
     if isinstance(q, ChoiceQuestion):
@@ -275,4 +312,8 @@ def render(state: Any, q: NoulQuestion | ChoiceQuestion | ScoreQuestion | MultiQ
         return render_multi(state, q, layout)
     if isinstance(q, LocateQuestion):
         return render_locate(state, q, layout)
+    if isinstance(q, RankQuestion):
+        return render_rank(state, q, layout)
+    if isinstance(q, MatchQuestion):
+        return render_match(state, q, layout)
     return render_score(state, q, layout)

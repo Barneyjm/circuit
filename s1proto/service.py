@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import itertools
 import os
 import re
 import threading
@@ -24,11 +25,16 @@ from s1proto.schema import (
     LocateAnswer,
     Located,
     LocateQuestion,
+    MatchAnswer,
+    Matched,
+    MatchQuestion,
     MultiAnswer,
     MultiQuestion,
     NoulAnswer,
     NoulQuestion,
     Question,
+    RankAnswer,
+    RankQuestion,
     ScoreAnswer,
     ScoreQuestion,
     Segment,
@@ -43,7 +49,7 @@ from s1proto.template import Prompt, locate_candidates, render
 # Per-question-type temperature. 1.0 = raw logits (Phase 1). Phase 2
 # fits these on a validation split and writes them to S1_TEMPERATURES
 # as "noul=1.3,choice=1.1,score=0.9".
-DEFAULT_TEMPERATURES = {"noul": 1.0, "choice": 1.0, "score": 1.0, "multi": 1.0, "locate": 1.0}
+DEFAULT_TEMPERATURES = {"noul": 1.0, "choice": 1.0, "score": 1.0, "multi": 1.0, "locate": 1.0, "rank": 1.0, "match": 1.0}
 
 
 def parse_temperatures(spec: str | None) -> dict[str, float]:
@@ -112,6 +118,19 @@ def build_answers(req: SystemOneRequest, scorer: ScorerProtocol, temps: dict[str
             ranked = sorted(zip(p.option_keys[:-1], probs[:-1], strict=True), key=lambda kv: -kv[1])[:3]
             located = [Located(path=k, text=texts[k], probability=v) for k, v in ranked]
             answers[qid] = LocateAnswer(located=located, none=probs[-1], confidence=confidence_from_probabilities(probs))
+        elif isinstance(q, RankQuestion):
+            order = sorted(range(len(probs)), key=lambda j: -probs[j])
+            # Plackett-Luce: of two options, a comes first with probability p_a / (p_a + p_b)
+            above = [probs[a] / max(probs[a] + probs[b], 1e-12) for a, b in itertools.pairwise(order)]
+            answers[qid] = RankAnswer(order=[p.option_keys[j] for j in order], probabilities=dict(zip(p.option_keys, probs, strict=True)), above=above)
+        elif isinstance(q, MatchQuestion):
+            n = p.n_options
+            matches = {}
+            for row, item in enumerate(p.item_keys):
+                dist = dict(zip(p.option_keys, probs[row * n : (row + 1) * n], strict=True))
+                best = max(dist, key=dist.__getitem__)
+                matches[item] = Matched(match=best, probabilities=dist, confidence=confidence_from_probabilities(list(dist.values())))
+            answers[qid] = MatchAnswer(matches=matches)
     return answers, total_tokens
 
 
@@ -133,13 +152,15 @@ def build_explanations(
     spec = req.explain
     if not isinstance(text_state, str):
         raise HTTPException(status_code=422, detail="explain: only a text state can be segmented")
-    qids = spec.questions or [q for q in req.questions if req.questions[q].type != "locate"]
+    qids = spec.questions or [q for q in req.questions if req.questions[q].type not in ("locate", "match")]
     unknown = [q for q in qids if q not in req.questions]
     if unknown:
         raise HTTPException(status_code=422, detail=f"explain: no such question {unknown[0]!r}")
     if any(req.questions[q].type == "locate" for q in qids):
         # removing a segment removes one of locate's candidates, so there is no fixed answer to compare
         raise HTTPException(status_code=422, detail="explain: locate questions already point at the text; explain the others")
+    if any(req.questions[q].type == "match" for q in qids):
+        raise HTTPException(status_code=422, detail="explain: match questions answer per item; explain the others")
     segments = segment_state(text_state, spec.unit, spec.max_segments)
     if len(segments) < 2:
         return {}, 0
@@ -279,7 +300,7 @@ def create_app(scorer: ScorerProtocol | None = None, temperatures: dict[str, flo
                 raise HTTPException(status_code=422, detail=f"question {qid!r}: model {app.state.scorer.name} does not answer {q.type} questions")
             if isinstance(q, LocateQuestion):
                 continue  # candidates come from the state; render_locate enforces its own cap
-            n = 2 if isinstance(q, NoulQuestion) else len(q.criteria)
+            n = 2 if isinstance(q, NoulQuestion) else len(q.criteria) + isinstance(q, MatchQuestion)
             if n > cap:
                 raise HTTPException(status_code=422, detail=f"question {qid!r}: {n} options exceeds this model's cap of {cap}")
         t0 = time.perf_counter()

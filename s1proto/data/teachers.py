@@ -32,8 +32,10 @@ def option_keys(question: dict[str, Any]) -> list[str]:
     kind = question["type"]
     if kind == "noul":
         return ["yes", "no"]
-    if kind in ("choice", "multi"):
+    if kind in ("choice", "multi", "rank"):
         return list(question["criteria"].keys())
+    if kind == "match":  # each item's row: the options, then "none"
+        return [*question["criteria"], "none"]
     if kind == "locate":
         raise ValueError("locate options come from the state; use template.locate_candidates")
     return [str(i) for i in range(len(question["criteria"]))]

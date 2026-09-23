@@ -58,7 +58,7 @@ def features(model, tok, items, layers, device, batch, max_length):
     t0 = time.time()
     for s in range(0, len(items), batch):
         chunk = items[s : s + batch]
-        enc, ref, nopts, opt_pos, dec_pos = build_batch(tok, chunk, rng, device, max_length, train=False, layout="pointer")
+        enc, ref, nopts, opt_pos, dec_pos, _src = build_batch(tok, chunk, rng, device, max_length, train=False, layout="pointer")
         body(**{k: v for k, v in enc.items() if k in ("input_ids", "attention_mask", "position_ids")}, use_cache=False)
         rows = torch.arange(len(chunk), device=device)
         per = {}

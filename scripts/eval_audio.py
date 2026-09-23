@@ -121,7 +121,7 @@ def score_lora(run_dir: str, items: list, base_dir: Path, device: str):
     rng = random.Random(0)
     for i, it in enumerate(items):
         t0 = time.perf_counter()
-        enc, _ref, nopts, opt_pos, dec_pos = build_batch(
+        enc, _ref, nopts, opt_pos, dec_pos, _src = build_batch(
             tok, [it], rng, device, 4096, train=False, layout=cfg.get("layout", "pointer"), proc=proc, image_root=base_dir, modality="audio"
         )
         logits = head_logits(head, hidden_states(model, enc, "audio"), nopts, opt_pos, dec_pos)[0, : int(nopts[0])]

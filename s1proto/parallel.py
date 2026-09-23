@@ -14,7 +14,8 @@ order is a sum over a set, so the decide token's state, the option states the he
 and the probabilities are the same under any ordering, up to the order floating point
 adds them in. Still one forward pass.
 
-Only `choice` and `multi` are encoded this way. A score's levels are ordered by meaning and a noul's
+`choice`, `multi`, `rank` and `match` are encoded this way; a match's items come after its
+options and read all of them, like the decide token. A score's levels are ordered by meaning and a noul's
 two options are always yes then no, so there is no order to be robust to.
 """
 
@@ -24,15 +25,16 @@ import torch
 
 
 def is_choice(text: str) -> bool:
-    """Choice and multi: unordered options, so both are encoded side by side."""
-    from .template import CHOICE_LEAD, MULTI_LEAD
+    """Choice, multi, rank and match: unordered options, so they are encoded side by side."""
+    from .template import CHOICE_LEAD, MATCH_LEAD, MULTI_LEAD, RANK_LEAD
 
-    return CHOICE_LEAD in text or MULTI_LEAD in text
+    return any(lead in text for lead in (CHOICE_LEAD, MULTI_LEAD, RANK_LEAD, MATCH_LEAD))
 
 
-def option_spans(input_ids: torch.Tensor, rows: list[bool], start_id: int, decide_id: int) -> list[list[tuple[int, int]] | None]:
-    """Per row: [(lo, hi)] for each option, plus the decide position as the last span's hi;
-    None for rows not flagged or without at least two options and a decide token."""
+def option_spans(input_ids: torch.Tensor, rows: list[bool], start_id: int, decide_id: int, stop_id: int | None = None) -> list[list[tuple[int, int]] | None]:
+    """Per row: [(lo, hi)] for each option, the last ending at the decide token, or at the
+    first `stop_id` after the last option (a match's first item) when there is one; None for
+    rows not flagged or without at least two options and a decide token."""
     out: list[list[tuple[int, int]] | None] = []
     for i in range(input_ids.shape[0]):
         if not rows[i]:
@@ -43,7 +45,12 @@ def option_spans(input_ids: torch.Tensor, rows: list[bool], start_id: int, decid
         if len(starts) < 2 or len(decide) == 0:
             out.append(None)
             continue
-        bounds = starts + [int(decide[-1])]
+        end = int(decide[-1])
+        if stop_id is not None:
+            stops = (input_ids[i, starts[-1] :] == stop_id).nonzero(as_tuple=True)[0]
+            if len(stops):
+                end = starts[-1] + int(stops[0])
+        bounds = starts + [end]
         out.append([(bounds[j], bounds[j + 1]) for j in range(len(starts))])
     return out
 
@@ -86,9 +93,15 @@ def parallel_positions(position_ids: torch.Tensor, spans: list) -> torch.Tensor:
 
 
 def parallel_inputs(
-    input_ids: torch.Tensor, attention_mask: torch.Tensor, rows: list[bool], start_id: int, decide_id: int, dtype: torch.dtype
+    input_ids: torch.Tensor,
+    attention_mask: torch.Tensor,
+    rows: list[bool],
+    start_id: int,
+    decide_id: int,
+    dtype: torch.dtype,
+    stop_id: int | None = None,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     """Mask and [B, L] positions for a text batch; rows not flagged keep the causal mask."""
-    spans = option_spans(input_ids, rows, start_id, decide_id)
+    spans = option_spans(input_ids, rows, start_id, decide_id, stop_id)
     position_ids = (attention_mask.cumsum(dim=-1) - 1).clamp(min=0)
     return parallel_mask(attention_mask, spans, dtype), parallel_positions(position_ids, spans)

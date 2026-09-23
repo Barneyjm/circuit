@@ -79,7 +79,7 @@ def test_too_many_options_is_422():
 
 
 def test_parse_temperatures():
-    assert parse_temperatures(None) == {"noul": 1.0, "choice": 1.0, "score": 1.0, "multi": 1.0, "locate": 1.0}
+    assert parse_temperatures(None) == {"noul": 1.0, "choice": 1.0, "score": 1.0, "multi": 1.0, "locate": 1.0, "rank": 1.0, "match": 1.0}
     assert parse_temperatures("noul=1.5, choice=0.8, bogus=3")["noul"] == 1.5
     assert parse_temperatures("noul=1.5, choice=0.8")["choice"] == 0.8
 
