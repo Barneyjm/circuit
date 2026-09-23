@@ -30,7 +30,7 @@ image = (
         "fastapi[standard]>=0.141",
         "pydantic>=2.13",
         "numpy",
-        "decision-circuits",
+        "decision-circuits>=0.5.0",
         "pillow",
         "soundfile",
         "librosa",

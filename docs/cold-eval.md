@@ -903,3 +903,22 @@ general; JevBench's hard tier is the out-of-distribution check.
 The order-set drop is in small in-house production families (chat-classifier tier 30
 items, MCP pick 14, search-intent lead 30); every public held-out family held or improved.
 1 epoch against v1.2's 2 is the suspected cause and pipeline35 runs 2.
+
+## circuit-1.7b v2.0: several options, and pointing at the text (added 2026-09-23)
+
+v1.3's mix plus 8,739 rows of the two new question types (`multi`, `locate`) and ask-next as a
+choice, 4,096 tokens, 1 epoch; kept step 6,000 of 7,830. All numbers through the hosted
+endpoint (Modal, tag `v2.0`).
+
+| | v1.3 | **v2.0** |
+|---|---|---|
+| hard tier (650) | .822 / ECE .040 | **.842** / ECE .051 |
+| unseen families (1,200) | .733 / ECE .120 | **.737 / ECE .105** |
+| water calls (100) | .900 | **.940** |
+| order set (981): flips / accuracy | 0.9% / .706 | 0.9% / **.740** |
+
+New types, 879 held-out rows of their sources: multi F1 .704 (exact set .428, per-option ECE
+.006); locate top-1 .708, top-3 .896, ECE .168; ask-next .970, ECE .021. Locate is the least
+calibrated type. On support-call transcripts (call-center-circuit), multi is under-confident:
+the two-issue call scores technical .41 and billing .25, below the 0.5 that selects them. The
+multi training was contracts and emotions, not support calls.

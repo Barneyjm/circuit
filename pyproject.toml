@@ -7,7 +7,7 @@ requires-python = ">=3.12"
 dependencies = [
     "accelerate>=1.15.0",
     "datasets>=5.0.1",
-    "decision-circuits>=0.4.0",
+    "decision-circuits>=0.5.0",
     "fastapi>=0.141.1",
     "google-genai>=2.24.0",
     "httpx>=0.28.1",
