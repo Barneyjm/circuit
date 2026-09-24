@@ -486,6 +486,12 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--scale", type=float, default=1.0, help="multiply every row count (0.05 for a smoke build)")
+    ap.add_argument(
+        "--avoid",
+        nargs="*",
+        default=[],
+        help="eval files whose question wordings no training row may repeat word for word (a tagger's own questions, say), so the eval stays unseen",
+    )
     args = ap.parse_args()
     rng = random.Random(args.seed)
     n = lambda k: max(4, int(k * args.scale))
@@ -508,6 +514,12 @@ def main() -> None:
         *no_robots_rows(rng, n(500)),
         *mmlu_rows(rng, n(600)),
     ]
+    # Filtered after generation, so the random stream, and with it every eval row, is unchanged.
+    avoid = {json.loads(line)["question"]["instructions"] for f in args.avoid for line in open(f)}
+    if avoid:
+        dropped = collections.Counter(r["family"] for r in train if r["question"]["instructions"] in avoid)
+        train = [r for r in train if r["question"]["instructions"] not in avoid]
+        print(f"dropped {sum(dropped.values())} training rows that repeat an eval question word for word: {dict(dropped)}")
     rng.shuffle(train)
     out = Path("data")
     for name, rows in (("open_tax_train", train), ("open_tax_eval", evals)):
