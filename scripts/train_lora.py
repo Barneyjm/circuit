@@ -400,7 +400,7 @@ def main() -> None:
     ap.add_argument(
         "--freeze-adapter",
         action="store_true",
-        help="with --init: train the head only; the adapter stays as the run left it and nothing is backpropagated through the model (a forward pass per row)",
+        help="train the head only: the adapter stays as --init left it (or, without --init, is the untouched base model) and nothing is backpropagated through the model",
     )
     ap.add_argument(
         "--head",
@@ -554,9 +554,7 @@ def main() -> None:
         set_peft_model_state_dict(model, load_file(init / "adapter" / "adapter_model.safetensors"))
         head.load_state_dict(torch.load(init / "head.pt", map_location="cpu"))  # strict: the kinds in the mix must match the run's
         print(f"initialised from {init}")
-    if args.freeze_adapter:
-        if not args.init:
-            raise SystemExit("--freeze-adapter needs --init: a fresh adapter frozen is the untrained base")
+    if args.freeze_adapter:  # with --init, the run's adapter; without, a fresh one, which is a no-op: the plain base
         for p in model.parameters():
             p.requires_grad_(False)
         print("adapter frozen: training the head only")
