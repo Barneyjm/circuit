@@ -1,6 +1,6 @@
 """Zero-shot: can a base masked-diffusion model answer a choice question at all? No training.
 
-    uv run --with modal modal run deploy/diffusion_zeroshot.py --rows <rows.jsonl>
+    uv run --with modal modal run diffusion/zeroshot.py --rows <rows.jsonl>
 
 Each row (family, state, question, ref) becomes one chat prompt with lettered options. The
 diffusion model (Qwen3-0.6B converted to masked diffusion) answers in one pass: the reply is a

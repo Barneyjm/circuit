@@ -1,6 +1,6 @@
 """Is a bidirectional (masked-diffusion) base any better for open-taxonomy choice than a causal one?
 
-    uv run --with modal modal run deploy/diffusion_probe.py
+    uv run --with modal modal run diffusion/modal_probe.py
 
 Same starting weights both ways: Qwen3-0.6B, and Qwen3-0.6B converted to masked diffusion
 (dllm-hub/Qwen3-0.6B-diffusion-mdlm-v0.1, Apache-2.0). Each is frozen and gets a fresh pointer

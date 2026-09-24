@@ -1,0 +1,18 @@
+[project]
+name = "s1proto-diffusion"
+version = "0.1.0"
+description = "Circuits on masked-diffusion (bidirectional) language models: their own environment"
+requires-python = ">=3.12"
+dependencies = [
+    "s1proto",
+    "huggingface-hub",
+]
+
+[tool.uv.sources]
+s1proto = { path = "..", editable = true }
+
+[tool.uv]
+# The masked-diffusion models load through their own code (trust_remote_code), written against
+# transformers 4.57: it reads layer attributes 5.x removed. The causal circuits stay on 5.x in the
+# parent project; this environment pins the older one for these models only.
+override-dependencies = ["transformers==4.57.0"]
