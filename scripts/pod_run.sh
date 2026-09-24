@@ -15,6 +15,8 @@ KEY="${SSH_KEY:-$HOME/.ssh/runpod_s1}"
 GPUS="${GPUS:-NVIDIA A40,NVIDIA RTX A6000}"          # 48 GB, about $0.50/hr; enough for LoRA on 8B and 14B
 STALL_MIN="${STALL_MIN:-7}"; MAX_HOURS="${MAX_HOURS:-4}"
 CLOUD="${CLOUD:-secure}"; POD_KEYS="${POD_KEYS:-WANDB_API_KEY HF_TOKEN}"
+# Minutes to wait for the pod's address. A community host may pull the image itself first.
+ADDR_MIN="${ADDR_MIN:-$([ "$CLOUD" = community ] && echo 12 || echo 5)}"
 case "$CLOUD" in secure) CLOUD_TYPE=SECURE ;; community) CLOUD_TYPE=COMMUNITY ;; *) echo "!!! CLOUD is secure or community"; exit 1 ;; esac
 case " $POD_KEYS " in *" RUNPOD_API_KEY "*) echo "!!! RUNPOD_API_KEY never goes to a pod"; exit 1 ;; esac
 POD_ENV=$(mktemp); trap 'rm -f "$POD_ENV"' EXIT
@@ -35,7 +37,7 @@ kill_pod () { api -X DELETE -o /dev/null -w "terminated $POD (HTTP %{http_code})
 trap 'kill_pod; rm -f "$POD_ENV"' EXIT
 START=$(date +%s)
 
-for _ in $(seq 60); do
+for _ in $(seq $(( ADDR_MIN * 12 ))); do
   ADDR=$(api "https://rest.runpod.io/v1/pods/$POD" | python3 -c 'import json,sys; d=json.load(sys.stdin); pm=d.get("portMappings") or {}; print(d.get("publicIp") or "", pm.get("22") or "", d.get("costPerHr"))')
   read -r H P COST <<<"$ADDR"; [ -n "$H" ] && [ -n "$P" ] && break; sleep 5
 done
