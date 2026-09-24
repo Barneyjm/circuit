@@ -13,7 +13,7 @@ echo "=== env"
 R="uv run --project diffusion --no-sync"
 cuda_ok () { $R python -c "import torch, transformers, sys; print('torch', torch.__version__, 'transformers', transformers.__version__, torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'NO CUDA'); sys.exit(0 if torch.cuda.is_available() else 1)"; }
 if ! cuda_ok; then  # the lock's torch targets a newer CUDA than this host's driver
-  uv pip install -q --python diffusion/.venv/bin/python --reinstall --index-url https://download.pytorch.org/whl/cu128 torch
+  uv pip install -q --python diffusion/.venv/bin/python --reinstall --index-url https://download.pytorch.org/whl/cu128 torch torchvision  # together, or torchvision's ops do not load
   cuda_ok || { echo "!!! no usable CUDA torch"; exit 3; }
 fi
 COMMON="data/v22_head_mix_train.jsonl --freeze-adapter --head pointer --epochs 1 --batch 8 --head-lr 5e-4 --max-length 2048 --val-frac 0.03"

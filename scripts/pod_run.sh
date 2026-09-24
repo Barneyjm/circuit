@@ -4,6 +4,9 @@
 #   scripts/pod_run.sh circuit-8b-v2b Qwen/Qwen3-8B-Base ./results/pipeline28.sh 8b
 # Commit and push first: the pod clones main. The pod is terminated on success, on failure, if
 # setup makes no progress for STALL_MIN minutes, and after MAX_HOURS regardless.
+# Only the keys a job needs go to the pod (POD_KEYS, default W&B and Hugging Face); the RunPod key
+# and everything else in .env stay here. CLOUD=community rents from community hosts, cheaper and
+# run by whoever owns the machine, so use it for public data only.
 set -uo pipefail
 RUN="$1"; BASES="$2"; shift 2
 SRC="$(cd "$(dirname "$0")/.." && pwd)"; cd "$SRC"
@@ -11,20 +14,25 @@ set -a; . ./.env; set +a
 KEY="${SSH_KEY:-$HOME/.ssh/runpod_s1}"
 GPUS="${GPUS:-NVIDIA A40,NVIDIA RTX A6000}"          # 48 GB, about $0.50/hr; enough for LoRA on 8B and 14B
 STALL_MIN="${STALL_MIN:-7}"; MAX_HOURS="${MAX_HOURS:-4}"
+CLOUD="${CLOUD:-secure}"; POD_KEYS="${POD_KEYS:-WANDB_API_KEY HF_TOKEN}"
+case "$CLOUD" in secure) CLOUD_TYPE=SECURE ;; community) CLOUD_TYPE=COMMUNITY ;; *) echo "!!! CLOUD is secure or community"; exit 1 ;; esac
+case " $POD_KEYS " in *" RUNPOD_API_KEY "*) echo "!!! RUNPOD_API_KEY never goes to a pod"; exit 1 ;; esac
+POD_ENV=$(mktemp); trap 'rm -f "$POD_ENV"' EXIT
+for k in $POD_KEYS; do [ -n "${!k:-}" ] && printf '%s=%q\n' "$k" "${!k}" >> "$POD_ENV"; done
 api () { curl -s -H "Authorization: Bearer $RUNPOD_API_KEY" -H "Content-Type: application/json" "$@"; }
 
 [ -z "$(git log origin/main..HEAD --oneline)" ] || { echo "!!! push first; the pod clones main"; exit 1; }
 DIRTY=$(git status --porcelain --untracked-files=no); [ -z "$DIRTY" ] || echo "note: the pod will not see these uncommitted changes:"$'\n'"$DIRTY"
 
-REQ=$(GPUS="$GPUS" RUN="$RUN" KEYFILE="$KEY.pub" python3 -c '
+REQ=$(GPUS="$GPUS" RUN="$RUN" KEYFILE="$KEY.pub" CLOUD_TYPE="$CLOUD_TYPE" python3 -c '
 import json, os
 print(json.dumps({"name": os.environ["RUN"], "imageName": "runpod/pytorch:2.8.0-py3.11-cuda12.8.1-cudnn-devel-ubuntu22.04",
-  "gpuTypeIds": os.environ["GPUS"].split(","), "gpuCount": 1, "cloudType": "SECURE", "containerDiskInGb": 30,
+  "gpuTypeIds": os.environ["GPUS"].split(","), "gpuCount": 1, "cloudType": os.environ["CLOUD_TYPE"], "containerDiskInGb": 30,
   "volumeInGb": 80, "volumeMountPath": "/workspace", "ports": ["22/tcp"], "env": {"PUBLIC_KEY": open(os.environ["KEYFILE"]).read().strip()}}))')
 POD=$(api -X POST https://rest.runpod.io/v1/pods -d "$REQ" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("id") or ""); print(d, file=sys.stderr) if not d.get("id") else None')
 [ -n "$POD" ] || { echo "!!! could not create a pod"; exit 1; }
 kill_pod () { api -X DELETE -o /dev/null -w "terminated $POD (HTTP %{http_code})\n" "https://rest.runpod.io/v1/pods/$POD"; echo "pods remaining: $(api https://rest.runpod.io/v1/pods)"; }
-trap kill_pod EXIT
+trap 'kill_pod; rm -f "$POD_ENV"' EXIT
 START=$(date +%s)
 
 for _ in $(seq 60); do
@@ -32,12 +40,13 @@ for _ in $(seq 60); do
   read -r H P COST <<<"$ADDR"; [ -n "$H" ] && [ -n "$P" ] && break; sleep 5
 done
 [ -n "${P:-}" ] || { echo "!!! pod never got an address"; exit 1; }
-echo "pod $POD at \$$COST/hr"
+echo "pod $POD at \$$COST/hr ($CLOUD cloud; keys staged: $(cut -d= -f1 "$POD_ENV" | tr '\n' ' '))"
 S="ssh -i $KEY -p $P -o StrictHostKeyChecking=accept-new -o ConnectTimeout=20 root@$H"
 for _ in $(seq 40); do $S true 2>/dev/null && break; sleep 5; done
 
 $S 'mkdir -p /workspace/stage'
-scp -q -i "$KEY" -P "$P" .env scripts/pod_bootstrap.sh "root@$H:/workspace/stage/"
+scp -q -i "$KEY" -P "$P" "$POD_ENV" "root@$H:/workspace/stage/.env"
+scp -q -i "$KEY" -P "$P" scripts/pod_bootstrap.sh "root@$H:/workspace/stage/"
 for f in ${STAGE:-}; do scp -q -i "$KEY" -P "$P" "$f" "root@$H:/workspace/stage/"; done
 JOB=$(printf '%q ' "$@")
 $S "MEDIA_DATASET='${MEDIA_DATASET:-}' HF_TOKEN='${HF_TOKEN:-}' nohup bash /workspace/stage/pod_bootstrap.sh '$BASES' $JOB > /workspace/boot.log 2>&1 &" </dev/null
