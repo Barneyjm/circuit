@@ -16,6 +16,9 @@ if ! cuda_ok; then  # the lock's torch targets a newer CUDA than this host's dri
   uv pip install -q --python diffusion/.venv/bin/python --reinstall --index-url https://download.pytorch.org/whl/cu128 torch torchvision  # together, or torchvision's ops do not load
   cuda_ok || { echo "!!! no usable CUDA torch"; exit 3; }
 fi
+# The dLLM model files import `dllm` in their __main__ demo only, but transformers checks every
+# import in remote code before loading it; an empty module satisfies the check.
+$R python -c "import site, pathlib; d = pathlib.Path(site.getsitepackages()[0]) / 'dllm'; d.mkdir(exist_ok=True); (d / '__init__.py').touch()"
 COMMON="data/v22_head_mix_train.jsonl --freeze-adapter --head pointer --epochs 1 --batch 8 --head-lr 5e-4 --max-length 2048 --val-frac 0.03"
 echo "=== smoke"
 $R python -u scripts/train_lora.py dllm-hub/Qwen3-0.6B-diffusion-mdlm-v0.1 $COMMON --masked --limit 40 --eval-every 1000 --out runs/smoke > results/smoke_d1.log 2>&1 \
