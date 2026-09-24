@@ -107,6 +107,28 @@ only (the clean items are already hard-tier rows); the eval keeps each clean ite
 attacks, in phrasings the train rows never use, and `eval_set.py` reports how often the planted
 text hijacked or flipped the answer. Derived from the hard tier's sources; no new licence.
 
+## Open-taxonomy choice rows (`scripts/build_open_taxonomy.py`, v2.2)
+
+User-defined option lists: a sampled 4 to 14 labels with template descriptions (or none), an
+"other" on most rows, the gold label removed on one row in five so "other" is right, and
+parent -> child rows over the true parent's children. Licences checked 2026-09-23 against each
+release, not only the Hub tag.
+
+| family | source | verdict | basis | use |
+|---|---|---|---|---|
+| dolly_task | databricks/databricks-dolly-15k | ok | CC BY-SA 3.0 (Databricks employees wrote prompts, responses and categories) | train, 10% by hash held out |
+| dolly_workload, dolly_env, dolly_data, dolly_pii | Dolly text + code templates | ok | CC BY-SA 3.0 text; labels by construction (templated wrappers, test strings, generated fake personal data) | train, 10% held out |
+| dbpedia_l1, dbpedia_l2, dbpedia_flat | DeveloperOats/DBPedia_Classes | ok | Hub tag CC0; the abstracts are DBpedia/Wikipedia text, CC BY-SA 3.0 | train; top classes Species and Event held out entirely |
+| massive_scenario, massive_intent_child | AmazonScience/massive (en-US) | ok | CC BY 4.0 | train |
+| banking77_sub | mteb/banking77 | ok | CC BY 4.0 (PolyAI), MIT mirror | train |
+| clinc_sub | clinc/clinc_oos (plus) | ok | CC BY 3.0; out-of-scope utterances are the "other" answer | train |
+| no_robots_task | HuggingFaceH4/no_robots | nc | CC BY-NC 4.0 | eval only |
+| mmlu_subject | cais/mmlu | ok | MIT | eval only (label set held out) |
+| tagger_sample, tagger_ref_* | a tagger's hand-labelled samples; WildChat-4.8M with Jev's tags | eval only | samples written for tests; WildChat ODC-BY; Jev's tags are a reference, never a target | eval only, not in git |
+
+No teacher output in any train row: every label is a dataset's human annotation or set by
+the code that built the row. The tagger eval scores agreement with Jev as a proxy only.
+
 ## The earlier real-data set (`data/hf_train.jsonl`)
 
 | source | verdict | basis |

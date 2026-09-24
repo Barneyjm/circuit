@@ -22,6 +22,7 @@ data/vision/unseen/
 # trained adapters live on the Hub, not in git
 runs/
 # datasets with teacher-model (Jev/Gemini) targets stay local
+data/open_tax_tagger_eval.jsonl
 data/train.jsonl
 data/eval.jsonl
 data/train_real_plus_syn.jsonl

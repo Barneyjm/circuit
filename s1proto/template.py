@@ -126,6 +126,7 @@ class Prompt:
     layout: str = "letters"
     kind: str = "choice"  # noul | choice | score | multi | locate | rank | match: temperature and readout differ by type
     item_keys: tuple[str, ...] = ()  # match: one row of option logits per item
+    head: str = ""  # which plug-in head reads it ("" is the run's own); see LoRAScorer.heads
 
     @property
     def n_logits(self) -> int:

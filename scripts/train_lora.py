@@ -393,6 +393,16 @@ def main() -> None:
     ap.add_argument("--run-name", default=None)
     ap.add_argument("--resume", action="store_true", help="resume from <out>/latest if present")
     ap.add_argument(
+        "--init",
+        default=None,
+        help="start from a trained run's adapter and head (a run dir: adapter/, head.pt) instead of fresh ones; a fresh optimizer and step 0. For a short continued fine-tune on new rows plus a replay slice",
+    )
+    ap.add_argument(
+        "--freeze-adapter",
+        action="store_true",
+        help="with --init: train the head only; the adapter stays as the run left it and nothing is backpropagated through the model (a forward pass per row)",
+    )
+    ap.add_argument(
         "--head",
         choices=["pointer", "slot"],
         default="pointer",
@@ -536,10 +546,24 @@ def main() -> None:
         head.load_state_dict(torch.load(out / "latest" / "head.pt", map_location="cpu"))
         start_step = json.load(open(out / "latest" / "state.json"))["step"]
         print(f"resumed from step {start_step}")
+    elif args.init:
+        from peft import set_peft_model_state_dict
+        from safetensors.torch import load_file
+
+        init = Path(args.init)
+        set_peft_model_state_dict(model, load_file(init / "adapter" / "adapter_model.safetensors"))
+        head.load_state_dict(torch.load(init / "head.pt", map_location="cpu"))  # strict: the kinds in the mix must match the run's
+        print(f"initialised from {init}")
+    if args.freeze_adapter:
+        if not args.init:
+            raise SystemExit("--freeze-adapter needs --init: a fresh adapter frozen is the untrained base")
+        for p in model.parameters():
+            p.requires_grad_(False)
+        print("adapter frozen: training the head only")
 
     params = [
-        {"params": [p for p in model.parameters() if p.requires_grad], "lr": args.lr},
-        {"params": head.parameters(), "lr": args.head_lr},
+        *([] if args.freeze_adapter else [{"params": [p for p in model.parameters() if p.requires_grad], "lr": args.lr}]),
+        {"params": list(head.parameters()), "lr": args.head_lr},
     ]
     opt = torch.optim.AdamW(params, weight_decay=0.0)
     steps_per_epoch = math.ceil(len(train) / args.batch)
@@ -604,7 +628,13 @@ def main() -> None:
                         enc["input_ids"] = F.pad(enc["input_ids"], (0, fill), value=tok.pad_token_id)
                         enc["attention_mask"] = F.pad(enc["attention_mask"], (0, fill), value=1)
                 kinds = [part[j]["question"]["type"] for j in src.tolist()]
-                logits = head_logits(head, hidden_states(model, enc, args.modality), nopts, opt_pos, dec_pos, kinds, src)
+                if args.freeze_adapter:  # no graph through the model: its dropout off, its activations not kept
+                    model.eval()
+                    with torch.no_grad():
+                        hs = hidden_states(model, enc, args.modality)
+                else:
+                    hs = hidden_states(model, enc, args.modality)
+                logits = head_logits(head, hs, nopts, opt_pos, dec_pos, kinds, src)
                 # weighted so the accumulated gradient is the mean over the whole batch
                 loss = mixed_loss(logits, ref, nopts, kinds) * len(part) / len(chunk)
                 loss.backward()

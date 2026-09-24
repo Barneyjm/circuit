@@ -117,6 +117,9 @@ def test_fuzz_schema_valid_requests_yield_schema_valid_responses(req):
     app = create_app(scorer=FakeScorer())
     with TestClient(app) as c:
         r = c.post("/v1/systemone", json=req, headers=AUTH)
+    if "+" in req["model"] and req["model"].partition("+")[2]:  # names a plug-in head this scorer does not have
+        assert r.status_code == 422 and "has no head" in r.json()["detail"], r.text
+        return
     assert r.status_code == 200, r.text
     body = SystemOneResponse.model_validate(r.json())
     assert set(body.answers) == set(req["questions"])
@@ -227,3 +230,32 @@ def test_an_unknown_per_question_field_is_ignored():
         json={"model": "fake", "state": "x", "questions": {"q": {"type": "noul", "instructions": "Well?", "weight": 2}}},
     )
     assert r.status_code == 200
+
+
+class _TwoHeads(FakeScorer):
+    """FakeScorer with a plug-in head: its answers differ, so routing is visible."""
+
+    def __init__(self):
+        from types import SimpleNamespace
+
+        self.heads = {"": SimpleNamespace(question_types=self.question_types), "support": SimpleNamespace(question_types=("noul", "choice"))}
+        self.seen: list[str] = []
+
+    def score(self, prompts, temperatures=None):
+        self.seen += [p.head for p in prompts]
+        return super().score(prompts, temperatures)
+
+
+def test_a_model_suffix_picks_the_plug_in_head_and_its_question_types():
+    sc = _TwoHeads()
+    app = create_app(scorer=sc)
+    q = {"q": {"type": "noul", "instructions": "Is it about work?"}}
+    with TestClient(app) as c:
+        r = c.post("/v1/systemone", json={"state": "a memo", "model": "circuit-1.7b+support", "questions": q}, headers=AUTH)
+        assert r.status_code == 200 and r.json()["model"] == "fake+support" and sc.seen == ["support"]
+        r = c.post("/v1/systemone", json={"state": "a memo", "model": "circuit-1.7b", "questions": q}, headers=AUTH)
+        assert r.json()["model"] == "fake" and sc.seen[-1] == ""
+        score = {"s": {"type": "score", "instructions": "How formal?", "criteria": ["casual", "neutral", "formal"]}}
+        r = c.post("/v1/systemone", json={"state": "a memo", "model": "circuit-1.7b+support", "questions": score}, headers=AUTH)
+        assert r.status_code == 422 and "does not answer score" in r.json()["detail"]
+        assert c.get("/healthz").json()["heads"] == ["support"]

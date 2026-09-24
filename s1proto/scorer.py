@@ -221,13 +221,69 @@ class HFScorer:
         return results
 
 
+def _file_sha(path: str) -> str:
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for block in iter(lambda: f.read(1 << 20), b""):
+            h.update(block)
+    return h.hexdigest()
+
+
+def _plug_in_heads(run_dir: str, cfg: dict[str, Any], dim: int, device: str) -> dict[str, PointerHeadWeights]:
+    """Every `<run>/heads/<name>/` whose head was trained on this run's adapter. A head
+    trained on another adapter reads hidden states it never saw, so it is refused, loudly."""
+    import json
+
+    import torch
+
+    root = os.path.join(run_dir, "heads")
+    if not os.path.isdir(root):
+        return {}
+    adapter = _file_sha(os.path.join(run_dir, "adapter", "adapter_model.safetensors"))
+    out = {}
+    for name in sorted(os.listdir(root)):
+        d = os.path.join(root, name)
+        if not os.path.isfile(os.path.join(d, "head.pt")):
+            continue
+        hcfg = json.load(open(os.path.join(d, "config.json")))
+        if hcfg.get("adapter_sha256") != adapter:
+            raise ValueError(f"plug-in head {name!r} was trained on another adapter ({hcfg.get('adapter_sha256', '?')[:12]}, this run's is {adapter[:12]})")
+        out[name] = PointerHeadWeights(torch.load(os.path.join(d, "head.pt"), map_location="cpu"), cfg["hidden"], dim, hcfg.get("temperatures") or {}, device)
+    return out
+
+
+class PointerHeadWeights:
+    """One pointer head: the decide-token query, the option key, a query per v2 type, multi's
+    bias, and the temperatures fitted with it. A run's own head is one; each plug-in head in
+    `<run>/heads/<name>/` is another, trained on the same frozen adapter (train_lora
+    --freeze-adapter) and exported with scripts/export_head.py."""
+
+    def __init__(self, state: dict[str, Any], hidden: int, dim: int, temperatures: dict[str, float], device: str) -> None:
+        import torch
+
+        def lin(key: str) -> Any:
+            m = torch.nn.Linear(hidden, dim, bias=False)
+            m.load_state_dict({"weight": state[key]})
+            return m.to(device).eval()
+
+        self.q, self.k = lin("q.weight"), lin("k.weight")
+        self.queries = {kind: lin(f"q_{kind}.weight") for kind in T.V2_KINDS if f"q_{kind}.weight" in state}
+        self.multi_bias = float(state["multi_bias"]) if "multi_bias" in state else 0.0
+        self.temperatures = {k: float(v) for k, v in temperatures.items()}
+        self.question_types: tuple[str, ...] = ("noul", "choice", "score", *self.queries)
+
+
 @dataclass
 class LoRAScorer:
     """Phase 3 checkpoint: base model + LoRA adapter + a readout head
     (see scripts/train_lora.py). `pointer` heads score each option's
     closing delimiter against the decide token (no option cap, order
     invariant); `slot` heads read a fixed 256-way linear layer at the
-    last position. Callers render prompts with `layout=scorer.layout`."""
+    last position. Callers render prompts with `layout=scorer.layout`.
+
+    Plug-in heads: `<run>/heads/<name>/` (head.pt, config.json) are extra pointer heads over
+    the same adapter, loaded at start and chosen per prompt (`Prompt.head`), so one loaded
+    model answers for many taxonomies. A request names one as `<model>+<name>`."""
 
     run_dir: str
     device: str | None = None
@@ -267,24 +323,18 @@ class LoRAScorer:
         self.layout = cfg.get("layout", "letters")
         self.question_types: tuple[str, ...] = ("noul", "choice", "score")
         state = torch.load(os.path.join(self.run_dir, "head.pt"), map_location="cpu")
+        # Per-type temperatures fitted on the run's validation split; a caller's temperature
+        # multiplies them, so the default request gets calibrated numbers. A plug-in head has its own.
+        self.temperatures: dict[str, float] = {k: float(v) for k, v in (cfg.get("temperatures") or {}).items()}
+        self.heads: dict[str, PointerHeadWeights] = {}
         if self.head_kind == "pointer":
             dim = cfg.get("head_dim", 256)
-            self.q = torch.nn.Linear(cfg["hidden"], dim, bias=False)
-            self.k = torch.nn.Linear(cfg["hidden"], dim, bias=False)
-            self.q.load_state_dict({"weight": state["q.weight"]})
-            self.k.load_state_dict({"weight": state["k.weight"]})
-            self.q.to(self.device).eval()
-            self.k.to(self.device).eval()
             self.scale = dim**-0.5
             # v2 heads: a query per type the run trained (multi, locate, rank, match), and multi's sigmoid bias
-            self.queries: dict[str, Any] = {}
-            self.multi_bias = float(state["multi_bias"]) if "multi_bias" in state else 0.0
-            for kind in T.V2_KINDS:
-                if f"q_{kind}.weight" in state:
-                    lin = torch.nn.Linear(cfg["hidden"], dim, bias=False)
-                    lin.load_state_dict({"weight": state[f"q_{kind}.weight"]})
-                    self.queries[kind] = lin.to(self.device).eval()
-                    self.question_types = (*self.question_types, kind)
+            own = PointerHeadWeights(state, cfg["hidden"], dim, self.temperatures, self.device)
+            self.heads[""] = own
+            self.q, self.k, self.queries, self.multi_bias, self.question_types = own.q, own.k, own.queries, own.multi_bias, own.question_types
+            self.heads |= _plug_in_heads(self.run_dir, cfg, dim, self.device)
             self.max_options = 255  # the API cap; the head itself has none
             if cfg.get("pointer_tokens"):
                 T.use_pointer_tokens(*cfg["pointer_tokens"])
@@ -307,9 +357,6 @@ class LoRAScorer:
         # path builds its own mask, so it is off until it learns this one.
         self.parallel_options = self.head_kind == "pointer" and (bool(cfg.get("parallel_options")) or os.environ.get("S1_PARALLEL_OPTIONS") == "1")
         self.prefix_cache = _kv_cache_only(self.model) and not self.parallel_options
-        # Per-type temperatures fitted on the run's validation split; a caller's temperature
-        # multiplies them, so the default request gets calibrated numbers.
-        self.temperatures: dict[str, float] = {k: float(v) for k, v in (cfg.get("temperatures") or {}).items()}
         # Prompts scored in one pass. Sized for a 22 GB card at 1,300 tokens a prompt;
         # S1_SCORE_CHUNK raises it on bigger hardware or lowers it on smaller.
         self.chunk = int(os.environ.get("S1_SCORE_CHUNK", "16"))
@@ -335,10 +382,18 @@ class LoRAScorer:
                 if len(items) != len(p.item_keys):
                     raise ValueError(f"found {len(items)} item marks for {len(p.item_keys)} items")
                 h_q = hs[i, items + offset, :].float()
-            q = self.queries.get(p.kind, self.q)(h_q)
-            logit = (q.unsqueeze(-2) * self.k(hs[i, pos + offset, :].float())).sum(-1) * self.scale
-            rows.append((logit + self.multi_bias if p.kind == "multi" else logit).flatten().cpu())
+            h = self.heads[p.head]
+            q = h.queries.get(p.kind, h.q)(h_q)
+            logit = (q.unsqueeze(-2) * h.k(hs[i, pos + offset, :].float())).sum(-1) * self.scale
+            rows.append((logit + h.multi_bias if p.kind == "multi" else logit).flatten().cpu())
         return rows
+
+    def _temps(self, prompts: list[Prompt], temperatures: list[float] | None) -> list[float]:
+        """The caller's temperature times the calibrated one for the prompt's type and head."""
+        return [
+            t * (self.heads[p.head].temperatures if self.heads else self.temperatures).get(p.kind, 1.0)
+            for t, p in zip(temperatures or [1.0] * len(prompts), prompts, strict=True)
+        ]
 
     def _score_shared_prefix(self, prompts: list[Prompt], temperatures: list[float] | None) -> list[ScoreResult]:
         """One pass over the state, then one short pass per question against the
@@ -346,7 +401,7 @@ class LoRAScorer:
         bf16 noise; cost is O(state + sum of tails) rather than O(questions x state)."""
         import torch
 
-        temps = [t * self.temperatures.get(p.kind, 1.0) for t, p in zip(temperatures or [1.0] * len(prompts), prompts, strict=True)]
+        temps = self._temps(prompts, temperatures)
         n = len(prompts)
         prefix_ids = self.tokenizer.encode(prompts[0].prefix, add_special_tokens=False)
         tails = [self.tokenizer.encode(p.tail, add_special_tokens=False) for p in prompts]
@@ -403,7 +458,7 @@ class LoRAScorer:
     def _score_independent(self, prompts: list[Prompt], temperatures: list[float] | None) -> list[ScoreResult]:
         import torch
 
-        temps = [t * self.temperatures.get(p.kind, 1.0) for t, p in zip(temperatures or [1.0] * len(prompts), prompts, strict=True)]
+        temps = self._temps(prompts, temperatures)
         enc = self.tokenizer([p.text for p in prompts], return_tensors="pt", padding=True, truncation=True, max_length=self.max_length)
         ids = enc["input_ids"].to(self.device)
         mask = enc["attention_mask"].to(self.device)

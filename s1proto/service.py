@@ -9,6 +9,7 @@ import threading
 import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from dataclasses import replace
 from typing import Any
 
 from decision_circuits import __version__ as _dc_version
@@ -71,12 +72,18 @@ def text_state_of(req: SystemOneRequest) -> Any:
     return split[0] if split else req.state
 
 
+def head_of(model: str) -> str:
+    """The plug-in head a request names: `circuit-1.7b+support` -> "support"; none -> ""."""
+    return model.partition("+")[2]
+
+
 def build_answers(req: SystemOneRequest, scorer: ScorerProtocol, temps: dict[str, float]) -> tuple[dict[str, Any], int]:
     ids = list(req.questions.keys())
     split = split_media_state(req.state)  # {"image"|"audio": spec, "text"?: ...} or a plain text/JSON state
     text_state = split[0] if split else req.state
+    head = head_of(req.model)
     try:
-        prompts = [render(text_state, req.questions[i], layout=getattr(scorer, "layout", "letters")) for i in ids]
+        prompts = [replace(render(text_state, req.questions[i], layout=getattr(scorer, "layout", "letters")), head=head) for i in ids]
     except ValueError as e:  # a locate state with no text, or too many candidates
         raise HTTPException(status_code=422, detail=str(e)) from e
     temperatures = [temps[req.questions[i].type] for i in ids]
@@ -173,7 +180,7 @@ def build_explanations(
         for i in range(len(segments)):
             without = " ".join(segments[:i] + segments[i + 1 :])
             jobs.append((qid, i))
-            prompts.append(render(without, q, layout=layout))
+            prompts.append(replace(render(without, q, layout=layout), head=head_of(req.model)))  # the same head as the answer it explains
             temperatures.append(temps[q.type])
     results = scorer.score(prompts, temperatures)
 
@@ -262,6 +269,7 @@ def create_app(scorer: ScorerProtocol | None = None, temperatures: dict[str, flo
             "ok": s is not None,
             "model": getattr(s, "name", None),
             "max_options": getattr(s, "max_options", None),
+            "heads": sorted(h for h in getattr(s, "heads", {}) if h),
             "inflight": app.state.inflight,
             "max_inflight": app.state.max_inflight,
             "concurrency": app.state.device_slots._value,
@@ -321,6 +329,13 @@ def create_app(scorer: ScorerProtocol | None = None, temperatures: dict[str, flo
     def answer(req: SystemOneRequest) -> Any:
         cap = getattr(app.state.scorer, "max_options", 255)
         supported = getattr(app.state.scorer, "question_types", ("noul", "choice", "score"))
+        head = head_of(req.model)
+        heads = getattr(app.state.scorer, "heads", {})
+        if head:
+            if head not in heads:
+                have = ", ".join(sorted(h for h in heads if h)) or "none"
+                raise HTTPException(status_code=422, detail=f"model {app.state.scorer.name} has no head {head!r}; its plug-in heads: {have}")
+            supported = heads[head].question_types
         media = split_media_state(req.state) is not None
         for qid, q in req.questions.items():
             if media and q.type in V2_KINDS:  # they point into, order or pair text; images and audio come later if at all
@@ -344,7 +359,7 @@ def create_app(scorer: ScorerProtocol | None = None, temperatures: dict[str, flo
         ) as sp:
             answers, tokens = build_answers(req, sc, app.state.temperatures)
             sp.set_attribute("gen_ai.usage.input_tokens", tokens)
-        resp = SystemOneResponse(model=app.state.scorer.name, answers=answers, usage=Usage(input_tokens=tokens, output_tokens=0))
+        resp = SystemOneResponse(model=app.state.scorer.name + (f"+{head}" if head else ""), answers=answers, usage=Usage(input_tokens=tokens, output_tokens=0))
         body = resp.model_dump()
         if req.gates:
             # Gates are evaluated by code from the calibrated answers; the
