@@ -26,11 +26,12 @@ api () { curl -s -H "Authorization: Bearer $RUNPOD_API_KEY" -H "Content-Type: ap
 [ -z "$(git log origin/main..HEAD --oneline)" ] || { echo "!!! push first; the pod clones main"; exit 1; }
 DIRTY=$(git status --porcelain --untracked-files=no); [ -z "$DIRTY" ] || echo "note: the pod will not see these uncommitted changes:"$'\n'"$DIRTY"
 
+# supportPublicIp: a community host gives no address for ssh unless asked; secure ones always do.
 REQ=$(GPUS="$GPUS" RUN="$RUN" KEYFILE="$KEY.pub" CLOUD_TYPE="$CLOUD_TYPE" python3 -c '
 import json, os
 print(json.dumps({"name": os.environ["RUN"], "imageName": "runpod/pytorch:2.8.0-py3.11-cuda12.8.1-cudnn-devel-ubuntu22.04",
   "gpuTypeIds": os.environ["GPUS"].split(","), "gpuCount": 1, "cloudType": os.environ["CLOUD_TYPE"],
-  "supportPublicIp": True,  # a community host gives no address for ssh unless asked; secure ones always do "containerDiskInGb": 30,
+  "supportPublicIp": True, "containerDiskInGb": 30,
   "volumeInGb": 80, "volumeMountPath": "/workspace", "ports": ["22/tcp"], "env": {"PUBLIC_KEY": open(os.environ["KEYFILE"]).read().strip()}}))')
 POD=$(api -X POST https://rest.runpod.io/v1/pods -d "$REQ" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("id") or ""); print(d, file=sys.stderr) if not d.get("id") else None')
 [ -n "$POD" ] || { echo "!!! could not create a pod"; exit 1; }
