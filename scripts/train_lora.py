@@ -415,6 +415,11 @@ def main() -> None:
         default="text",
         help="vision: a vision-language base (Qwen3-VL); items carry state.image relative to the data file's directory. audio: an audio-language base (Qwen2-Audio); items carry state.audio",
     )
+    ap.add_argument(
+        "--masked",
+        action="store_true",
+        help="a bidirectional masked-diffusion base (e.g. dllm-hub/Qwen3-0.6B-diffusion-mdlm-v0.1): loaded as a masked LM with its own code; every token sees every other, so options need no side-by-side encoding",
+    )
     ap.add_argument("--exclude-family", default=None, help="comma-separated families to drop from training (leave-one-task-out)")
     args = ap.parse_args()
 
@@ -510,6 +515,16 @@ def main() -> None:
         from transformers import Qwen2AudioForConditionalGeneration
 
         base = Qwen2AudioForConditionalGeneration.from_pretrained(args.model, dtype=getattr(torch, args.dtype))
+        base.to(device)
+        if args.grad_checkpoint:
+            base.gradient_checkpointing_enable()
+            base.enable_input_require_grads()
+    elif args.masked:
+        from transformers import AutoModelForMaskedLM
+
+        if args.parallel_options:
+            raise SystemExit("--masked with --parallel-options: a bidirectional model has no option order to undo, and its own mask would be replaced")
+        base = AutoModelForMaskedLM.from_pretrained(args.model, dtype=getattr(torch, args.dtype), trust_remote_code=True)
         base.to(device)
         if args.grad_checkpoint:
             base.gradient_checkpointing_enable()
@@ -709,6 +724,7 @@ def main() -> None:
                         "modality": args.modality,
                         "pointer_tokens": pointer_tokens,
                         "parallel_options": bool(args.parallel_options),
+                        "masked": bool(args.masked),
                         "question_types": ["noul", "choice", "score", *v2],
                         "temperatures": temperatures,
                         "best": best,

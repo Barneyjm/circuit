@@ -316,9 +316,15 @@ class LoRAScorer:
             base = AutoModelForCausalLM.from_pretrained(cfg["base"], quantization_config=bnb, dtype=torch.bfloat16, device_map={"": 0})
             self.model = PeftModel.from_pretrained(base, os.path.join(self.run_dir, "adapter")).eval()
         else:
-            base = AutoModelForCausalLM.from_pretrained(cfg["base"], dtype=torch.bfloat16)
+            if cfg.get("masked"):  # a bidirectional masked-diffusion base, loaded with its own code
+                from transformers import AutoModelForMaskedLM
+
+                base = AutoModelForMaskedLM.from_pretrained(cfg["base"], dtype=torch.bfloat16, trust_remote_code=True)
+            else:
+                base = AutoModelForCausalLM.from_pretrained(cfg["base"], dtype=torch.bfloat16)
             self.model = PeftModel.from_pretrained(base, os.path.join(self.run_dir, "adapter"))
             self.model.to(self.device).eval()
+        self.masked = bool(cfg.get("masked"))
         self.head_kind = cfg.get("head", "slot")
         self.layout = cfg.get("layout", "letters")
         self.question_types: tuple[str, ...] = ("noul", "choice", "score")
@@ -356,7 +362,8 @@ class LoRAScorer:
         # is only useful for measuring how much the training matters. The shared-prefix
         # path builds its own mask, so it is off until it learns this one.
         self.parallel_options = self.head_kind == "pointer" and (bool(cfg.get("parallel_options")) or os.environ.get("S1_PARALLEL_OPTIONS") == "1")
-        self.prefix_cache = _kv_cache_only(self.model) and not self.parallel_options
+        # A bidirectional model reads the state differently for every question, so there is no prefix to share.
+        self.prefix_cache = _kv_cache_only(self.model) and not self.parallel_options and not self.masked
         # Prompts scored in one pass. Sized for a 22 GB card at 1,300 tokens a prompt;
         # S1_SCORE_CHUNK raises it on bigger hardware or lowers it on smaller.
         self.chunk = int(os.environ.get("S1_SCORE_CHUNK", "16"))
