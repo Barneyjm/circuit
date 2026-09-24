@@ -56,7 +56,7 @@ secret = modal.Secret.from_dict({k: v for k in PASSED if (v := os.environ.get(k)
 # case, not the usual one. S1_MAX_CONTAINERS at deploy time overrides it.
 MAX_CONTAINERS = int(os.environ.get("S1_MAX_CONTAINERS", "6"))
 MODELS = {
-    "circuit-1.7b": {"repo": "jbarney/circuit-1.7b", "gpu": "L4", "revision": "v2.0"},
+    "circuit-1.7b": {"repo": "jbarney/circuit-1.7b", "gpu": "L4", "revision": "v2.2"},
     # Batching across requests, mixed lengths: about 2x the throughput on long bulk traffic
     # for ~0.01 of drift on a probability (s1proto/batching.py). The 1.7b stays unbatched and
     # bit-reproducible; the 8b is the bulk-tagging model.
