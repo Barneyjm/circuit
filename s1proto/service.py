@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import itertools
+import json
 import os
 import re
 import threading
@@ -212,6 +213,30 @@ def explained_option(q: Question, prompt: Prompt, answer: Any) -> tuple[str, flo
     return best, answer.probabilities[best]
 
 
+def access_record(request: Request, status: int, seconds: float) -> dict[str, Any]:
+    """What the access log keeps about one request. Behind Modal's proxy the caller is
+    the first X-Forwarded-For hop; the socket peer is the proxy."""
+    forwarded = request.headers.get("x-forwarded-for", "")
+    ip = forwarded.split(",")[0].strip() or (request.client.host if request.client else None)
+    authorization = request.headers.get("authorization") or ""
+    if not authorization.lower().startswith("bearer "):
+        auth = "none"
+    else:
+        expected = os.environ.get("S1_API_KEY")
+        auth = "ok" if not expected or authorization[7:].strip() == expected else "bad"
+    return {
+        "event": "s1.access",
+        "ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "method": request.method,
+        "path": request.url.path,
+        "status": status,
+        "auth": auth,
+        "ip": ip,
+        "ua": request.headers.get("user-agent"),
+        "ms": round(seconds * 1000, 1),
+    }
+
+
 def create_app(scorer: ScorerProtocol | None = None, temperatures: dict[str, float] | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -250,6 +275,21 @@ def create_app(scorer: ScorerProtocol | None = None, temperatures: dict[str, flo
     app.state.device_slots = threading.Semaphore(int(os.environ.get("S1_CONCURRENCY", str(max(1, _batch_max)) if _batch_max > 1 else "1")))
     app.state.inflight = 0
     app.state.inflight_lock = threading.Lock()
+
+    # One JSON line per request on stdout (Modal keeps it: `modal app logs circuit
+    # --search s1.access`), so traffic from outside is visible. Every path is
+    # logged, not just /v1/systemone, because scanners probe others. The key
+    # itself is never written, only whether it matched.
+    @app.middleware("http")
+    async def access_log(request: Request, call_next: Any) -> Any:
+        t0 = time.perf_counter()
+        status = 500
+        try:
+            response = await call_next(request)
+            status = response.status_code
+            return response
+        finally:
+            print(json.dumps(access_record(request, status, time.perf_counter() - t0)), flush=True)
 
     def take_slot() -> bool:
         with app.state.inflight_lock:

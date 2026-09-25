@@ -259,3 +259,21 @@ def test_a_model_suffix_picks_the_plug_in_head_and_its_question_types():
         r = c.post("/v1/systemone", json={"state": "a memo", "model": "circuit-1.7b+support", "questions": score}, headers=AUTH)
         assert r.status_code == 422 and "does not answer score" in r.json()["detail"]
         assert c.get("/healthz").json()["heads"] == ["support"]
+
+
+def test_access_log_line_per_request(client, capsys, monkeypatch):
+    import json as _json
+
+    monkeypatch.setenv("S1_API_KEY", "k-right-123")
+    capsys.readouterr()
+    client.post("/v1/systemone", json=HANDOFF_EXAMPLE, headers={"Authorization": "Bearer k-right-123", "X-Forwarded-For": "203.0.113.7, 10.0.0.1"})
+    client.post("/v1/systemone", json=HANDOFF_EXAMPLE, headers={"Authorization": "Bearer k-wrong-456"})
+    client.get("/wp-login.php")
+    lines = [_json.loads(x) for x in capsys.readouterr().out.splitlines() if '"s1.access"' in x]
+    assert [(r["path"], r["status"], r["auth"]) for r in lines] == [
+        ("/v1/systemone", 200, "ok"),
+        ("/v1/systemone", 401, "bad"),
+        ("/wp-login.php", 404, "none"),
+    ]
+    assert lines[0]["ip"] == "203.0.113.7"
+    assert all("k-right" not in _json.dumps(r) and "k-wrong" not in _json.dumps(r) for r in lines)
